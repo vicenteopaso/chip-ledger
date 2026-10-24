@@ -1,0 +1,4 @@
+# Dependency build scripts are denied unless listed here (supply-chain hardening).
+allowBuilds:
+  # Ships prebuilt native bindings as optional dependencies; its postinstall is only a fallback.
+  unrs-resolver: false
