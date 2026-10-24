@@ -46,6 +46,7 @@ Never rewrite an accepted ADR to change the decision. Write a new ADR that super
 | [0001](./0001-adopt-architecture-decision-records.md) | Adopt Architecture Decision Records  | Accepted | 2026-01-01 |
 | [0002](./0002-enforce-ai-guardrails-in-ci.md)      | Enforce AI guardrails in CI             | Accepted | 2026-01-01 |
 | [0003](./0003-adopt-spec-driven-development.md)    | Adopt spec-driven development           | Accepted | 2026-01-01 |
+| [0004](./0004-chip-ledger-client-architecture.md)  | Client-side architecture for Chip Ledger | Proposed | 2026-10-24 |
 
 > Template note: ADRs 0001–0003 record decisions inherited from this template. Keep them as your project's history (update the dates), or supersede them as your practice evolves.
 

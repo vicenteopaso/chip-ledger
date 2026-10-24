@@ -6,6 +6,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Added
 
+- Chip Ledger app ([SPEC-0001](./docs/specs/0001-chip-ledger/spec.md), [ADR-0004](./docs/adr/0004-chip-ledger-client-architecture.md)): setup, table, cash out, and settle steps ported from the single-file prototype, with validated browser storage, layered code, unit/component/e2e/visual/axe tests, security headers with a nonce CSP, and photo counting through an OpenAI-compatible provider (disabled by default).
 - Initial governance baseline: Constitution, `sdd.yaml` and schema, ADRs 0001–0003, spec templates, AI guardrails, engineering and operations docs, CI workflows, PR and issue templates, and dependency-free governance scripts.
 
 ## [0.1.0] - 2026-01-01

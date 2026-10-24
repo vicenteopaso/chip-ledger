@@ -2,7 +2,7 @@
 
 Shared language for UI: tokens, patterns, and rules. Tokens are the contract between design and code; components consume tokens and never invent values.
 
-> **Template note:** this file defines the structure and rules. Fill the token tables with your brand's values and keep them in sync with the token source (CSS variables or Tailwind theme).
+Values carried over from the Chip Ledger prototype ([SPEC-0001](./specs/0001-chip-ledger/spec.md) REQ-0001-27), with two contrast fixes noted below.
 
 ## 1. Principles
 
@@ -14,43 +14,50 @@ Shared language for UI: tokens, patterns, and rules. Tokens are the contract bet
 
 ## 2. Token source of truth
 
-Tokens are defined once (default: CSS custom properties in `styles/tokens.css`, mapped into the Tailwind theme). Design tools and docs reference the same names.
+Tokens are defined once in `styles/tokens.css` as a Tailwind `@theme`, so each token is also a utility (`bg-surface`, `text-text-muted`, `rounded-xl`). Tailwind's default palette, type scale, and radii are cleared: only these values exist. Dark values apply under `prefers-color-scheme: dark` unless the root has `data-theme="light"`, and always under `data-theme="dark"`.
 
 ### Color roles
 
-Define **roles**, not raw hues. Components reference roles.
+Contrast is the lower of the ratios against `bg` and `surface`.
 
-| Role                    | Light | Dark | Used for                         | Min contrast against `bg` |
-| ----------------------- | ----- | ---- | -------------------------------- | ------------------------- |
-| `--color-bg`            |       |      | Page background                  | —                         |
-| `--color-surface`       |       |      | Cards, dialogs                   | —                         |
-| `--color-text`          |       |      | Body text                        | 4.5:1                     |
-| `--color-text-muted`    |       |      | Secondary text                   | 4.5:1                     |
-| `--color-accent`        |       |      | Links, primary actions           | 4.5:1 (text), 3:1 (UI)    |
-| `--color-border`        |       |      | Dividers, inputs                 | 3:1 for input boundaries  |
-| `--color-focus`         |       |      | Focus ring                       | 3:1                       |
-| `--color-danger`        |       |      | Errors, destructive actions      | 4.5:1                     |
-| `--color-success`       |       |      | Confirmation                     | 4.5:1                     |
+| Role                     | Light     | Dark      | Used for                              | Contrast (light / dark) |
+| ------------------------ | --------- | --------- | ------------------------------------- | ----------------------- |
+| `--color-bg`             | `#E9EFEA` | `#0B261D` | Page background                       | —                       |
+| `--color-surface`        | `#FFFFFF` | `#11342A` | Cards, fields, outlined buttons       | —                       |
+| `--color-sunk`           | `#F2F6F3` | `#0E2D23` | Count cells                           | —                       |
+| `--color-text`           | `#13241C` | `#ECF3EE` | Body text                             | 13.9 / 12.0             |
+| `--color-text-muted`     | `#56685E` | `#9AB2A5` | Secondary text, placeholders          | 5.1 / 6.0               |
+| `--color-accent`         | `#14573F` | `#43B884` | Primary actions, links, pot           | 7.3 / 5.4               |
+| `--color-accent-ink`     | `#FFFFFF` | `#06231A` | Text on accent                        | 8.5 / 6.7 on accent     |
+| `--color-border`         | `#CFDAD2` | `#22503F` | Dividers, card and button outlines    | decorative              |
+| `--color-border-control` | `#7A8B81` | `#5A8A77` | Text-field and select borders         | 3.1 / 3.5               |
+| `--color-focus`          | `#9A6E1C` | `#E3B95A` | Focus ring                            | 3.9 / 7.3               |
+| `--color-success`        | `#1D7448` | `#6CD49C` | Gains, confirmations                  | 4.9 / 7.5               |
+| `--color-danger`         | `#B0342B` | `#F28274` | Losses, mismatches, destructive       | 5.3 / 5.3               |
+| `--color-warn-bg` / `--color-warn-ink` | `#FBF1DC` / `#6B4A0E` | `#3A2F12` / `#F2D58C` | Notes; busy photo status | 7.2 / 9.2         |
 
-Validate pairs with a contrast checker or an automated test; record any exception as an ADR ([conforming alternate](./ACCESSIBILITY.md)).
+Contrast fixes against the prototype: text-field borders use `--color-border-control` (the prototype's `#CFDAD2` was 1.2:1), and the busy photo status uses `--color-warn-ink` instead of the focus gold (3.9:1 as text).
+
+Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes, and always paired with a text label.
 
 ### Typography
 
-| Token            | Value | Use                    |
-| ---------------- | ----- | ---------------------- |
-| `--font-sans`    |       | UI and body            |
-| `--font-mono`    |       | Code                   |
-| `--text-xs`…`--text-4xl` |  | Modular type scale     |
-| Line height      | 1.5 body, 1.2–1.3 headings | Readability |
+| Token                     | Value                                   | Use                                  |
+| ------------------------- | --------------------------------------- | ------------------------------------ |
+| `--font-sans`             | Bricolage Grotesque (self-hosted by `next/font`), system fallbacks | UI and body |
+| `--font-mono`             | `ui-monospace, Menlo, monospace`        | Copyable results text                |
+| `--text-xs` … `--text-5xl` | 13, 14, 15, 16, 17 (`body`), 18, 19, 20, 22, 24, 34 px | Type scale (`--text-body` is the body size) |
+| `--leading-display` / `--tracking-display` | 1.05 / −0.02em          | Step titles and the pot              |
+| Line height               | 1.4 body                                | Kept from the prototype              |
 
-Body text is at least 16 px; allow user zoom; use relative units (`rem`).
+### Spacing, radius, borders, motion
 
-### Spacing, radius, shadow, motion
-
-- **Spacing:** a 4 px base scale (`1 = 4px`, `2 = 8px`, …). No arbitrary pixel values in components.
-- **Radius:** a small named set (`none`, `sm`, `md`, `lg`, `full`).
-- **Shadow/elevation:** 3–4 named levels.
-- **Motion:** durations (150/250/400 ms) and easings as tokens. Honor `prefers-reduced-motion`.
+- **Spacing:** Tailwind's 4 px base (`--spacing: 0.25rem`); fractional steps (`p-3.5` = 14 px) express the prototype's values without arbitrary pixels.
+- **Radius:** `sm` 10, `md` 12, `lg` 14, `xl` 16, `2xl` 18 px, `full`.
+- **Borders:** `--border-control` (1.5 px) through the `border-control` utility for fields and outlined buttons.
+- **Effects:** `--blur-bar` (10 px) for the bottom bar; `--color-chip-shadow` for chip artwork.
+- **Motion:** buttons scale to 0.97 while pressed, only under `prefers-reduced-motion: no-preference`.
+- **Touch targets:** 44 px minimum. Where the prototype drew smaller controls (step tabs, remove-chip button), the hit area is enlarged without changing the drawn size.
 
 ## 3. Core patterns
 

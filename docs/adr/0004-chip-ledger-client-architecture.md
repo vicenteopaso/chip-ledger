@@ -53,6 +53,7 @@ Specifics:
 
 - Photo counting is dormant code until enabled; it must be kept passing in CI without delivering user value yet.
 - The built-in rate limiter is per server instance, so it is not sufficient on its own for a public deployment.
+- The rate limiter keeps keyed, bounded state across requests. This is the one exception to the `sdd.yaml` prohibition on shared mutable state, under the keyed-and-bounded alternative in FP-14, and it only runs when photo counting is on.
 - A returning user mid-game sees the Setup screen for one frame before saved state is applied (state lives only in the browser).
 - The nonce CSP forces dynamic rendering of the single page, so it is not served from a static cache.
 

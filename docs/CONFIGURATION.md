@@ -19,41 +19,43 @@ Columns: **Scope** is where the value is available (`Server`, `Client`, `Build`,
 
 ### Application
 
-| Variable               | Scope  | Required | Secret | Description                                      |
-| ---------------------- | ------ | -------- | ------ | ------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_URL` | Client | Yes      | No     | Canonical origin, no trailing slash              |
-| `NODE_ENV`             | Both   | Auto     | No     | Set by the framework/runtime                     |
+| Variable               | Scope  | Required | Secret | Description                                                  |
+| ---------------------- | ------ | -------- | ------ | ------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL` | Client | Prod     | No     | Canonical origin, no trailing slash. Defaults to `http://localhost:3000` |
+| `NODE_ENV`             | Both   | Auto     | No     | Set by the framework/runtime                                 |
 
-### Error tracking
+### Photo counting
 
-| Variable                    | Scope  | Required | Secret | Description                                   |
-| --------------------------- | ------ | -------- | ------ | --------------------------------------------- |
-| `SENTRY_DSN`                | Server | Prod     | No\*   | DSN for the server SDK                        |
-| `NEXT_PUBLIC_SENTRY_DSN`    | Client | Prod     | No     | DSN for the browser SDK                       |
-| `SENTRY_ENVIRONMENT`        | Both   | No       | No     | `development` / `preview` / `production`      |
-| `SENTRY_AUTH_TOKEN`         | Build  | Prod     | Yes    | Source map upload token                       |
-| `SENTRY_TRACES_SAMPLE_RATE` | Both   | No       | No     | 0.0–1.0, default 0.1                          |
+Off unless `PHOTO_COUNT_ENABLED=true` ([SPEC-0001](./specs/0001-chip-ledger/spec.md) REQ-0001-13). With it on and a key or model missing, the server fails fast naming the variable. Read SPEC-0001 §7 before enabling in production.
 
-\* Treat DSNs as low-sensitivity but do not publish server DSNs unnecessarily.
+| Variable                   | Scope  | Required     | Secret | Description                                                   |
+| -------------------------- | ------ | ------------ | ------ | ------------------------------------------------------------- |
+| `PHOTO_COUNT_ENABLED`      | Server | No           | No     | `true` turns photo counting on; anything else keeps it off    |
+| `PHOTO_COUNT_API_BASE_URL` | Server | No           | No     | OpenAI-compatible base URL. Defaults to `https://openrouter.ai/api/v1` |
+| `PHOTO_COUNT_API_KEY`      | Server | When enabled | Yes    | Provider API key                                              |
+| `PHOTO_COUNT_MODEL`        | Server | When enabled | No     | Vision-capable model id at that provider                      |
 
-### Example: third-party integration
+All of them are read only in `lib/infra/env.ts`.
 
-| Variable          | Scope  | Required | Secret | Description                       |
-| ----------------- | ------ | -------- | ------ | --------------------------------- |
-| `EXAMPLE_API_KEY` | Server | Yes      | Yes    | Key for the example service       |
+No error tracker is configured yet; errors go to platform logs through `lib/error-logging.ts`.
 
 ## 3. Configuration files
 
 | File                      | Purpose                                      |
 | ------------------------- | -------------------------------------------- |
 | `.nvmrc`                  | Node.js version (single source for local + CI) |
-| `package.json`            | Dependencies, scripts, `packageManager`, `engines` |
+| `package.json`            | Dependencies, scripts, `packageManager`, `engines`, lint-staged |
+| `pnpm-workspace.yaml`     | pnpm settings: which dependency build scripts may run |
 | `tsconfig.json`           | TypeScript (strict)                          |
 | `eslint.config.mjs`       | Lint rules, including layer boundaries       |
+| `prettier.config.mjs`     | Formatting                                   |
+| `postcss.config.mjs`      | Tailwind CSS                                 |
 | `vitest.config.ts`        | Unit tests and coverage thresholds           |
 | `playwright.config.ts`    | E2E, visual, and a11y projects               |
 | `lighthouserc.json`       | Lighthouse CI budgets                        |
-| `next.config.mjs`         | Framework config and security headers        |
+| `next.config.ts`          | Framework config; applies static security headers |
+| `lib/security-headers.ts` | Security header values and the CSP           |
+| `proxy.ts`                | Per-request CSP nonce                        |
 | `.github/workflows/*`     | CI/CD                                        |
 
 ## 4. Governance files
