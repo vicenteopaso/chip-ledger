@@ -43,6 +43,8 @@ export const GameStateSchema = z.object({
   buyIn: AmountSchema,
   currency: CurrencySchema,
   scale: z.boolean(),
+  /** Every chip shares one value (REQ-0001-28). Absent in games saved before it existed. */
+  uniformValue: z.boolean().default(false),
   players: z.array(PlayerSchema).length(PLAYER_SLOTS),
   chips: z
     .array(ChipSchema)
@@ -72,6 +74,7 @@ export function createGame(newId: IdFactory): GameState {
     buyIn: 20,
     currency: "USD",
     scale: true,
+    uniformValue: false,
     players: Array.from({ length: PLAYER_SLOTS }, () => newPlayer(newId())),
     chips: [
       { id: newId(), color: "white", count: 20, value: 0.25 },

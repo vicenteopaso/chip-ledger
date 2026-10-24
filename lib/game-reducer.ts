@@ -21,6 +21,8 @@ export type GameAction =
   | { type: "setChipColor"; chipId: string; color: ChipColor }
   | { type: "setChipCount"; chipId: string; count: number }
   | { type: "setChipValue"; chipId: string; value: number }
+  | { type: "setUniformValue"; enabled: boolean }
+  | { type: "setAllChipValues"; value: number }
   | { type: "adjustBuyins"; playerId: string; delta: 1 | -1 }
   | { type: "setPlayerChipCount"; playerId: string; chipId: string; count: number | null }
   | { type: "applyPhotoCounts"; playerId: string; counts: Partial<Record<ChipColor, number>> }
@@ -62,12 +64,10 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
     case "addChip": {
       const [color] = availableColors(game.chips.map((chip) => chip.color));
       if (!color) return game;
+      const value = game.uniformValue ? (game.chips[0]?.value ?? NEW_CHIP_VALUE) : NEW_CHIP_VALUE;
       return {
         ...game,
-        chips: [
-          ...game.chips,
-          { id: action.chipId, color, count: NEW_CHIP_COUNT, value: NEW_CHIP_VALUE },
-        ],
+        chips: [...game.chips, { id: action.chipId, color, count: NEW_CHIP_COUNT, value }],
       };
     }
     case "removeChip":
@@ -84,6 +84,17 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
       return updateChip(game, action.chipId, (chip) => ({ ...chip, count: action.count }));
     case "setChipValue":
       return updateChip(game, action.chipId, (chip) => ({ ...chip, value: action.value }));
+    case "setUniformValue": {
+      if (!action.enabled) return { ...game, uniformValue: false };
+      const value = game.chips[0]?.value ?? NEW_CHIP_VALUE;
+      return {
+        ...game,
+        uniformValue: true,
+        chips: game.chips.map((chip) => ({ ...chip, value })),
+      };
+    }
+    case "setAllChipValues":
+      return { ...game, chips: game.chips.map((chip) => ({ ...chip, value: action.value })) };
     case "adjustBuyins":
       return updatePlayer(game, action.playerId, (player) => ({
         ...player,

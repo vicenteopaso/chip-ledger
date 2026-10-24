@@ -46,6 +46,13 @@ describe("createGame", () => {
 });
 
 describe("GameStateSchema", () => {
+  it("REQ-0001-28: games saved before the same-value option load with it off", () => {
+    const older: Record<string, unknown> = { ...defaultGame() };
+    delete older.uniformValue;
+    const parsed = GameStateSchema.safeParse(older);
+    expect(parsed.success && parsed.data.uniformValue).toBe(false);
+  });
+
   it("REQ-0001-26: rejects duplicate chip colors", () => {
     const game = defaultGame();
     const chips = game.chips.map((chip) => ({ ...chip, color: "red" as const }));

@@ -115,3 +115,30 @@ describe("gameReducer", () => {
     expect(gameReducer(defaultGame(), { type: "replace", game: next })).toBe(next);
   });
 });
+
+describe("one value for all chips", () => {
+  it("AC-0001-14: turning it on copies the first row's value to every row", () => {
+    const game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    expect(game.uniformValue).toBe(true);
+    expect(game.chips.map((c) => c.value)).toEqual([0.25, 0.25, 0.25]);
+  });
+
+  it("AC-0001-14: the shared value changes every row", () => {
+    let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    game = gameReducer(game, { type: "setAllChipValues", value: 0.5 });
+    expect(game.chips.map((c) => c.value)).toEqual([0.5, 0.5, 0.5]);
+  });
+
+  it("REQ-0001-28: a new color uses the shared value while it is on", () => {
+    let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    game = gameReducer(game, { type: "addChip", chipId: "new" });
+    expect(game.chips.at(-1)?.value).toBe(0.25);
+  });
+
+  it("REQ-0001-28: turning it off keeps the current values", () => {
+    let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    game = gameReducer(game, { type: "setUniformValue", enabled: false });
+    expect(game.uniformValue).toBe(false);
+    expect(game.chips.map((c) => c.value)).toEqual([0.25, 0.25, 0.25]);
+  });
+});

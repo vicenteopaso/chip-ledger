@@ -6,7 +6,7 @@ Poker night buy-in and cash-out tracker: set up chip stacks, record rebuys, coun
 
 A single-page web app in four steps:
 
-1. **Setup** — 4, 5, or 6 players, their names, the buy-in and currency, and the chips in each starting stack (color, count, value). It warns when the stack doesn't add up to the buy-in and computes the cash-out rate.
+1. **Setup** — 4, 5, or 6 players, their names, the buy-in and currency, and the chips in each starting stack (color, count, and a value per color or one value for all chips). It warns when the stack doesn't add up to the buy-in and computes the cash-out rate.
 2. **Table** — tap + for each rebuy; the pot updates.
 3. **Cash out** — enter each player's chips; a check compares counted chips with chips issued and with the pot.
 4. **Settle** — each player's net and the fewest practical payments, with an option to spread a count mismatch across everyone. Copy the results to paste into a chat.

@@ -40,4 +40,6 @@ Ordered, small, independently verifiable. Check a box only when the done-conditi
 - [x] T-11 E2E flows, a11y (both themes), visual (both themes × mobile/desktop) _(AC-0001-01 … -13)_
 - [x] T-12 Side-by-side check against the prototype, both themes, both widths
 - [x] T-13 Update docs, `sdd.yaml`, `.env.example`, component docs; specs index
+- [x] T-15 One value for all chips _(REQ-0001-28, AC-0001-14)_
+  - Tests: reducer, schema default, SetupScreen, e2e; visual baselines refreshed
 - [ ] T-14 Set spec status to `implemented` after merge

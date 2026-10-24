@@ -116,13 +116,47 @@ export function SetupScreen({
       </div>
 
       <SectionTitle>Chips in each starting stack</SectionTitle>
-      <Hint>Color, how many each player gets, and what one chip is worth.</Hint>
+      <label className="mb-3 flex items-start gap-3 text-md">
+        <input
+          type="checkbox"
+          className="mt-px size-5.5 flex-none accent-accent"
+          checked={game.uniformValue}
+          onChange={(event) => {
+            dispatch({ type: "setUniformValue", enabled: event.target.checked });
+          }}
+        />
+        <span>Use one value for all chips</span>
+      </label>
+      {game.uniformValue && (
+        <div className="mb-3 flex items-center gap-3">
+          <label htmlFor="shared-chip-value" className="text-md">
+            Value of every chip
+          </label>
+          <DraftInput
+            id="shared-chip-value"
+            className={`${FIELD_BASE} w-28 text-center text-body`}
+            inputMode="decimal"
+            value={game.chips[0]?.value ?? 0}
+            format={String}
+            parse={parseDecimal}
+            onValueChange={(value) => {
+              dispatch({ type: "setAllChipValues", value });
+            }}
+          />
+        </div>
+      )}
+      <Hint>
+        {game.uniformValue
+          ? "Color and how many each player gets. Every chip is worth the value above."
+          : "Color, how many each player gets, and what one chip is worth."}
+      </Hint>
       {game.chips.map((chip) => (
         <ChipRow
           key={chip.id}
           chip={chip}
           usedColors={usedColors}
           canRemove={game.chips.length > 1}
+          sharedValue={game.uniformValue}
           money={money}
           onColorChange={(color) => {
             dispatch({ type: "setChipColor", chipId: chip.id, color });

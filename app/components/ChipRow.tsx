@@ -8,6 +8,8 @@ export type ChipRowProps = {
   chip: ChipData;
   usedColors: readonly ChipColor[];
   canRemove: boolean;
+  /** Every chip shares one value set elsewhere; show it as text (REQ-0001-28). */
+  sharedValue: boolean;
   money: MoneyFormatter;
   onColorChange: (color: ChipColor) => void;
   onCountChange: (count: number) => void;
@@ -23,6 +25,7 @@ export function ChipRow({
   chip,
   usedColors,
   canRemove,
+  sharedValue,
   money,
   onColorChange,
   onCountChange,
@@ -70,18 +73,24 @@ export function ChipRow({
       <span className="text-center text-text-muted" aria-hidden="true">
         ×
       </span>
-      <label htmlFor={ids.value} className="sr-only">
-        {`${label} chip value`}
-      </label>
-      <DraftInput
-        id={ids.value}
-        className={`${FIELD} text-center`}
-        inputMode="decimal"
-        value={chip.value}
-        format={String}
-        parse={parseDecimal}
-        onValueChange={onValueChange}
-      />
+      {sharedValue ? (
+        <span className="text-center text-body">{String(chip.value)}</span>
+      ) : (
+        <>
+          <label htmlFor={ids.value} className="sr-only">
+            {`${label} chip value`}
+          </label>
+          <DraftInput
+            id={ids.value}
+            className={`${FIELD} text-center`}
+            inputMode="decimal"
+            value={chip.value}
+            format={String}
+            parse={parseDecimal}
+            onValueChange={onValueChange}
+          />
+        </>
+      )}
       <button
         type="button"
         // 44px touch target in a 36px column; it overlaps only the gap beside it.
