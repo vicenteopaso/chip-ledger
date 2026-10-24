@@ -1,0 +1,43 @@
+# Tasks: SPEC-0001 Chip Ledger
+
+Ordered, small, independently verifiable. Check a box only when the done-condition holds.
+
+## Setup
+
+- [ ] T-01 Scaffold tooling: Next.js, TypeScript strict, Tailwind, ESLint (layers, a11y), Prettier, Vitest, Playwright _(all)_
+  - Done when: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` run on an empty page
+
+## Core (domain)
+
+- [ ] T-02 Game schema, defaults, selectors, and reducer _(REQ-0001-01 … -11, -23 … -26)_
+  - Tests: `test/unit/lib/game.test.ts`, `test/unit/lib/game-reducer.test.ts`
+- [ ] T-03 Money formatting and input parsing _(REQ-0001-04, -10)_
+  - Tests: `test/unit/lib/money.test.ts`
+- [ ] T-04 Setup summary and count check _(REQ-0001-06, -12)_
+  - Tests: `test/unit/lib/setup-summary.test.ts`, `test/unit/lib/count-check.test.ts`
+- [ ] T-05 Settlement and results text _(REQ-0001-18 … -22)_
+  - Tests: `test/unit/lib/settlement.test.ts`, `test/unit/lib/results-text.test.ts`
+- [ ] T-06 Photo prompt, reply schema, messages _(REQ-0001-14 … -16)_
+  - Tests: `test/unit/lib/photo-count.test.ts`
+
+## Infra
+
+- [ ] T-07 Storage, clipboard, photo-count client, vision client, rate limiter, env; error logging _(REQ-0001-13, -15, -17, -22, -25, -26)_
+  - Tests: `test/unit/lib/infra/*.test.ts`, `test/unit/lib/error-logging.test.ts`
+- [ ] T-07b `POST /api/photo-count` route handler _(REQ-0001-13, -15, -17)_
+  - Tests: `test/unit/app/api/photo-count.test.ts` — off (404), cross-origin (403), rate-limited (429), invalid (400), upstream failure (500 + one log), success
+
+## UI and wiring
+
+- [ ] T-08 Tokens and Tailwind theme matching the prototype _(REQ-0001-27)_
+- [ ] T-09 Screens and shared components _(REQ-0001-01 … -24)_
+  - Tests: `test/unit/app/components/*.test.tsx`
+- [ ] T-10 Container, layout, SEO, error pages, security headers _(REQ-0001-02, -13 … -17, -25)_
+  - Tests: `test/unit/app/ChipLedgerApp.test.tsx`
+
+## Verification and close
+
+- [ ] T-11 E2E flows, a11y (both themes), visual (both themes × mobile/desktop) _(AC-0001-01 … -13)_
+- [ ] T-12 Side-by-side check against the prototype, both themes, both widths
+- [ ] T-13 Update docs, `sdd.yaml`, `.env.example`, component docs; specs index
+- [ ] T-14 Set spec status to `implemented` after merge
