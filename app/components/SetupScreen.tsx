@@ -5,7 +5,13 @@ import { DraftInput } from "@/app/components/DraftInput";
 import { Notice } from "@/app/components/Notice";
 import { Lede, PageTitle, SectionTitle, Hint } from "@/app/components/Typography";
 import { CHIP_COLORS, MIXED } from "@/lib/chips";
-import { activePlayers, type GameState, PLAYER_COUNTS, UNIFORM_CHIP_ID } from "@/lib/game";
+import {
+  activePlayers,
+  type GameState,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  UNIFORM_CHIP_ID,
+} from "@/lib/game";
 import type { GameAction } from "@/lib/game-reducer";
 import { CURRENCIES, CurrencySchema, type MoneyFormatter, parseMoney } from "@/lib/money";
 import { setupSummary } from "@/lib/summaries";
@@ -21,6 +27,9 @@ export type SetupScreenProps = {
 
 const FIELD_BASE =
   "block min-w-0 rounded-md border-control border-border-control bg-surface px-3.5 py-3 focus:border-accent";
+/** Round-cornered − and + beside the player count: 56 px wide, 44+ px tall. */
+const PLAYERS_BUTTON =
+  "press w-14 flex-none rounded-lg border-2 border-border bg-surface py-3.5 text-3xl font-extrabold disabled:opacity-45";
 const FIELD = `${FIELD_BASE} w-full text-body`;
 
 /** The single "All colors" row has no color to change and cannot be removed. */
@@ -47,20 +56,35 @@ export function SetupScreen({
       </Lede>
 
       <SectionTitle>How many players?</SectionTitle>
-      <div className="flex gap-2" role="group" aria-label="Number of players">
-        {PLAYER_COUNTS.map((count) => (
-          <button
-            key={count}
-            type="button"
-            aria-pressed={game.count === count}
-            className="press flex-1 rounded-lg border-2 border-border bg-surface py-3.5 text-3xl font-extrabold aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-accent-ink"
-            onClick={() => {
-              dispatch({ type: "setPlayerCount", count });
-            }}
-          >
-            {count}
-          </button>
-        ))}
+      <div className="flex items-center gap-2" role="group" aria-label="Number of players">
+        <button
+          type="button"
+          className={PLAYERS_BUTTON}
+          aria-label="Fewer players"
+          disabled={game.count <= MIN_PLAYERS}
+          onClick={() => {
+            dispatch({ type: "setPlayerCount", count: game.count - 1 });
+          }}
+        >
+          −
+        </button>
+        <span
+          className="flex-1 rounded-lg border-2 border-border bg-surface py-3.5 text-center text-3xl font-extrabold"
+          aria-live="polite"
+        >
+          {game.count}
+        </span>
+        <button
+          type="button"
+          className={PLAYERS_BUTTON}
+          aria-label="More players"
+          disabled={game.count >= MAX_PLAYERS}
+          onClick={() => {
+            dispatch({ type: "setPlayerCount", count: game.count + 1 });
+          }}
+        >
+          +
+        </button>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         {activePlayers(game).map((player, index) => {

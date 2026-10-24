@@ -7,11 +7,12 @@ import { CurrencySchema, MAX_AMOUNT, MAX_COUNT, typicalBuyIn } from "@/lib/money
 export const SCREENS = ["setup", "table", "cashout", "settle"] as const;
 export type Screen = (typeof SCREENS)[number];
 
-export const PLAYER_COUNTS = [4, 5, 6] as const;
-export type PlayerCount = (typeof PLAYER_COUNTS)[number];
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 10;
+export const DEFAULT_PLAYERS = 4;
 
-/** Six slots are always kept so names survive switching the player count (REQ-0001-03). */
-export const PLAYER_SLOTS = 6;
+/** Ten slots are always kept so names survive changing the player count (REQ-0001-03). */
+export const PLAYER_SLOTS = MAX_PLAYERS;
 
 /** Stack values within half a cent of each other are treated as equal. */
 export const MONEY_EPSILON = 0.005;
@@ -38,9 +39,9 @@ export const PlayerSchema = z.object({
  * Saved game state. Same JSON shape as the prototype's `chip-ledger.v1` value (REQ-0001-25).
  * Parsed on load because browser storage is external input (REQ-0001-26, CONSTITUTION-10).
  */
-export const GameStateSchema = z.object({
+const GameFieldsSchema = z.object({
   screen: z.enum(SCREENS),
-  count: z.literal(PLAYER_COUNTS),
+  count: z.number().int().min(MIN_PLAYERS).max(MAX_PLAYERS),
   buyIn: AmountSchema,
   currency: CurrencySchema,
   scale: z.boolean(),
@@ -52,7 +53,7 @@ export const GameStateSchema = z.object({
   uniformChip: z
     .object({ count: CountSchema, value: AmountSchema })
     .default({ count: 0, value: 0 }),
-  players: z.array(PlayerSchema).length(PLAYER_SLOTS),
+  players: z.array(PlayerSchema).min(MIN_PLAYERS).max(PLAYER_SLOTS),
   chips: z
     .array(ChipSchema)
     .min(1)
@@ -61,6 +62,23 @@ export const GameStateSchema = z.object({
       message: "Chip colors must be unique",
     }),
 });
+
+export const GameStateSchema = GameFieldsSchema.refine(
+  (game) => game.count <= game.players.length,
+  { message: "Player count exceeds the player slots", path: ["count"] },
+).transform((game) => ({
+  ...game,
+  // Games saved with fewer slots (the first version kept six) get the missing ones, empty.
+  players: [
+    ...game.players,
+    ...Array.from({ length: PLAYER_SLOTS - game.players.length }, (_, i) => ({
+      id: `slot-${String(game.players.length + i + 1)}`,
+      name: "",
+      buyins: 1,
+      counts: {},
+    })),
+  ],
+}));
 
 export type Chip = z.infer<typeof ChipSchema>;
 export type Player = z.infer<typeof PlayerSchema>;
@@ -81,7 +99,7 @@ export function createGame(newId: IdFactory): GameState {
   const planned = planChips(buyIn, currency) ?? [];
   return {
     screen: "setup",
-    count: 4,
+    count: DEFAULT_PLAYERS,
     buyIn,
     currency,
     scale: true,

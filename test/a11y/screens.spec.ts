@@ -27,6 +27,14 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expectNoViolations(page);
     });
 
+    test("setup with ten players", async ({ page }) => {
+      await openFresh(page);
+      for (let i = 0; i < 6; i += 1)
+        await page.getByRole("button", { name: "More players" }).click();
+      await expect(page.getByLabel("Name of player 10")).toBeVisible();
+      await expectNoViolations(page);
+    });
+
     test("table", async ({ page }) => {
       await openFresh(page);
       await startGame(page);

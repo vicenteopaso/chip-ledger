@@ -2,8 +2,9 @@ import { planChips, planUniformChip } from "@/lib/chip-plan";
 import { availableColors, type ChipColor } from "@/lib/chips";
 import {
   type GameState,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
   type Player,
-  type PlayerCount,
   type Screen,
   stackValue,
   UNIFORM_CHIP_ID,
@@ -20,7 +21,7 @@ export const NEW_CHIP_VALUE = 5;
  */
 export type GameAction =
   | { type: "go"; screen: Screen }
-  | { type: "setPlayerCount"; count: PlayerCount }
+  | { type: "setPlayerCount"; count: number }
   | { type: "setName"; playerId: string; name: string }
   | { type: "setBuyIn"; buyIn: number }
   | { type: "setCurrency"; currency: Currency }
@@ -89,7 +90,7 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
     case "go":
       return { ...game, screen: action.screen };
     case "setPlayerCount":
-      return { ...game, count: action.count };
+      return { ...game, count: Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, action.count)) };
     case "setName":
       return updatePlayer(game, action.playerId, (player) => ({ ...player, name: action.name }));
     case "setBuyIn":

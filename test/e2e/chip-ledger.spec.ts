@@ -13,6 +13,41 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByText(/matching the buy-in/)).toBeVisible();
   });
 
+  test("AC-0001-17: player count steps from 2 to 10, keeps names, and loads older saves", async ({
+    page,
+  }) => {
+    await openFresh(page);
+    const players = page.getByRole("group", { name: "Number of players" });
+    await expect(players).toContainText("4");
+    for (let i = 0; i < 6; i += 1) await page.getByRole("button", { name: "More players" }).click();
+    await expect(players).toContainText("10");
+    await expect(page.getByRole("button", { name: "More players" })).toBeDisabled();
+    await expect(page.getByLabel(/^Name of player/)).toHaveCount(10);
+    await page.getByLabel("Name of player 7").fill("Gus");
+    for (let i = 0; i < 8; i += 1)
+      await page.getByRole("button", { name: "Fewer players" }).click();
+    await expect(players).toContainText("2");
+    await expect(page.getByRole("button", { name: "Fewer players" })).toBeDisabled();
+    await expect(page.getByLabel(/^Name of player/)).toHaveCount(2);
+    for (let i = 0; i < 8; i += 1) await page.getByRole("button", { name: "More players" }).click();
+    await expect(page.getByLabel("Name of player 7")).toHaveValue("Gus");
+
+    // A game saved by the first version had six player slots and a count of 4 to 6.
+    await page.evaluate(() => {
+      const game = JSON.parse(localStorage.getItem("chip-ledger.v1") ?? "{}") as {
+        count: number;
+        players: unknown[];
+      };
+      localStorage.setItem(
+        "chip-ledger.v1",
+        JSON.stringify({ ...game, count: 5, players: game.players.slice(0, 6) }),
+      );
+    });
+    await page.reload();
+    await expect(players).toContainText("5");
+    await expect(page.getByLabel(/^Name of player/)).toHaveCount(5);
+  });
+
   test("AC-0001-02, -03: setup summary and start button follow buy-in and chips", async ({
     page,
   }) => {

@@ -45,4 +45,5 @@ Ordered, small, independently verifiable. Check a box only when the done-conditi
 - [x] T-16 Auto-balanced chips and currency support _(REQ-0001-29, -30, AC-0001-15, -16)_
   - Tests: planner, money, reducer, settlement in whole units, Setup, e2e
 - [x] T-17 EUR 10 default, Settle "Back to Setup", pot as plain text _(REQ-0001-02, -09, -26)_
+- [x] T-18 Player count 2–10 with a − / + stepper _(REQ-0001-03, AC-0001-17)_
 - [ ] T-14 Set spec status to `implemented` after merge

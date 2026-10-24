@@ -45,14 +45,30 @@ function StatefulSetup({ onAction }: { onAction: (action: GameAction) => void })
 }
 
 describe("SetupScreen", () => {
-  it("REQ-0001-03: picks the player count and names players", async () => {
+  it("REQ-0001-03: steps the player count with − and + and names players", async () => {
     const { dispatch } = renderSetup();
-    expect(screen.getByRole("button", { name: "4" })).toHaveAttribute("aria-pressed", "true");
-    await userEvent.click(screen.getByRole("button", { name: "6" }));
-    expect(dispatch).toHaveBeenCalledWith({ type: "setPlayerCount", count: 6 });
+    expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("4");
+    await userEvent.click(screen.getByRole("button", { name: "More players" }));
+    expect(dispatch).toHaveBeenCalledWith({ type: "setPlayerCount", count: 5 });
+    await userEvent.click(screen.getByRole("button", { name: "Fewer players" }));
+    expect(dispatch).toHaveBeenLastCalledWith({ type: "setPlayerCount", count: 3 });
     expect(screen.getAllByRole("textbox", { name: /Name of player/ })).toHaveLength(4);
     await userEvent.type(screen.getByLabelText("Name of player 2"), "B");
     expect(dispatch).toHaveBeenCalledWith({ type: "setName", playerId: "p2", name: "B" });
+  });
+
+  it("AC-0001-17: stops at 2 and 10 players and shows a name field for each", async () => {
+    render(<StatefulSetup onAction={vi.fn()} />);
+    const more = screen.getByRole("button", { name: "More players" });
+    const fewer = screen.getByRole("button", { name: "Fewer players" });
+    for (let i = 0; i < 6; i += 1) await userEvent.click(more);
+    expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("10");
+    expect(more).toBeDisabled();
+    expect(screen.getAllByRole("textbox", { name: /Name of player/ })).toHaveLength(10);
+    for (let i = 0; i < 8; i += 1) await userEvent.click(fewer);
+    expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("2");
+    expect(fewer).toBeDisabled();
+    expect(screen.getAllByRole("textbox", { name: /Name of player/ })).toHaveLength(2);
   });
 
   it("REQ-0001-04: keeps in-progress decimal text while sending the parsed buy-in", async () => {

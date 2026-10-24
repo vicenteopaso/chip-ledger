@@ -30,7 +30,7 @@ describe("createGame", () => {
       uniformValue: false,
       autoChips: true,
     });
-    expect(game.players).toHaveLength(6);
+    expect(game.players).toHaveLength(10);
     expect(game.players.every((p) => p.buyins === 1 && p.name === "")).toBe(true);
     expect(game.chips.map((c) => [c.color, c.count, c.value])).toEqual([
       ["white", 22, 0.1],
@@ -75,12 +75,34 @@ describe("GameStateSchema", () => {
     expect(GameStateSchema.safeParse({ ...game, chips }).success).toBe(false);
   });
 
-  it("REQ-0001-26: rejects a player count outside 4–6 and a wrong number of slots", () => {
+  it("REQ-0001-03, -26: rejects a player count outside 2–10 or beyond the saved slots", () => {
     const game = defaultGame();
-    expect(GameStateSchema.safeParse({ ...game, count: 7 }).success).toBe(false);
-    expect(GameStateSchema.safeParse({ ...game, players: game.players.slice(0, 5) }).success).toBe(
+    expect(GameStateSchema.safeParse({ ...game, count: 1 }).success).toBe(false);
+    expect(GameStateSchema.safeParse({ ...game, count: 11 }).success).toBe(false);
+    expect(GameStateSchema.safeParse({ ...game, count: 2 }).success).toBe(true);
+    expect(GameStateSchema.safeParse({ ...game, count: 10 }).success).toBe(true);
+    const five = game.players.slice(0, 5);
+    expect(GameStateSchema.safeParse({ ...game, count: 6, players: five }).success).toBe(false);
+    expect(GameStateSchema.safeParse({ ...game, players: game.players.slice(0, 1) }).success).toBe(
       false,
     );
+  });
+
+  it("AC-0001-17: a game saved with six slots loads with ten", () => {
+    const game = defaultGame();
+    const six = game.players.slice(0, 6).map((p, i) => ({ ...p, name: `P${String(i + 1)}` }));
+    const parsed = GameStateSchema.safeParse({ ...game, count: 5, players: six });
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.count).toBe(5);
+    expect(parsed.data.players).toHaveLength(10);
+    expect(parsed.data.players.slice(0, 6).map((p) => p.name)).toEqual(six.map((p) => p.name));
+    expect(parsed.data.players.slice(6).map((p) => [p.id, p.name, p.buyins])).toEqual([
+      ["slot-7", "", 1],
+      ["slot-8", "", 1],
+      ["slot-9", "", 1],
+      ["slot-10", "", 1],
+    ]);
   });
 });
 

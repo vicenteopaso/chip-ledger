@@ -13,11 +13,16 @@ describe("gameReducer", () => {
   });
 
   it("REQ-0001-03: switching player count keeps every slot's name", () => {
-    let game = gameReducer(defaultGame(), { type: "setName", playerId: "p6", name: "Fay" });
+    let game = gameReducer(defaultGame(), { type: "setName", playerId: "p7", name: "Gus" });
     game = gameReducer(game, { type: "setPlayerCount", count: 4 });
-    game = gameReducer(game, { type: "setPlayerCount", count: 6 });
-    expect(game.count).toBe(6);
-    expect(player(game, "p6")?.name).toBe("Fay");
+    game = gameReducer(game, { type: "setPlayerCount", count: 10 });
+    expect(game.count).toBe(10);
+    expect(player(game, "p7")?.name).toBe("Gus");
+  });
+
+  it("REQ-0001-03: keeps the player count between 2 and 10", () => {
+    expect(gameReducer(defaultGame(), { type: "setPlayerCount", count: 1 }).count).toBe(2);
+    expect(gameReducer(defaultGame(), { type: "setPlayerCount", count: 11 }).count).toBe(10);
   });
 
   it("REQ-0001-04: sets buy-in and currency", () => {
