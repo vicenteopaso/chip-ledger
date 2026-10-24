@@ -1,6 +1,6 @@
-# {{PROJECT_NAME}}
+# chip-ledger
 
-{{PROJECT_DESCRIPTION}}
+Poker night buy-in and cash-out tracker: set up chip stacks, record rebuys, count chips, and see who pays whom.
 
 > **Using this as a template?** Read [`TEMPLATE_SETUP.md`](./TEMPLATE_SETUP.md) first. It takes about 15 minutes and ends with a repository that has no placeholders left. Delete this notice when done.
 

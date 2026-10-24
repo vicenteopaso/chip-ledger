@@ -10,9 +10,9 @@
 # `node scripts/init-template.mjs`.
 
 version: 1
-name: "{{PROJECT_NAME}}"
+name: "chip-ledger"
 description: >
-  {{PROJECT_DESCRIPTION}}
+  Poker night buy-in and cash-out tracker: set up chip stacks, record rebuys, count chips, and see who pays whom.
 status: active # draft | active | deprecated
 
 principles:

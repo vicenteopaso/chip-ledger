@@ -8,11 +8,11 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 - Initial governance baseline: Constitution, `sdd.yaml` and schema, ADRs 0001–0003, spec templates, AI guardrails, engineering and operations docs, CI workflows, PR and issue templates, and dependency-free governance scripts.
 
-## [0.1.0] - {{YEAR}}-01-01
+## [0.1.0] - 2026-01-01
 
 ### Added
 
 - First release of the template.
 
-[Unreleased]: https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/releases/tag/v0.1.0
+[Unreleased]: https://github.com/vicenteopaso/chip-ledger/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/vicenteopaso/chip-ledger/releases/tag/v0.1.0

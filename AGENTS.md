@@ -1,4 +1,4 @@
-# AGENTS.md — {{PROJECT_NAME}}
+# AGENTS.md — chip-ledger
 
 Entry point for AI coding agents (Claude Code, Codex, Cursor, Copilot, and others). Humans: see [`README.md`](./README.md) and [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 

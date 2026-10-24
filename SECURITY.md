@@ -4,7 +4,7 @@
 
 Please report security issues **privately**:
 
-- Use [GitHub private vulnerability reporting](https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/security/advisories/new), or
+- Use [GitHub private vulnerability reporting](https://github.com/vicenteopaso/chip-ledger/security/advisories/new), or
 - Email **{{SECURITY_CONTACT}}**.
 
 Do not open public issues or pull requests for new, undisclosed vulnerabilities.
