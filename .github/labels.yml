@@ -1,0 +1,66 @@
+# Repository labels, synced by .github/workflows/sync-labels.yml.
+# Release Drafter maps several of these to changelog sections
+# (see .github/release-drafter.yml). Dependabot needs `dependencies` and
+# `github-actions`.
+
+# Dependabot
+- name: dependencies
+  description: Pull requests that update a dependency file
+  color: "0366d6"
+- name: github-actions
+  description: Pull requests that update GitHub Actions workflows
+  color: "000000"
+
+# Type
+- name: enhancement
+  description: New feature or request
+  color: "a2eeef"
+- name: feature
+  description: New feature
+  color: "1d76db"
+- name: bug
+  description: Something isn't working
+  color: "d73a4a"
+- name: fix
+  description: Bug fix
+  color: "d73a4a"
+- name: documentation
+  description: Improvements or additions to documentation
+  color: "0075ca"
+- name: docs
+  description: Documentation changes
+  color: "0075ca"
+- name: chore
+  description: Maintenance or housekeeping
+  color: "fef2c0"
+- name: refactor
+  description: Code change without behavior change
+  color: "fef2c0"
+- name: security
+  description: Security-related issue or change
+  color: "b60205"
+
+# Governance
+- name: architecture-change
+  description: Requires a linked ADR (enforced by pr-template-check)
+  color: "5319e7"
+- name: constitution-amendment
+  description: Changes docs/CONSTITUTION.md; requires ADR and code-owner approval
+  color: "5319e7"
+- name: needs-spec
+  description: Needs a feature spec before implementation
+  color: "c5def5"
+
+# Versioning (Release Drafter)
+- name: major
+  description: Major version bump
+  color: "b60205"
+- name: minor
+  description: Minor version bump
+  color: "fbca04"
+- name: patch
+  description: Patch version bump
+  color: "0e8a16"
+- name: skip-changelog
+  description: Exclude from release notes
+  color: "ededed"

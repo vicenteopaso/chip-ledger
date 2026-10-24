@@ -1,0 +1,103 @@
+name: Bug report
+description: Something is broken or behaves differently from the spec
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. A reproducible report is the fastest path to a fix.
+        **Security issue?** Do not file it here. See SECURITY.md.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '…'
+        2. Click '…'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened? Link the spec or requirement ID if one exists.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser(s)
+      multiple: true
+      options: [Chrome, Firefox, Safari, Edge, Other, Not applicable]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device type
+      options: [Desktop, Mobile, Tablet, Not applicable]
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Release tag, deployed URL, or commit SHA.
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, logs, or console errors
+      description: Redact secrets and personal data.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Viewport, network, assistive technology, theme (light/dark/high contrast).
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true
+        - label: I removed secrets and personal data from this report
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ### For whoever fixes this (human or AI agent)
+
+        Read `AGENTS.md`, then:
+
+        1. **Reproduce** the bug and **state the root cause** before changing code.
+        2. Add a **regression test** that fails without the fix (cite the requirement ID if there is one).
+        3. If the bug reveals the spec was wrong or silent, update the spec in the same PR.
+        4. Run `pnpm verify`. Do not skip, weaken, or delete tests.
+        5. Open a PR with the template; list anything you could not verify.

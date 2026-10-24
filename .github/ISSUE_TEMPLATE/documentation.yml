@@ -1,0 +1,78 @@
+name: Documentation issue
+description: Something in the docs is wrong, missing, or unclear
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Docs are part of the product: stale or contradictory documentation is a defect.
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Document type
+      options:
+        - README / setup
+        - Constitution / sdd.yaml / ADR / spec
+        - Engineering standards or architecture
+        - Testing
+        - Security
+        - Deployment / release / configuration
+        - Component documentation
+        - AI agent instructions
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: File path and section, or URL.
+      placeholder: "docs/DEPLOYMENT.md, section 6"
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong, missing, or unclear?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested fix
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "Low — typo or formatting"
+        - "Medium — missing or unclear"
+        - "High — incorrect or blocks someone"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked this against the latest `main`
+          required: true
+        - label: I searched existing issues
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ### For whoever fixes this (human or AI agent)
+
+        - Fix the docs **and** whatever contradicts them (code, `sdd.yaml`, other docs). Higher-precedence documents win; see the Constitution.
+        - Update `docs/README.md` if you add or remove a document, and keep relative links valid: `node scripts/check-doc-links.mjs`.
+        - If the fix reveals a rule worth enforcing, add a lint rule, CI check, or `FORBIDDEN_PATTERNS` entry.

@@ -1,0 +1,86 @@
+name: Deploy
+
+# TEMPLATE: Vercel prebuilt-deploy pattern. Replace the platform steps if you host elsewhere;
+# keep the shape: build in CI, deploy the prebuilt artifact, preview per PR, production from main.
+#
+# The job is skipped until the DEPLOY_PROJECT_ID repository variable is set, so a fresh
+# repository from this template stays green. Setup: docs/DEPLOYMENT.md §3.
+#
+# Production deploys wait for CI by running on the `main` push; also set branch protection so
+# nothing reaches `main` without green required checks. Disable the platform's own
+# Git-triggered deploys so a commit cannot bypass CI.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_CLI_VERSION: "65.2.0"
+  VERCEL_ORG_ID: ${{ vars.DEPLOY_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ vars.DEPLOY_PROJECT_ID }}
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ vars.DEPLOY_PROJECT_ID != '' && github.event.pull_request.head.repo.fork != true }}
+    environment: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup application
+        id: app
+        uses: ./.github/actions/setup-app
+
+      - name: Pull platform settings
+        if: steps.app.outputs.present == 'true'
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          TARGET: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+        run: npx --yes vercel@${VERCEL_CLI_VERSION} pull --yes --environment="$TARGET" --token="$DEPLOY_TOKEN"
+
+      - name: Build
+        if: steps.app.outputs.present == 'true'
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          PROD_FLAG: ${{ github.event_name == 'push' && '--prod' || '' }}
+        run: npx --yes vercel@${VERCEL_CLI_VERSION} build $PROD_FLAG --token="$DEPLOY_TOKEN"
+
+      - name: Deploy prebuilt artifact
+        id: deploy
+        if: steps.app.outputs.present == 'true'
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          PROD_FLAG: ${{ github.event_name == 'push' && '--prod' || '' }}
+        run: |
+          url=$(npx --yes vercel@${VERCEL_CLI_VERSION} deploy --prebuilt $PROD_FLAG --token="$DEPLOY_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed: $url"
+
+      - name: Comment preview URL on the PR
+        if: steps.app.outputs.present == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: `Preview deployed: ${process.env.PREVIEW_URL}`,
+            });

@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "System Design & Development Spec",
+  "type": "object",
+  "properties": {
+    "version": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "status": { "enum": ["draft", "active", "deprecated"] },
+    "principles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "constitution": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "enforcement": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^CONSTITUTION-(\\d{2}|OPT-[A-Z0-9]+)$"
+          },
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^(ci:[a-z0-9-]+|script:[a-z0-9-]+|lint|hook|review|codeowners)$"
+            }
+          }
+        }
+      },
+      "required": ["path", "enforcement"]
+    },
+    "stack": { "type": "object" },
+    "standards": {
+      "type": "object",
+      "properties": {
+        "coding": { "type": "object" },
+        "architecture": {
+          "type": "object",
+          "properties": {
+            "patterns": { "type": "array", "items": { "type": "string" } },
+            "layers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "paths": { "type": "array", "items": { "type": "string" } },
+                  "may-import": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "must-not-import": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "rules": { "type": "string" }
+                },
+                "required": ["paths", "may-import", "rules"]
+              }
+            },
+            "prohibited": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["layers"]
+        }
+      },
+      "required": ["coding", "architecture"]
+    },
+    "accessibility": { "type": "object" },
+    "performance": { "type": "object" },
+    "security": { "type": "object" },
+    "devex": {
+      "type": "object",
+      "properties": {
+        "commands": { "type": "object" },
+        "ci": {
+          "type": "object",
+          "properties": {
+            "required-checks": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" }
+            },
+            "coverage-thresholds": {
+              "type": "object",
+              "properties": {
+                "lines": { "type": "number", "minimum": 0, "maximum": 100 },
+                "statements": { "type": "number", "minimum": 0, "maximum": 100 },
+                "branches": { "type": "number", "minimum": 0, "maximum": 100 },
+                "functions": { "type": "number", "minimum": 0, "maximum": 100 }
+              }
+            }
+          },
+          "required": ["required-checks"]
+        },
+        "pr": { "type": "object" }
+      },
+      "required": ["commands", "ci"]
+    },
+    "specs": { "type": "object" },
+    "adr": { "type": "object" },
+    "ai-governance": {
+      "type": "object",
+      "properties": {
+        "sources-of-truth": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "autonomy": {
+          "type": "object",
+          "properties": {
+            "autonomous": { "type": "array", "items": { "type": "string" } },
+            "ask-first": { "type": "array", "items": { "type": "string" } },
+            "never": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["autonomous", "ask-first", "never"]
+        },
+        "rules": { "type": "array", "items": { "type": "string" } },
+        "safety": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["sources-of-truth", "rules"]
+    }
+  },
+  "required": [
+    "version",
+    "name",
+    "principles",
+    "constitution",
+    "standards",
+    "devex",
+    "ai-governance"
+  ],
+  "additionalProperties": true
+}

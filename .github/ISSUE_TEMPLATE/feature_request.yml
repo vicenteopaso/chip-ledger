@@ -1,0 +1,99 @@
+name: Feature request
+description: Propose a new capability or enhancement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem first. Solutions are welcome, but a clear problem statement is what becomes the spec.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Who is affected, what are they trying to do, and what gets in the way?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: How would we know it works?
+      description: Observable outcomes, ideally as Given / When / Then.
+      placeholder: "Given …, when …, then …"
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Area
+      options:
+        - UI/UX
+        - Accessibility
+        - Performance
+        - SEO
+        - Security
+        - Content
+        - Developer experience
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Change tier (your best guess)
+      description: Tier 1 = new behavior. Tier 2 = new layer, security model, data model, or public API. See docs/SDD_GUIDE.md.
+      options: ["1 — feature or behavior change", "2 — architectural or security-relevant", "Not sure"]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (your assessment)
+      options: ["Low — nice to have", "Medium — improves the experience", "High — needed for a critical use case"]
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups or examples
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true
+        - label: I considered accessibility and security implications
+          required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ### For whoever implements this (human or AI agent)
+
+        Read `AGENTS.md`, then follow `docs/SDD_GUIDE.md`:
+
+        1. Draft `docs/specs/NNNN-slug/spec.md`. Resolve every `[NEEDS CLARIFICATION]` before planning.
+        2. Tier 2: write the plan and an ADR, and wait for human approval before implementing.
+        3. Meet WCAG 2.1 AA; add unit, e2e, visual, and a11y tests as the change warrants.
+        4. Update docs, `sdd.yaml`, `.env.example`, and `docs/CONFIGURATION.md` as needed.
+        5. Run `pnpm verify`; open a PR with the template.

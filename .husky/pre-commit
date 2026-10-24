@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+# Pre-commit: fast checks only. Enable with:  git config core.hooksPath .husky
+# (If you adopt Husky, `pnpm exec husky` sets this up and uses this same file.)
+
+# Extend PATH for GUI git clients that start with a minimal shell.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# A repo-local core.hooksPath shadows any global hooks directory. Chain a global
+# pre-commit (for example a personal secret-scan safety net) so enabling this
+# hook never silently disables it.
+global_hooks=$(git config --global --get core.hooksPath 2>/dev/null)
+if [ -n "$global_hooks" ]; then
+  case "$global_hooks" in
+    "~"/*) global_hooks="$HOME/${global_hooks#\~/}" ;;
+  esac
+  global_hook="$global_hooks/pre-commit"
+  if [ -x "$global_hook" ]; then
+    "$global_hook" || exit $?
+  fi
+fi
+
+# Secret scan on changed files (dependency-free)
+node scripts/scan-secrets.mjs --changed || exit $?
+
+# Format and lint staged files when the application tooling is installed
+if [ -f package.json ] && grep -q '"lint-staged"' package.json; then
+  if command -v corepack >/dev/null 2>&1; then
+    corepack pnpm lint-staged
+  else
+    pnpm lint-staged
+  fi
+fi

@@ -1,0 +1,24 @@
+# Code owners are automatically requested for review, and with branch protection
+# "Require review from Code Owners" their approval is mandatory.
+# Replace the handle with real users or teams (for example @acme/platform).
+
+# Default owner
+*                         @{{GITHUB_OWNER}}
+
+# Governance: changes here alter what every other change is held to
+/docs/CONSTITUTION.md     @{{GITHUB_OWNER}}
+/sdd.yaml                 @{{GITHUB_OWNER}}
+/sdd.schema.json          @{{GITHUB_OWNER}}
+/docs/adr/                @{{GITHUB_OWNER}}
+/AGENTS.md                @{{GITHUB_OWNER}}
+/CLAUDE.md                @{{GITHUB_OWNER}}
+/.claude/                 @{{GITHUB_OWNER}}
+
+# Gates and automation: a PR must not be able to quietly weaken its own checks
+/.github/                 @{{GITHUB_OWNER}}
+/scripts/                 @{{GITHUB_OWNER}}
+/.husky/                  @{{GITHUB_OWNER}}
+
+# Security-sensitive
+/SECURITY.md              @{{GITHUB_OWNER}}
+/docs/SECURITY_POLICY.md  @{{GITHUB_OWNER}}

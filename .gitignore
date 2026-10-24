@@ -1,0 +1,44 @@
+# dependencies
+node_modules
+.pnpm-store/
+
+# build output
+/.next/
+/out/
+/build
+/dist
+.turbo
+
+# testing
+/coverage
+playwright-report
+test-results
+blob-report
+.lighthouseci
+
+# env files (keep the example)
+.env
+.env*.local
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# platform
+.vercel
+
+# editors
+.vscode
+.idea
+
+# Claude Code: commit shared commands; ignore machine-local state
+.claude/settings.local.json
+.claude/worktrees/
+
+# MCP / agent debug output (local only)
+.playwright-mcp/

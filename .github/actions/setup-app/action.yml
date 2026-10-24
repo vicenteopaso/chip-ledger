@@ -1,0 +1,37 @@
+name: Setup application
+description: >
+  Detects whether the repository contains an application (package.json) and, if so,
+  enables Corepack, sets up Node from .nvmrc, and installs dependencies from the
+  frozen lockfile. Lets governance-only repositories pass CI before any app code exists.
+
+outputs:
+  present:
+    description: "'true' when package.json exists and dependencies were installed"
+    value: ${{ steps.detect.outputs.present }}
+
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        if [ -f package.json ]; then
+          echo "present=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "present=false" >> "$GITHUB_OUTPUT"
+          echo "No package.json found; application steps will be skipped."
+        fi
+
+    - if: steps.detect.outputs.present == 'true'
+      shell: bash
+      run: corepack enable
+
+    - if: steps.detect.outputs.present == 'true'
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: ".nvmrc"
+        cache: "pnpm"
+
+    - if: steps.detect.outputs.present == 'true'
+      shell: bash
+      run: pnpm install --frozen-lockfile

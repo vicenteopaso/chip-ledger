@@ -1,0 +1,261 @@
+# System Design & Development Spec (SDD)
+#
+# Machine-readable source of truth for this system. Subordinate only to
+# docs/CONSTITUTION.md. Validated against sdd.schema.json and cross-checked by
+# scripts/check-sdd-refs.mjs in CI.
+#
+# Lines marked "TEMPLATE:" are defaults for a typical Next.js + TypeScript web
+# app. Change them to match your project, then delete the marker.
+# Double-brace tokens (PROJECT_NAME, PROJECT_DESCRIPTION) are filled in by
+# `node scripts/init-template.mjs`.
+
+version: 1
+name: "{{PROJECT_NAME}}"
+description: >
+  {{PROJECT_DESCRIPTION}}
+status: active # draft | active | deprecated
+
+principles:
+  - spec-first
+  - clean-code
+  - accessibility
+  - security-first
+  - test-driven-changes
+  - performance-budgets
+  - tool-agnostic-governance
+
+# ---------------------------------------------------------------------------
+# Constitution traceability
+# Every CONSTITUTION-NN invariant MUST list at least one enforcement mechanism.
+# Vocabulary: ci:<check-id> | lint | hook | review | codeowners | script:<name>
+# ---------------------------------------------------------------------------
+constitution:
+  path: docs/CONSTITUTION.md
+  enforcement:
+    CONSTITUTION-01: [review, ci:pr-template-check]
+    CONSTITUTION-02: [review, ci:pr-template-check]
+    CONSTITUTION-03: [ci:sdd-check, script:check-sdd-refs]
+    CONSTITUTION-04: [lint, review]
+    CONSTITUTION-05: [lint, review]
+    CONSTITUTION-06: [review, ci:verify]
+    CONSTITUTION-07: [codeowners, review, ci:pr-template-check]
+    CONSTITUTION-08: [codeowners, review, ci:codeql]
+    CONSTITUTION-09: [hook, ci:audit-secrets]
+    CONSTITUTION-10: [lint, review]
+    CONSTITUTION-11: [lint, review]
+    CONSTITUTION-12: [lint, ci:test-a11y]
+    CONSTITUTION-13: [ci:test-coverage-check, ci:verify, review]
+    CONSTITUTION-14: [codeowners, review]
+    CONSTITUTION-15: [ci:lighthouse]
+    CONSTITUTION-16: [ci:sdd-check, review]
+    CONSTITUTION-17: [codeowners, review]
+    CONSTITUTION-18: [ci:verify, review]
+
+# ---------------------------------------------------------------------------
+# Stack  (TEMPLATE: defaults — replace with your choices)
+# ---------------------------------------------------------------------------
+stack:
+  runtime: node-lts # pinned in .nvmrc
+  package-manager: pnpm
+  framework: nextjs-app-router
+  language: typescript-strict
+  styling:
+    - tailwindcss
+  validation: zod
+  testing:
+    unit: vitest
+    component: testing-library
+    e2e: playwright
+    visual: playwright-visual
+    a11y: axe
+  hosting: vercel
+
+# ---------------------------------------------------------------------------
+# Standards
+# ---------------------------------------------------------------------------
+standards:
+  coding:
+    languages: [ts, tsx]
+    linting:
+      command: pnpm lint
+      config: eslint.config.mjs
+    formatting:
+      command: pnpm format
+      tool: prettier
+    typechecking:
+      command: pnpm typecheck
+  architecture:
+    patterns:
+      - server-components-first
+      - presentational-components
+      - pure-logic-in-lib
+      - schema-validated-boundaries
+    # Layer contract. Enforce with lint import rules (no-restricted-imports /
+    # eslint-plugin-boundaries / dependency-cruiser). Paths are TEMPLATE defaults.
+    layers:
+      ui:
+        paths: ["app/components"]
+        may-import: [domain]
+        must-not-import: [api, infra]
+        rules: "UI only. No fs, no process.env, no direct datastore access. Props in, events out."
+      api:
+        paths: ["app/api"]
+        may-import: [domain, infra]
+        must-not-import: [ui]
+        rules: "Schema validation, auth, and side effects only. Business rules live in the domain layer."
+      domain:
+        paths: ["lib"]
+        may-import: []
+        must-not-import: [ui, api]
+        rules: "Pure, framework-agnostic helpers with unit tests. No React imports."
+      infra:
+        paths: ["lib/infra"]
+        may-import: [domain]
+        must-not-import: [ui]
+        rules: "Adapters for external services (datastore, email, queues). Only layer allowed to read secrets."
+    prohibited:
+      - shared mutable state across requests or routes
+      - cross-layer imports that violate the layer contract
+      - bypassing centralized error logging, validation, or sanitization helpers
+
+accessibility:
+  targets: [wcag-2.1-aa]
+  checks:
+    manual: [keyboard-navigation, screen-reader-labeling]
+    automated:
+      - "pnpm test:a11y (axe, light and dark themes)"
+
+performance:
+  budgets: # TEMPLATE: tune per project
+    lighthouse-performance: 90
+    lighthouse-accessibility: 95
+    lighthouse-seo: 95
+
+security:
+  headers: next.config.mjs # TEMPLATE: where CSP and security headers live
+  secrets-management:
+    - "No secrets in the repo; read from environment variables only."
+    - "Secret scanning runs in CI (scripts/scan-secrets.mjs) and in the pre-commit hook."
+    - "docs/CONFIGURATION.md is the inventory of every variable; .env.example must match it."
+  rules:
+    - "Do not weaken CSP, CORS, rate limits, or security headers without an ADR."
+    - "Validate every external input with a schema at the boundary."
+  external-services: [] # TEMPLATE: list third-party services and what data they receive
+
+# ---------------------------------------------------------------------------
+# Developer experience and CI
+# ---------------------------------------------------------------------------
+devex:
+  commands:
+    dev: pnpm dev
+    build: pnpm build
+    test-unit: pnpm test
+    test-e2e: pnpm test:e2e
+    test-visual: pnpm test:visual
+    test-a11y: pnpm test:a11y
+    coverage: pnpm coverage
+    lint: pnpm lint
+    typecheck: pnpm typecheck
+    verify: pnpm verify # lint + typecheck + coverage + build + e2e
+    check-docs: node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs
+  ci:
+    # Each ID is a CI job name (the `name:` of a job in .github/workflows) and is
+    # referenced as ci:<id> in constitution.enforcement. Mirror this list in your
+    # branch protection rules (Settings > Branches > Require status checks).
+    required-checks:
+      - pr-template-check # PR title/body match the template; ADR linked when required
+      - test-coverage-check # code changes include test changes
+      - sdd-check # sdd.yaml schema, constitution traceability, doc links
+      - audit-secrets # secret scan of tracked files
+      - verify # lint, typecheck, unit tests + coverage, build
+      - test-e2e # end-to-end user flows
+      - test-a11y # axe accessibility audits
+      - codeql # static security analysis
+      - lighthouse # performance / a11y / SEO budgets
+    coverage-thresholds:
+      lines: 90
+      statements: 90
+      branches: 85
+      functions: 90
+      enforcement: fail-on-violation
+      config-file: vitest.config.ts
+    ai-guardrails:
+      test-coverage-check: "Code changes under code-paths require test changes (scripts/check-pr-tests.mjs)."
+      pr-template-check: "PR title and body must match the PR template; architecture-change PRs must link an ADR (scripts/check-pr-body.mjs)."
+  pr:
+    template: .github/PULL_REQUEST_TEMPLATE.md
+    title-format: "type: summary  (feat|fix|chore|docs|refactor|test|perf|ci)"
+    adr-required-for: [architecture-change, constitution-amendment]
+
+# ---------------------------------------------------------------------------
+# Spec-driven development
+# ---------------------------------------------------------------------------
+specs:
+  directory: docs/specs
+  template: docs/specs/_template
+  naming: "NNNN-short-slug"
+  statuses: [draft, approved, implemented, superseded]
+  required-for:
+    - behavior-change
+    - architecture-change
+    - security-change
+  exempt:
+    - typo-and-copy-fixes
+    - dependency-patch-updates
+    - refactors-without-behavior-change
+adr:
+  directory: docs/adr
+  template: docs/adr/0000-adr-template.md
+  statuses: [proposed, accepted, deprecated, superseded]
+
+# ---------------------------------------------------------------------------
+# AI governance
+# ---------------------------------------------------------------------------
+ai-governance:
+  entry-points: [AGENTS.md, CLAUDE.md, .github/copilot-instructions.md]
+  sources-of-truth:
+    - ./docs/CONSTITUTION.md
+    - ./sdd.yaml
+    - ./docs/SDD_GUIDE.md
+    - ./docs/ARCHITECTURE.md
+    - ./docs/AI_GUARDRAILS.md
+    - ./docs/FORBIDDEN_PATTERNS.md
+  autonomy:
+    autonomous:
+      - "Implement an approved spec within its stated scope"
+      - "Add or update tests, docs, and types for that work"
+      - "Run lint, typecheck, tests, and local builds"
+    ask-first:
+      - "Add a dependency or change a major version"
+      - "Change the public API, data model, or sdd.yaml"
+      - "Touch auth, payments, security headers, CI config, or permission scopes"
+      - "Delete files or data outside the task's own changes"
+    never:
+      - "Weaken a security control, quality gate, or test to make a change pass"
+      - "Commit secrets or push directly to main"
+      - "Present a partial or placeholder deliverable as finished"
+  decision-criteria:
+    component-placement: |
+      UI components belong in the ui layer (stateless, props in, events out).
+      Business logic belongs in the domain layer (no framework imports).
+      API routes validate input and call services; they do not contain business rules.
+    testing-expectations: |
+      Coverage thresholds are enforced in CI (see devex.ci.coverage-thresholds).
+      New behavior needs unit tests; user flows need e2e tests; UI changes need visual and a11y checks.
+      Tests reference the spec requirement IDs they verify.
+    architecture-decisions: |
+      PRs labeled 'architecture-change' must link an ADR from docs/adr/.
+      Use docs/adr/0000-adr-template.md: context, options, decision, consequences.
+  rules:
+    - "Read the Constitution, sdd.yaml, and the relevant feature spec before changing code."
+    - "Prefer existing patterns and files over new abstractions."
+    - "Justify every new dependency in the PR description."
+    - "Wire new routes, components, and APIs into lint, typecheck, and tests."
+    - "Keep diffs scoped to the request; propose unrelated improvements separately."
+    - "When modifying sdd.yaml, ARCHITECTURE.md, or ERROR_HANDLING.md, keep all three consistent."
+    - "Reproduce and diagnose a bug before fixing it; state the root cause in the PR."
+    - "Use async/await; avoid .then() chains unless necessary."
+  safety:
+    - "Never hard-code secrets or tokens."
+    - "Never expose stack traces or internal paths to users."
+    - "Stop and escalate if a request conflicts with the Constitution."
