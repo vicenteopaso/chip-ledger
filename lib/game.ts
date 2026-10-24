@@ -1,0 +1,136 @@
+import { z } from "zod";
+
+import { CHIP_COLORS, ChipColorSchema } from "@/lib/chips";
+import { CurrencySchema, MAX_AMOUNT, MAX_COUNT } from "@/lib/money";
+
+export const SCREENS = ["setup", "table", "cashout", "settle"] as const;
+export type Screen = (typeof SCREENS)[number];
+
+export const PLAYER_COUNTS = [4, 5, 6] as const;
+export type PlayerCount = (typeof PLAYER_COUNTS)[number];
+
+/** Six slots are always kept so names survive switching the player count (REQ-0001-03). */
+export const PLAYER_SLOTS = 6;
+
+/** Stack values within half a cent of each other are treated as equal. */
+export const MONEY_EPSILON = 0.005;
+
+const IdSchema = z.string().min(1).max(64);
+const AmountSchema = z.number().min(-MAX_AMOUNT).max(MAX_AMOUNT);
+const CountSchema = z.number().int().min(0).max(MAX_COUNT);
+
+export const ChipSchema = z.object({
+  id: IdSchema,
+  color: ChipColorSchema,
+  count: CountSchema,
+  value: AmountSchema,
+});
+
+export const PlayerSchema = z.object({
+  id: IdSchema,
+  name: z.string().max(200),
+  buyins: CountSchema,
+  counts: z.record(z.string(), CountSchema),
+});
+
+/**
+ * Saved game state. Same JSON shape as the prototype's `chip-ledger.v1` value (REQ-0001-25).
+ * Parsed on load because browser storage is external input (REQ-0001-26, CONSTITUTION-10).
+ */
+export const GameStateSchema = z.object({
+  screen: z.enum(SCREENS),
+  count: z.literal(PLAYER_COUNTS),
+  buyIn: AmountSchema,
+  currency: CurrencySchema,
+  scale: z.boolean(),
+  players: z.array(PlayerSchema).length(PLAYER_SLOTS),
+  chips: z
+    .array(ChipSchema)
+    .min(1)
+    .max(CHIP_COLORS.length)
+    .refine((chips) => new Set(chips.map((chip) => chip.color)).size === chips.length, {
+      message: "Chip colors must be unique",
+    }),
+});
+
+export type Chip = z.infer<typeof ChipSchema>;
+export type Player = z.infer<typeof PlayerSchema>;
+export type GameState = z.infer<typeof GameStateSchema>;
+
+export type IdFactory = () => string;
+
+/** A new player with one buy-in and no counted chips. */
+export function newPlayer(id: string): Player {
+  return { id, name: "", buyins: 1, counts: {} };
+}
+
+/** The default game (REQ-0001-26): 4 players, 20 USD, spread on, white/red/blue chips worth 20. */
+export function createGame(newId: IdFactory): GameState {
+  return {
+    screen: "setup",
+    count: 4,
+    buyIn: 20,
+    currency: "USD",
+    scale: true,
+    players: Array.from({ length: PLAYER_SLOTS }, () => newPlayer(newId())),
+    chips: [
+      { id: newId(), color: "white", count: 20, value: 0.25 },
+      { id: newId(), color: "red", count: 10, value: 0.5 },
+      { id: newId(), color: "blue", count: 10, value: 1 },
+    ],
+  };
+}
+
+export function activePlayers(game: GameState): Player[] {
+  return game.players.slice(0, game.count);
+}
+
+/** "Player N" for a blank name, where N is the slot number (REQ-0001-03). */
+export function playerName(game: GameState, player: Player): string {
+  return player.name.trim() || `Player ${game.players.indexOf(player) + 1}`;
+}
+
+/** Face value of one starting stack. */
+export function stackValue(game: GameState): number {
+  return game.chips.reduce((sum, chip) => sum + chip.count * chip.value, 0);
+}
+
+/** Money per unit of chip face value: buy-in ÷ stack value, or 1 with no stack (REQ-0001-11). */
+export function cashOutRate(game: GameState): number {
+  const face = stackValue(game);
+  return face > 0 ? game.buyIn / face : 1;
+}
+
+export function totalBuyins(game: GameState): number {
+  return activePlayers(game).reduce((sum, player) => sum + player.buyins, 0);
+}
+
+export function pot(game: GameState): number {
+  return totalBuyins(game) * game.buyIn;
+}
+
+export function chipFaceValue(game: GameState, player: Player): number {
+  return game.chips.reduce((sum, chip) => sum + (player.counts[chip.id] ?? 0) * chip.value, 0);
+}
+
+export function cashOutValue(game: GameState, player: Player): number {
+  return chipFaceValue(game, player) * cashOutRate(game);
+}
+
+/** Chips of one row issued across the whole game. */
+export function issuedChips(game: GameState, chip: Chip): number {
+  return chip.count * totalBuyins(game);
+}
+
+export function countedChips(game: GameState, chip: Chip): number {
+  return activePlayers(game).reduce((sum, player) => sum + (player.counts[chip.id] ?? 0), 0);
+}
+
+export function countedValue(game: GameState): number {
+  return activePlayers(game).reduce((sum, player) => sum + cashOutValue(game, player), 0);
+}
+
+/** "Start the game" is allowed only with a buy-in and a stack worth something (REQ-0001-07). */
+export function canStartGame(game: GameState): boolean {
+  return game.buyIn > 0 && stackValue(game) > 0;
+}

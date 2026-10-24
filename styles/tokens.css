@@ -1,0 +1,114 @@
+/*
+ * Design tokens: the single source of truth for color, type, radius, and motion
+ * (docs/DESIGN_SYSTEM.md). Declared as a Tailwind theme so utilities exist for each one;
+ * Tailwind's default palette and type scale are cleared so only these values can be used.
+ * Values carried over from the Chip Ledger prototype.
+ */
+
+@theme static {
+  --color-*: initial;
+  --color-bg: #e9efea;
+  --color-surface: #ffffff;
+  --color-sunk: #f2f6f3;
+  --color-text: #13241c;
+  --color-text-muted: #56685e;
+  --color-border: #cfdad2;
+  /* Text-field borders: 3:1 against bg and surface (WCAG 1.4.11). */
+  --color-border-control: #7a8b81;
+  --color-accent: #14573f;
+  --color-accent-ink: #ffffff;
+  --color-focus: #9a6e1c;
+  --color-success: #1d7448;
+  --color-danger: #b0342b;
+  --color-warn-bg: #fbf1dc;
+  --color-warn-ink: #6b4a0e;
+  --color-step-done: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  --color-bar: color-mix(in srgb, var(--color-bg) 92%, transparent);
+
+  /* Chip artwork: body and edge-spot colors, the same in every theme. */
+  --color-chip-white: #ecebe4;
+  --color-chip-white-spot: #2b5bb8;
+  --color-chip-red: #c8322f;
+  --color-chip-blue: #2b5bb8;
+  --color-chip-green: #23824f;
+  --color-chip-black: #1e1e1e;
+  --color-chip-black-spot: #e9e9e9;
+  --color-chip-yellow: #e3b230;
+  --color-chip-yellow-spot: #1e1e1e;
+  --color-chip-purple: #6b3fa0;
+  --color-chip-pink: #e07aa8;
+  --color-chip-orange: #e07b2a;
+  --color-chip-gray: #8a9096;
+  --color-chip-spot: #ffffff;
+  --color-chip-shadow: rgb(0 0 0 / 0.25);
+
+  --font-sans:
+    var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+
+  --text-*: initial;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-base: 1rem;
+  --text-body: 1.0625rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.1875rem;
+  --text-2xl: 1.25rem;
+  --text-3xl: 1.375rem;
+  --text-4xl: 1.5rem;
+  --text-5xl: 2.125rem;
+
+  --radius-*: initial;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.125rem;
+  --radius-full: 9999px;
+
+  --leading-display: 1.05;
+  --tracking-display: -0.02em;
+
+  --border-control: 1.5px;
+  --blur-bar: 10px;
+  --container-app: 35rem;
+}
+
+@layer theme {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-bg: #0b261d;
+      --color-surface: #11342a;
+      --color-sunk: #0e2d23;
+      --color-text: #ecf3ee;
+      --color-text-muted: #9ab2a5;
+      --color-border: #22503f;
+      --color-border-control: #5a8a77;
+      --color-accent: #43b884;
+      --color-accent-ink: #06231a;
+      --color-focus: #e3b95a;
+      --color-success: #6cd49c;
+      --color-danger: #f28274;
+      --color-warn-bg: #3a2f12;
+      --color-warn-ink: #f2d58c;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --color-bg: #0b261d;
+    --color-surface: #11342a;
+    --color-sunk: #0e2d23;
+    --color-text: #ecf3ee;
+    --color-text-muted: #9ab2a5;
+    --color-border: #22503f;
+    --color-border-control: #5a8a77;
+    --color-accent: #43b884;
+    --color-accent-ink: #06231a;
+    --color-focus: #e3b95a;
+    --color-success: #6cd49c;
+    --color-danger: #f28274;
+    --color-warn-bg: #3a2f12;
+    --color-warn-ink: #f2d58c;
+  }
+}
