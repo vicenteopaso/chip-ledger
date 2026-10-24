@@ -1,3 +1,4 @@
+import { planChips, planUniformChip } from "@/lib/chip-plan";
 import { availableColors, type ChipColor } from "@/lib/chips";
 import {
   type GameState,
@@ -7,7 +8,7 @@ import {
   stackValue,
   UNIFORM_CHIP_ID,
 } from "@/lib/game";
-import type { Currency } from "@/lib/money";
+import { type Currency, currencyDigits, typicalBuyIn } from "@/lib/money";
 
 /** Count and value given to a newly added chip color (REQ-0001-05). */
 export const NEW_CHIP_COUNT = 5;
@@ -34,6 +35,7 @@ export type GameAction =
   | { type: "adjustBuyins"; playerId: string; delta: 1 | -1 }
   | { type: "setPlayerChipCount"; playerId: string; chipId: string; count: number | null }
   | { type: "applyPhotoCounts"; playerId: string; counts: Partial<Record<ChipColor, number>> }
+  | { type: "autoFillChips"; chipIds: readonly [string, string, string] }
   | { type: "setScale"; scale: boolean }
   | { type: "newGameSamePlayers" }
   | { type: "replace"; game: GameState };
@@ -57,6 +59,31 @@ function updateChip(
   return { ...game, chips: game.chips.map((chip) => (chip.id === chipId ? update(chip) : chip)) };
 }
 
+/** A hand edit of the chips ends the automatic balancing (REQ-0001-29). */
+function edited(game: GameState): GameState {
+  return { ...game, autoChips: false };
+}
+
+/**
+ * Recalculates the chips for the current buy-in and currency while they are balanced
+ * automatically. A row set that was changed by hand never reaches here (see `edited`).
+ */
+function balanced(game: GameState): GameState {
+  if (!game.autoChips) return game;
+  const planned = planChips(game.buyIn, game.currency);
+  const uniformChip = planUniformChip(game.buyIn, game.currency);
+  if (!planned || !uniformChip) return game;
+  return {
+    ...game,
+    uniformChip,
+    chips: game.chips.map((chip, i) => ({
+      ...chip,
+      count: planned[i]?.count ?? chip.count,
+      value: planned[i]?.value ?? chip.value,
+    })),
+  };
+}
+
 export function gameReducer(game: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "go":
@@ -66,14 +93,27 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
     case "setName":
       return updatePlayer(game, action.playerId, (player) => ({ ...player, name: action.name }));
     case "setBuyIn":
-      return { ...game, buyIn: action.buyIn };
-    case "setCurrency":
-      return { ...game, currency: action.currency };
+      return balanced({ ...game, buyIn: action.buyIn });
+    case "setCurrency": {
+      // Move an untouched typical buy-in to the new currency's scale: 20 USD → 10,000 CLP.
+      const untouched = game.buyIn === typicalBuyIn(game.currency);
+      const buyIn = untouched ? typicalBuyIn(action.currency) : game.buyIn;
+      return balanced({ ...game, currency: action.currency, buyIn });
+    }
+    case "autoFillChips": {
+      const chips = (["white", "red", "blue"] as const).map((color, i) => ({
+        id: game.chips[i]?.id ?? action.chipIds[i] ?? color,
+        color,
+        count: 0,
+        value: 0,
+      }));
+      return balanced({ ...game, autoChips: true, chips });
+    }
     case "addChip": {
       const [color] = availableColors(game.chips.map((chip) => chip.color));
       if (!color) return game;
       return {
-        ...game,
+        ...edited(game),
         chips: [
           ...game.chips,
           { id: action.chipId, color, count: NEW_CHIP_COUNT, value: NEW_CHIP_VALUE },
@@ -82,31 +122,33 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
     }
     case "removeChip":
       if (game.chips.length < 2) return game;
-      return { ...game, chips: game.chips.filter((chip) => chip.id !== action.chipId) };
+      return { ...edited(game), chips: game.chips.filter((chip) => chip.id !== action.chipId) };
     case "setChipColor": {
       const taken = game.chips.some(
         (chip) => chip.id !== action.chipId && chip.color === action.color,
       );
       if (taken) return game;
-      return updateChip(game, action.chipId, (chip) => ({ ...chip, color: action.color }));
+      return updateChip(edited(game), action.chipId, (chip) => ({ ...chip, color: action.color }));
     }
     case "setChipCount":
-      return updateChip(game, action.chipId, (chip) => ({ ...chip, count: action.count }));
+      return updateChip(edited(game), action.chipId, (chip) => ({ ...chip, count: action.count }));
     case "setChipValue":
-      return updateChip(game, action.chipId, (chip) => ({ ...chip, value: action.value }));
+      return updateChip(edited(game), action.chipId, (chip) => ({ ...chip, value: action.value }));
     case "setUniformValue": {
       if (!action.enabled) return { ...game, uniformValue: false };
+      if (game.autoChips) return balanced({ ...game, uniformValue: true });
       // Start from the color rows: same chips per player, and the same stack value when it
-      // divides evenly into cents.
+      // divides evenly into the currency's smallest unit.
       const colorRows = { ...game, uniformValue: false };
       const count = game.chips.reduce((sum, chip) => sum + chip.count, 0);
-      const value = count > 0 ? Math.round((stackValue(colorRows) / count) * 100) / 100 : 0;
+      const scale = 10 ** currencyDigits(game.currency);
+      const value = count > 0 ? Math.round((stackValue(colorRows) / count) * scale) / scale : 0;
       return { ...game, uniformValue: true, uniformChip: { count, value } };
     }
     case "setUniformChipCount":
-      return { ...game, uniformChip: { ...game.uniformChip, count: action.count } };
+      return { ...edited(game), uniformChip: { ...game.uniformChip, count: action.count } };
     case "setUniformChipValue":
-      return { ...game, uniformChip: { ...game.uniformChip, value: action.value } };
+      return { ...edited(game), uniformChip: { ...game.uniformChip, value: action.value } };
     case "adjustBuyins":
       return updatePlayer(game, action.playerId, (player) => ({
         ...player,

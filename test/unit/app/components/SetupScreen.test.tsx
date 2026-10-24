@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { useReducer } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -18,6 +18,7 @@ function renderSetup(game = defaultGame(), photoCountingEnabled = false) {
       photoCountingEnabled={photoCountingEnabled}
       dispatch={dispatch}
       onAddChip={onAddChip}
+      onAutoFill={vi.fn()}
     />,
   );
   return { dispatch, onAddChip };
@@ -36,6 +37,9 @@ function StatefulSetup({ onAction }: { onAction: (action: GameAction) => void })
         dispatch(action);
       }}
       onAddChip={vi.fn()}
+      onAutoFill={() => {
+        dispatch({ type: "autoFillChips", chipIds: ["a", "b", "c"] });
+      }}
     />
   );
 }
@@ -62,8 +66,9 @@ describe("SetupScreen", () => {
     await userEvent.type(buyIn, "5");
     expect(buyIn).toHaveValue("2,5");
     expect(dispatch).toHaveBeenLastCalledWith({ type: "setBuyIn", buyIn: 2.5 });
+    // The chips are balanced automatically, so the stack follows the buy-in (REQ-0001-29).
     expect(screen.getByRole("status")).toHaveTextContent(
-      "The stack adds up to $20.00 but the buy-in is $2.50.",
+      "Each starting stack is worth $2.50, matching the buy-in.",
     );
     await userEvent.selectOptions(screen.getByLabelText("Currency"), "EUR");
     expect(dispatch).toHaveBeenCalledWith({ type: "setCurrency", currency: "EUR" });
@@ -148,5 +153,56 @@ describe("SetupScreen: one value for all chips", () => {
     expect(screen.queryByText("All colors")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Red chip value")).toHaveValue("0.5");
     expect(screen.getByRole("button", { name: "Add a chip color" })).toBeInTheDocument();
+  });
+});
+
+describe("SetupScreen: balanced chips and currencies", () => {
+  it("AC-0001-15: editing a chip stops the balancing and offers to fill it again", async () => {
+    const dispatch = vi.fn();
+    render(<StatefulSetup onAction={dispatch} />);
+    expect(screen.getByText(/The chips adjust to the buy-in/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Fill the chips to match the buy-in" }),
+    ).not.toBeInTheDocument();
+
+    const buyIn = screen.getByLabelText("Buy-in amount");
+    await userEvent.clear(buyIn);
+    await userEvent.type(buyIn, "40");
+    expect(screen.getByLabelText("White chip value")).toHaveValue("0.5");
+    expect(screen.getByLabelText("Blue chip value")).toHaveValue("2");
+
+    await userEvent.type(screen.getByLabelText("White chips per player"), "1");
+    expect(
+      screen.getByRole("button", { name: "Fill the chips to match the buy-in" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("The stack adds up to");
+    await userEvent.clear(buyIn);
+    await userEvent.type(buyIn, "20");
+    expect(screen.getByLabelText("White chip value")).toHaveValue("0.5");
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Fill the chips to match the buy-in" }),
+    );
+    expect(screen.getByLabelText("White chip value")).toHaveValue("0.25");
+    expect(screen.getByRole("status")).toHaveTextContent("matching the buy-in");
+    expect(screen.getByText(/The chips adjust to the buy-in/)).toBeInTheDocument();
+  });
+
+  it("AC-0001-16: lists common currencies and rescales the stack for CLP", async () => {
+    render(<StatefulSetup onAction={vi.fn()} />);
+    const currency = screen.getByLabelText("Currency");
+    expect(within(currency).getAllByRole("option").length).toBeGreaterThanOrEqual(30);
+    await userEvent.selectOptions(currency, "CLP");
+    expect(screen.getByLabelText("Buy-in amount")).toHaveValue("10000");
+    expect(screen.getByLabelText("White chips per player")).toHaveValue("22");
+    expect(screen.getByLabelText("White chip value")).toHaveValue("100");
+    expect(screen.getByLabelText("Blue chip value")).toHaveValue("400");
+    expect(screen.getByRole("status")).toHaveTextContent(/worth \$?CLP|matching the buy-in/);
+
+    const buyIn = screen.getByLabelText("Buy-in amount");
+    await userEvent.clear(buyIn);
+    await userEvent.type(buyIn, "20.000");
+    expect(screen.getByLabelText("White chip value")).toHaveValue("250");
+    expect(screen.getByLabelText("Blue chip value")).toHaveValue("1000");
   });
 });

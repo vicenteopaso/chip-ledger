@@ -145,6 +145,9 @@ export function ChipLedgerApp({ photoCountingEnabled }: ChipLedgerAppProps) {
           onAddChip={() => {
             dispatch({ type: "addChip", chipId: randomId() });
           }}
+          onAutoFill={() => {
+            dispatch({ type: "autoFillChips", chipIds: [randomId(), randomId(), randomId()] });
+          }}
         />
       )}
       {game.screen === "table" && <TableScreen game={game} money={money} dispatch={dispatch} />}

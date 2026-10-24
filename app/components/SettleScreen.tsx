@@ -1,7 +1,7 @@
 import { Button } from "@/app/components/Button";
 import { Hint, PageTitle, SectionTitle } from "@/app/components/Typography";
 import type { GameState } from "@/lib/game";
-import type { MoneyFormatter } from "@/lib/money";
+import { type Currency, fromMinor, type MoneyFormatter } from "@/lib/money";
 import type { Settlement } from "@/lib/settlement";
 import { hasPotMismatch } from "@/lib/summaries";
 
@@ -20,13 +20,13 @@ export type SettleScreenProps = {
   onReset: () => void;
 };
 
-function signedMoney(money: MoneyFormatter, cents: number): string {
-  return `${cents > 0 ? "+" : ""}${money(cents / 100)}`;
+function signedMoney(money: MoneyFormatter, minor: number, currency: Currency): string {
+  return `${minor > 0 ? "+" : ""}${money(fromMinor(minor, currency))}`;
 }
 
-function netTone(cents: number): string {
-  if (cents > 0) return "text-success";
-  if (cents < 0) return "text-danger";
+function netTone(minor: number): string {
+  if (minor > 0) return "text-success";
+  if (minor < 0) return "text-danger";
   return "";
 }
 
@@ -78,16 +78,18 @@ export function SettleScreen({
                 <b>{payment.from}</b> <span className="text-text-muted">pays</span>{" "}
                 <b>{payment.to}</b>
               </div>
-              <div className="text-4xl font-extrabold">{money(payment.cents / 100)}</div>
+              <div className="text-4xl font-extrabold">
+                {money(fromMinor(payment.minor, game.currency))}
+              </div>
             </li>
           ))}
         </ul>
       ) : (
         <p className="my-3 text-md text-success">Everyone broke even. Nobody owes anything.</p>
       )}
-      {!game.scale && settlement.unaccountedCents !== 0 && (
+      {!game.scale && settlement.unaccountedMinor !== 0 && (
         <Hint>
-          {`These payments leave ${money(Math.abs(settlement.unaccountedCents) / 100)} unaccounted for because the chip count doesn't match the pot.`}
+          {`These payments leave ${money(fromMinor(Math.abs(settlement.unaccountedMinor), game.currency))} unaccounted for because the chip count doesn't match the pot.`}
         </Hint>
       )}
 
@@ -99,8 +101,8 @@ export function SettleScreen({
             className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-b border-border py-3"
           >
             <b className="text-lg">{row.name}</b>
-            <span className={`text-right text-2xl font-extrabold ${netTone(row.netCents)}`}>
-              {signedMoney(money, row.netCents)}
+            <span className={`text-right text-2xl font-extrabold ${netTone(row.netMinor)}`}>
+              {signedMoney(money, row.netMinor, game.currency)}
             </span>
             <small className="text-sm text-text-muted">{`Put in ${money(row.putIn)}`}</small>
             <small className="text-right text-sm text-text-muted">

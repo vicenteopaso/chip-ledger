@@ -42,4 +42,6 @@ Ordered, small, independently verifiable. Check a box only when the done-conditi
 - [x] T-13 Update docs, `sdd.yaml`, `.env.example`, component docs; specs index
 - [x] T-15 One value for all chips _(REQ-0001-28, AC-0001-14)_
   - Tests: reducer, schema default, SetupScreen, e2e; visual baselines refreshed
+- [x] T-16 Auto-balanced chips and currency support _(REQ-0001-29, -30, AC-0001-15, -16)_
+  - Tests: planner, money, reducer, settlement in whole units, Setup, e2e
 - [ ] T-14 Set spec status to `implemented` after merge

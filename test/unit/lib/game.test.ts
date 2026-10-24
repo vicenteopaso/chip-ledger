@@ -46,6 +46,18 @@ describe("createGame", () => {
 });
 
 describe("GameStateSchema", () => {
+  it("REQ-0001-29: games saved before balancing existed load unbalanced", () => {
+    const older: Record<string, unknown> = { ...defaultGame() };
+    delete older.autoChips;
+    const parsed = GameStateSchema.safeParse(older);
+    expect(parsed.success && parsed.data.autoChips).toBe(false);
+  });
+
+  it("REQ-0001-30: accepts every listed currency and rejects others", () => {
+    expect(GameStateSchema.safeParse({ ...defaultGame(), currency: "CLP" }).success).toBe(true);
+    expect(GameStateSchema.safeParse({ ...defaultGame(), currency: "XXX" }).success).toBe(false);
+  });
+
   it("REQ-0001-28: games saved before the same-value option load with it off", () => {
     const older: Record<string, unknown> = { ...defaultGame() };
     delete older.uniformValue;

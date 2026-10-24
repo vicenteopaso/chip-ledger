@@ -44,6 +44,51 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByLabel("Red chip value")).toHaveValue("0.5");
   });
 
+  test("AC-0001-15: the chips follow the buy-in until you edit one", async ({ page }) => {
+    await openFresh(page);
+    await page.getByLabel("Buy-in amount").fill("40");
+    await expect(page.getByLabel("White chip value")).toHaveValue("0.5");
+    await expect(page.getByLabel("Blue chip value")).toHaveValue("2");
+    await expect(
+      page.getByText("Each starting stack is worth $40.00, matching the buy-in."),
+    ).toBeVisible();
+
+    await page.getByLabel("White chips per player").fill("21");
+    await expect(
+      page.getByRole("button", { name: "Fill the chips to match the buy-in" }),
+    ).toBeVisible();
+    await page.getByLabel("Buy-in amount").fill("25");
+    await expect(page.getByText(/The stack adds up to/)).toBeVisible();
+    await page.getByRole("button", { name: "Fill the chips to match the buy-in" }).click();
+    await expect(page.getByLabel("White chips per player")).toHaveValue("22");
+    await expect(
+      page.getByText("Each starting stack is worth $25.00, matching the buy-in."),
+    ).toBeVisible();
+  });
+
+  test("AC-0001-16: CLP rescales the buy-in and chips and reads thousands separators", async ({
+    page,
+  }) => {
+    await openFresh(page);
+    await page.getByLabel("Currency").selectOption("CLP");
+    await expect(page.getByLabel("Buy-in amount")).toHaveValue("10000");
+    await expect(page.getByLabel("White chip value")).toHaveValue("100");
+    await expect(page.getByLabel("White chips per player")).toHaveValue("22");
+    await page.getByLabel("Buy-in amount").fill("20.000");
+    await expect(page.getByLabel("White chip value")).toHaveValue("250");
+    await expect(page.getByLabel("Blue chip value")).toHaveValue("1000");
+    await expect(page.getByText(/matching the buy-in/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Start the game" }).click();
+    await page.getByRole("button", { name: "Cash out", exact: true }).click();
+    await page.getByLabel("White chips for Player 1").fill("30");
+    await page.getByRole("button", { name: "Settle up" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Settle up" })).toBeVisible();
+    await expect(page.locator("body")).toContainText("CLP");
+    // Whole pesos only: no hundredths anywhere on the page.
+    await expect(page.locator("body")).not.toContainText(/CLP\s?[\d,]+\.\d\d/);
+  });
+
   test("AC-0001-01, -04, -05, -06: plays a game from setup to payments", async ({ page }) => {
     await openFresh(page);
     await startGame(page);

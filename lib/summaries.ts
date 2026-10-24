@@ -10,7 +10,7 @@ import {
   stackChips,
   stackValue,
 } from "@/lib/game";
-import type { MoneyFormatter } from "@/lib/money";
+import { fromMinor, type MoneyFormatter } from "@/lib/money";
 import type { Settlement } from "@/lib/settlement";
 
 /** `ok` renders as a confirmation line, `warn` as a highlighted note. */
@@ -82,15 +82,18 @@ export function hasPotMismatch(settlement: Settlement): boolean {
 
 /** Plain-text results for "Copy results" (REQ-0001-22). */
 export function resultsText(settlement: Settlement, money: MoneyFormatter, date: string): string {
-  const signed = (cents: number) => `${cents > 0 ? "+" : ""}${money(cents / 100)}`;
+  const signed = (minor: number) =>
+    `${minor > 0 ? "+" : ""}${money(fromMinor(minor, settlement.currency))}`;
   const payments = settlement.payments.length
-    ? settlement.payments.map((p) => `${p.from} pays ${p.to} ${money(p.cents / 100)}`)
+    ? settlement.payments.map(
+        (p) => `${p.from} pays ${p.to} ${money(fromMinor(p.minor, settlement.currency))}`,
+      )
     : ["None, everyone broke even"];
   return [
     `Poker night ${date}`,
     `Pot: ${money(settlement.pot)}`,
     "",
-    ...settlement.rows.map((row) => `${row.name}: ${signed(row.netCents)}`),
+    ...settlement.rows.map((row) => `${row.name}: ${signed(row.netMinor)}`),
     "",
     "Payments:",
     ...payments,

@@ -2,7 +2,7 @@ import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
 import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
 import type { StackChip } from "@/lib/game";
-import { type MoneyFormatter, parseCount, parseDecimal } from "@/lib/money";
+import { type Currency, type MoneyFormatter, parseCount, parseMoney } from "@/lib/money";
 
 export type ChipRowProps = {
   /** A color row, or the single "All colors" chip in one-value mode (REQ-0001-28). */
@@ -10,6 +10,8 @@ export type ChipRowProps = {
   usedColors: readonly ChipColor[];
   canRemove: boolean;
   money: MoneyFormatter;
+  /** Decides how a typed value is read (CLP ignores thousands separators). */
+  currency: Currency;
   onColorChange: (color: ChipColor) => void;
   onCountChange: (count: number) => void;
   onValueChange: (value: number) => void;
@@ -25,6 +27,7 @@ export function ChipRow({
   usedColors,
   canRemove,
   money,
+  currency,
   onColorChange,
   onCountChange,
   onValueChange,
@@ -89,7 +92,7 @@ export function ChipRow({
         inputMode="decimal"
         value={chip.value}
         format={String}
-        parse={parseDecimal}
+        parse={(text) => parseMoney(text, currency)}
         onValueChange={onValueChange}
       />
       <button

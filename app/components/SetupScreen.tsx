@@ -7,7 +7,7 @@ import { Lede, PageTitle, SectionTitle, Hint } from "@/app/components/Typography
 import { CHIP_COLORS, MIXED } from "@/lib/chips";
 import { activePlayers, type GameState, PLAYER_COUNTS, UNIFORM_CHIP_ID } from "@/lib/game";
 import type { GameAction } from "@/lib/game-reducer";
-import { CURRENCIES, CurrencySchema, type MoneyFormatter, parseDecimal } from "@/lib/money";
+import { CURRENCIES, CurrencySchema, type MoneyFormatter, parseMoney } from "@/lib/money";
 import { setupSummary } from "@/lib/summaries";
 
 export type SetupScreenProps = {
@@ -16,6 +16,7 @@ export type SetupScreenProps = {
   photoCountingEnabled: boolean;
   dispatch: (action: GameAction) => void;
   onAddChip: () => void;
+  onAutoFill: () => void;
 };
 
 const FIELD_BASE =
@@ -32,6 +33,7 @@ export function SetupScreen({
   photoCountingEnabled,
   dispatch,
   onAddChip,
+  onAutoFill,
 }: SetupScreenProps) {
   const usedColors = game.chips.map((chip) => chip.color);
   return (
@@ -111,7 +113,7 @@ export function SetupScreen({
           inputMode="decimal"
           value={game.buyIn}
           format={String}
-          parse={parseDecimal}
+          parse={(text) => parseMoney(text, game.currency)}
           onValueChange={(buyIn) => {
             dispatch({ type: "setBuyIn", buyIn });
           }}
@@ -135,12 +137,20 @@ export function SetupScreen({
           ? "How many chips each player gets, and what one chip is worth."
           : "Color, how many each player gets, and what one chip is worth."}
       </Hint>
+      {game.autoChips ? (
+        <Hint>The chips adjust to the buy-in. Edit any chip to set them yourself.</Hint>
+      ) : (
+        <Button variant="link" onClick={onAutoFill}>
+          Fill the chips to match the buy-in
+        </Button>
+      )}
       {game.uniformValue ? (
         <ChipRow
           chip={{ id: UNIFORM_CHIP_ID, color: MIXED, ...game.uniformChip }}
           usedColors={usedColors}
           canRemove={false}
           money={money}
+          currency={game.currency}
           onColorChange={ignore}
           onCountChange={(count) => {
             dispatch({ type: "setUniformChipCount", count });
@@ -159,6 +169,7 @@ export function SetupScreen({
               usedColors={usedColors}
               canRemove={game.chips.length > 1}
               money={money}
+              currency={game.currency}
               onColorChange={(color) => {
                 dispatch({ type: "setChipColor", chipId: chip.id, color });
               }}

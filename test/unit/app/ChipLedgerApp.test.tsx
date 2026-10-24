@@ -56,6 +56,17 @@ describe("ChipLedgerApp", () => {
     expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
   });
 
+  it("AC-0001-15: Fill the chips rebalances a hand-edited stack for the buy-in", async () => {
+    saved({ autoChips: false, buyIn: 40 });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Fill the chips to match the buy-in" }),
+    );
+    expect(screen.getByLabelText("White chip value")).toHaveValue("0.5");
+    expect(screen.getByText(/The chips adjust to the buy-in/)).toBeInTheDocument();
+    expect(savedGame().autoChips).toBe(true);
+  });
+
   it("REQ-0001-05: adds a chip color with a new row", async () => {
     render(<ChipLedgerApp photoCountingEnabled={false} />);
     await userEvent.click(button("Add a chip color"));

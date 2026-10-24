@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { planChips, planUniformChip } from "@/lib/chip-plan";
 import { CHIP_COLORS, ChipColorSchema, MIXED, type StackColor } from "@/lib/chips";
 import { CurrencySchema, MAX_AMOUNT, MAX_COUNT } from "@/lib/money";
 
@@ -45,6 +46,8 @@ export const GameStateSchema = z.object({
   scale: z.boolean(),
   /** Every chip shares one value (REQ-0001-28). Absent in games saved before it existed. */
   uniformValue: z.boolean().default(false),
+  /** Chips follow the buy-in until the host edits one (REQ-0001-29). False for older saved games. */
+  autoChips: z.boolean().default(false),
   /** The single "All colors" chip used while `uniformValue` is on. */
   uniformChip: z
     .object({ count: CountSchema, value: AmountSchema })
@@ -70,22 +73,22 @@ export function newPlayer(id: string): Player {
   return { id, name: "", buyins: 1, counts: {} };
 }
 
-/** The default game (REQ-0001-26): 4 players, 20 USD, spread on, white/red/blue chips worth 20. */
+/** The default game (REQ-0001-26, -29): 4 players, 20 USD, spread on, balanced white/red/blue chips. */
 export function createGame(newId: IdFactory): GameState {
+  const buyIn = 20;
+  const players = Array.from({ length: PLAYER_SLOTS }, () => newPlayer(newId()));
+  const planned = planChips(buyIn, "USD") ?? [];
   return {
     screen: "setup",
     count: 4,
-    buyIn: 20,
+    buyIn,
     currency: "USD",
     scale: true,
     uniformValue: false,
-    uniformChip: { count: 0, value: 0 },
-    players: Array.from({ length: PLAYER_SLOTS }, () => newPlayer(newId())),
-    chips: [
-      { id: newId(), color: "white", count: 20, value: 0.25 },
-      { id: newId(), color: "red", count: 10, value: 0.5 },
-      { id: newId(), color: "blue", count: 10, value: 1 },
-    ],
+    autoChips: true,
+    uniformChip: planUniformChip(buyIn, "USD") ?? { count: 0, value: 0 },
+    players,
+    chips: planned.map((chip) => ({ id: newId(), ...chip })),
   };
 }
 

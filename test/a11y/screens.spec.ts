@@ -19,7 +19,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     test("setup, including the stack warning", async ({ page }) => {
       await openFresh(page);
       await expectNoViolations(page);
-      await page.getByLabel("Buy-in amount").fill("25");
+      await page.getByLabel("White chips per player").fill("21");
       await expect(page.getByText(/The stack adds up to/)).toBeVisible();
       await expectNoViolations(page);
       await page.getByRole("checkbox", { name: "Use one value for all chips" }).check();

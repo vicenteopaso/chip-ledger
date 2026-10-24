@@ -6,6 +6,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Added
 
+- Chips are pre-populated to equal the buy-in and rebalance when the buy-in or currency changes until a chip is edited by hand (REQ-0001-29); 38 common currencies, with scaled typical buy-ins and whole-unit handling for CLP, JPY, KRW and VND (REQ-0001-30).
 - "Use one value for all chips" option on Setup (REQ-0001-28): swaps the color rows for one multi-color "All colors" row, and Cash out and the count check follow with a single count per player.
 - Chip Ledger app ([SPEC-0001](./docs/specs/0001-chip-ledger/spec.md), [ADR-0004](./docs/adr/0004-chip-ledger-client-architecture.md)): setup, table, cash out, and settle steps ported from the single-file prototype, with validated browser storage, layered code, unit/component/e2e/visual/axe tests, security headers with a nonce CSP, and photo counting through an OpenAI-compatible provider (disabled by default).
 - Initial governance baseline: Constitution, `sdd.yaml` and schema, ADRs 0001–0003, spec templates, AI guardrails, engineering and operations docs, CI workflows, PR and issue templates, and dependency-free governance scripts.

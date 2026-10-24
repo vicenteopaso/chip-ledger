@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_AMOUNT, MAX_COUNT, moneyFormatter, parseCount, parseDecimal } from "@/lib/money";
+import {
+  CURRENCIES,
+  currencyDigits,
+  fromMinor,
+  MAX_AMOUNT,
+  MAX_COUNT,
+  moneyFormatter,
+  parseCount,
+  parseDecimal,
+  parseMoney,
+  toMinor,
+  typicalBuyIn,
+} from "@/lib/money";
 
 describe("moneyFormatter", () => {
   it("REQ-0001-04: formats with the given locale and currency", () => {
@@ -35,5 +47,29 @@ describe("parseCount", () => {
 
   it("caps very long numbers", () => {
     expect(parseCount("9".repeat(30))).toBe(MAX_COUNT);
+  });
+});
+
+describe("parseMoney", () => {
+  it("REQ-0001-30: currencies with decimals read decimals; others ignore separators", () => {
+    expect(parseMoney("2,5", "USD")).toBe(2.5);
+    expect(parseMoney("10.000", "CLP")).toBe(10_000);
+    expect(parseMoney("10,000", "CLP")).toBe(10_000);
+    expect(parseMoney("", "CLP")).toBe(0);
+    expect(parseMoney("9".repeat(30), "JPY")).toBe(MAX_AMOUNT);
+  });
+});
+
+describe("currencies", () => {
+  it("REQ-0001-30: offers the common currencies with their digits and typical buy-in", () => {
+    expect(CURRENCIES).toHaveLength(38);
+    expect(CURRENCIES.slice(0, 3)).toEqual(["USD", "EUR", "GBP"]);
+    expect(currencyDigits("CLP")).toBe(0);
+    expect(currencyDigits("USD")).toBe(2);
+    expect(typicalBuyIn("CLP")).toBe(10_000);
+    expect(toMinor(12.345, "USD")).toBe(1235);
+    expect(fromMinor(1250, "USD")).toBe(12.5);
+    expect(fromMinor(1250, "CLP")).toBe(1250);
+    expect(moneyFormatter("CLP", "es-CL")(fromMinor(2500, "CLP"))).toBe("$2.500");
   });
 });

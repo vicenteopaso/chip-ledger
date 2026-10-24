@@ -138,7 +138,10 @@ describe("one value for all chips", () => {
   });
 
   it("REQ-0001-28: uses a value of 0 when there are no chips to start from", () => {
-    const game = gameWith({ chips: [{ id: "red", color: "red", count: 0, value: 1 }] });
+    const game = gameWith({
+      autoChips: false,
+      chips: [{ id: "red", color: "red", count: 0, value: 1 }],
+    });
     expect(gameReducer(game, { type: "setUniformValue", enabled: true }).uniformChip).toEqual({
       count: 0,
       value: 0,
@@ -153,5 +156,114 @@ describe("one value for all chips", () => {
       counts: { white: 4, red: 3 },
     });
     expect(player(game, "p1")?.counts).toEqual({ [UNIFORM_CHIP_ID]: 7 });
+  });
+});
+
+describe("balanced chips", () => {
+  const values = (game: GameState) => game.chips.map((c) => [c.count, c.value]);
+
+  it("REQ-0001-29: the default game is balanced and follows the buy-in", () => {
+    let game = defaultGame();
+    expect(game.autoChips).toBe(true);
+    game = gameReducer(game, { type: "setBuyIn", buyIn: 40 });
+    expect(values(game)).toEqual([
+      [20, 0.5],
+      [10, 1],
+      [10, 2],
+    ]);
+    expect(stackValue(game)).toBe(40);
+    expect(game.uniformChip).toEqual({ count: 40, value: 1 });
+  });
+
+  it("REQ-0001-29: keeps the chip ids and colors when recalculating", () => {
+    const game = gameReducer(defaultGame(), { type: "setBuyIn", buyIn: 40 });
+    expect(game.chips.map((c) => [c.id, c.color])).toEqual([
+      ["white", "white"],
+      ["red", "red"],
+      ["blue", "blue"],
+    ]);
+  });
+
+  it("REQ-0001-29: leaves the chips alone while there is no buy-in", () => {
+    const game = gameReducer(defaultGame(), { type: "setBuyIn", buyIn: 0 });
+    expect(values(game)).toEqual([
+      [20, 0.25],
+      [10, 0.5],
+      [10, 1],
+    ]);
+  });
+
+  it("REQ-0001-29: any hand edit stops the balancing", () => {
+    const actions: Parameters<typeof gameReducer>[1][] = [
+      { type: "setChipCount", chipId: "red", count: 3 },
+      { type: "setChipValue", chipId: "red", value: 3 },
+      { type: "setChipColor", chipId: "red", color: "black" },
+      { type: "removeChip", chipId: "red" },
+      { type: "addChip", chipId: "new" },
+      { type: "setUniformChipCount", count: 3 },
+      { type: "setUniformChipValue", value: 3 },
+    ];
+    for (const action of actions) {
+      const edited = gameReducer(defaultGame(), action);
+      expect(edited.autoChips, action.type).toBe(false);
+      expect(values(gameReducer(edited, { type: "setBuyIn", buyIn: 40 })), action.type).toEqual(
+        values(edited),
+      );
+    }
+  });
+
+  it("REQ-0001-29: autoFillChips restores white/red/blue for the buy-in and resumes balancing", () => {
+    let game = gameReducer(defaultGame(), { type: "removeChip", chipId: "red" });
+    game = gameReducer(game, { type: "autoFillChips", chipIds: ["x", "y", "z"] });
+    expect(game.autoChips).toBe(true);
+    expect(game.chips.map((c) => [c.id, c.color, c.count, c.value])).toEqual([
+      ["white", "white", 20, 0.25],
+      ["blue", "red", 10, 0.5],
+      ["z", "blue", 10, 1],
+    ]);
+  });
+
+  it("REQ-0001-30: switching to CLP moves an untouched typical buy-in and rescales the chips", () => {
+    const game = gameReducer(defaultGame(), { type: "setCurrency", currency: "CLP" });
+    expect(game.buyIn).toBe(10_000);
+    expect(values(game)).toEqual([
+      [22, 100],
+      [13, 200],
+      [13, 400],
+    ]);
+    expect(stackValue(game)).toBe(10_000);
+  });
+
+  it("REQ-0001-30: keeps a buy-in the host has set when the currency changes", () => {
+    let game = gameReducer(defaultGame(), { type: "setBuyIn", buyIn: 35 });
+    game = gameReducer(game, { type: "setCurrency", currency: "EUR" });
+    expect(game.buyIn).toBe(35);
+    expect(stackValue(game)).toBe(35);
+  });
+
+  it("REQ-0001-30: switching currency leaves hand-edited chips unbalanced", () => {
+    let game = gameReducer(defaultGame(), { type: "setChipCount", chipId: "red", count: 3 });
+    game = gameReducer(game, { type: "setCurrency", currency: "CLP" });
+    expect(game.buyIn).toBe(10_000);
+    expect(values(game)).toEqual([
+      [20, 0.25],
+      [3, 0.5],
+      [10, 1],
+    ]);
+  });
+
+  it("REQ-0001-28: one-value mode starts balanced while balancing is on", () => {
+    const game = gameReducer(gameReducer(defaultGame(), { type: "setCurrency", currency: "CLP" }), {
+      type: "setUniformValue",
+      enabled: true,
+    });
+    expect(game.uniformChip).toEqual({ count: 40, value: 250 });
+  });
+
+  it("REQ-0001-28: one-value mode rounds to the currency's smallest unit when not balanced", () => {
+    let game = gameReducer(defaultGame(), { type: "setCurrency", currency: "JPY" });
+    game = gameReducer(game, { type: "setChipCount", chipId: "white", count: 21 });
+    game = gameReducer(game, { type: "setUniformValue", enabled: true });
+    expect(Number.isInteger(game.uniformChip.value)).toBe(true);
   });
 });
