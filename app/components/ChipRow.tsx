@@ -1,15 +1,14 @@
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
-import { availableColors, CHIP_LABELS, type ChipColor, ChipColorSchema } from "@/lib/chips";
-import type { Chip as ChipData } from "@/lib/game";
+import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
+import type { StackChip } from "@/lib/game";
 import { type MoneyFormatter, parseCount, parseDecimal } from "@/lib/money";
 
 export type ChipRowProps = {
-  chip: ChipData;
+  /** A color row, or the single "All colors" chip in one-value mode (REQ-0001-28). */
+  chip: StackChip;
   usedColors: readonly ChipColor[];
   canRemove: boolean;
-  /** Every chip shares one value set elsewhere; show it as text (REQ-0001-28). */
-  sharedValue: boolean;
   money: MoneyFormatter;
   onColorChange: (color: ChipColor) => void;
   onCountChange: (count: number) => void;
@@ -25,14 +24,16 @@ export function ChipRow({
   chip,
   usedColors,
   canRemove,
-  sharedValue,
   money,
   onColorChange,
   onCountChange,
   onValueChange,
   onRemove,
 }: ChipRowProps) {
-  const label = CHIP_LABELS[chip.color];
+  const label = STACK_LABELS[chip.color];
+  const mixed = chip.color === MIXED;
+  const countLabel = mixed ? "Chips per player" : `${label} chips per player`;
+  const valueLabel = mixed ? "Value of every chip" : `${label} chip value`;
   const ids = {
     color: `chip-${chip.id}-color`,
     count: `chip-${chip.id}-count`,
@@ -41,25 +42,31 @@ export function ChipRow({
   return (
     <div className="chip-row grid items-center gap-2 border-b border-border py-2.5">
       <Chip color={chip.color} />
-      <label htmlFor={ids.color} className="sr-only">
-        Chip color
-      </label>
-      <select
-        id={ids.color}
-        className={`${FIELD} text-left`}
-        value={chip.color}
-        onChange={(event) => {
-          onColorChange(ChipColorSchema.parse(event.target.value));
-        }}
-      >
-        {availableColors(usedColors, chip.color).map((color) => (
-          <option key={color} value={color}>
-            {CHIP_LABELS[color]}
-          </option>
-        ))}
-      </select>
+      {chip.color === MIXED ? (
+        <span className="pl-1 text-body whitespace-nowrap">{label}</span>
+      ) : (
+        <>
+          <label htmlFor={ids.color} className="sr-only">
+            Chip color
+          </label>
+          <select
+            id={ids.color}
+            className={`${FIELD} text-left`}
+            value={chip.color}
+            onChange={(event) => {
+              onColorChange(ChipColorSchema.parse(event.target.value));
+            }}
+          >
+            {availableColors(usedColors, chip.color).map((color) => (
+              <option key={color} value={color}>
+                {STACK_LABELS[color]}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
       <label htmlFor={ids.count} className="sr-only">
-        {`${label} chips per player`}
+        {countLabel}
       </label>
       <DraftInput
         id={ids.count}
@@ -73,24 +80,18 @@ export function ChipRow({
       <span className="text-center text-text-muted" aria-hidden="true">
         ×
       </span>
-      {sharedValue ? (
-        <span className="text-center text-body">{String(chip.value)}</span>
-      ) : (
-        <>
-          <label htmlFor={ids.value} className="sr-only">
-            {`${label} chip value`}
-          </label>
-          <DraftInput
-            id={ids.value}
-            className={`${FIELD} text-center`}
-            inputMode="decimal"
-            value={chip.value}
-            format={String}
-            parse={parseDecimal}
-            onValueChange={onValueChange}
-          />
-        </>
-      )}
+      <label htmlFor={ids.value} className="sr-only">
+        {valueLabel}
+      </label>
+      <DraftInput
+        id={ids.value}
+        className={`${FIELD} text-center`}
+        inputMode="decimal"
+        value={chip.value}
+        format={String}
+        parse={parseDecimal}
+        onValueChange={onValueChange}
+      />
       <button
         type="button"
         // 44px touch target in a 36px column; it overlaps only the gap beside it.

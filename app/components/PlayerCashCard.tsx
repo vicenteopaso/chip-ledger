@@ -2,8 +2,8 @@ import Image from "next/image";
 
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
-import { CHIP_LABELS } from "@/lib/chips";
-import type { Chip as ChipData, Player } from "@/lib/game";
+import { MIXED, STACK_LABELS } from "@/lib/chips";
+import type { Player, StackChip } from "@/lib/game";
 import { parseCount } from "@/lib/money";
 import type { PhotoStatus } from "@/lib/photo-count";
 
@@ -13,7 +13,7 @@ export type PlayerCashCardProps = {
   player: Player;
   name: string;
   value: string;
-  chips: readonly ChipData[];
+  chips: readonly StackChip[];
   /** Present only when photo counting is enabled (REQ-0001-13). */
   photo?: PhotoState;
   onCountChange: (chipId: string, count: number | null) => void;
@@ -101,7 +101,11 @@ export function PlayerCashCard({
               className="w-full min-w-0 border-0 bg-transparent py-1.5 text-right text-xl font-semibold focus:outline-none"
               inputMode="numeric"
               placeholder="0"
-              aria-label={`${CHIP_LABELS[chip.color]} chips for ${name}`}
+              aria-label={
+                chip.color === MIXED
+                  ? `Chips for ${name}`
+                  : `${STACK_LABELS[chip.color]} chips for ${name}`
+              }
               value={player.counts[chip.id] ?? null}
               format={formatCount}
               parse={parseOptionalCount}

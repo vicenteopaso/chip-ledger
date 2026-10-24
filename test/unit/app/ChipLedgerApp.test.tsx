@@ -98,6 +98,23 @@ describe("ChipLedgerApp", () => {
     expect(savedGame().players[0]?.counts).toEqual({});
   });
 
+  it("AC-0001-14: cash out uses one All colors count per player in one-value mode", async () => {
+    saved({ screen: "cashout", uniformValue: true, uniformChip: { count: 40, value: 0.5 } });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    await screen.findByRole("heading", { name: "Cash out" });
+    expect(screen.queryByLabelText("White chips for Player 1")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Type how many chips each player has.*Colors don't matter\./),
+    ).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Chips for Player 1"), "40");
+    expect(
+      within(screen.getByRole("region", { name: "Player 1" })).getByText("$20.00"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "All colors" }).closest("tr")).toHaveTextContent(
+      "40 of 160",
+    );
+  });
+
   it("AC-0001-09: fills counts from a photo and shows the confidence", async () => {
     saved({ screen: "cashout" });
     photoCount.mockResolvedValue({

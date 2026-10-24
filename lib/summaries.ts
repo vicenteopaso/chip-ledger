@@ -1,4 +1,4 @@
-import { CHIP_LABELS, type ChipColor } from "@/lib/chips";
+import { type StackColor, STACK_LABELS } from "@/lib/chips";
 import {
   cashOutRate,
   countedChips,
@@ -7,6 +7,7 @@ import {
   issuedChips,
   MONEY_EPSILON,
   pot,
+  stackChips,
   stackValue,
 } from "@/lib/game";
 import type { MoneyFormatter } from "@/lib/money";
@@ -37,7 +38,7 @@ export function setupSummary(game: GameState, money: MoneyFormatter): Notice {
 
 export type CountCheckRow = {
   chipId: string;
-  color: ChipColor;
+  color: StackColor;
   label: string;
   counted: number;
   issued: number;
@@ -46,13 +47,13 @@ export type CountCheckRow = {
 
 /** Per-color "counted of issued" lines on Cash out (REQ-0001-12). */
 export function countCheckRows(game: GameState): CountCheckRow[] {
-  return game.chips.map((chip) => {
+  return stackChips(game).map((chip) => {
     const counted = countedChips(game, chip);
     const issued = issuedChips(game, chip);
     return {
       chipId: chip.id,
       color: chip.color,
-      label: CHIP_LABELS[chip.color],
+      label: STACK_LABELS[chip.color],
       counted,
       issued,
       mismatch: counted !== issued,

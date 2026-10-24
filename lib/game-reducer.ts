@@ -1,5 +1,12 @@
 import { availableColors, type ChipColor } from "@/lib/chips";
-import type { GameState, Player, PlayerCount, Screen } from "@/lib/game";
+import {
+  type GameState,
+  type Player,
+  type PlayerCount,
+  type Screen,
+  stackValue,
+  UNIFORM_CHIP_ID,
+} from "@/lib/game";
 import type { Currency } from "@/lib/money";
 
 /** Count and value given to a newly added chip color (REQ-0001-05). */
@@ -22,7 +29,8 @@ export type GameAction =
   | { type: "setChipCount"; chipId: string; count: number }
   | { type: "setChipValue"; chipId: string; value: number }
   | { type: "setUniformValue"; enabled: boolean }
-  | { type: "setAllChipValues"; value: number }
+  | { type: "setUniformChipCount"; count: number }
+  | { type: "setUniformChipValue"; value: number }
   | { type: "adjustBuyins"; playerId: string; delta: 1 | -1 }
   | { type: "setPlayerChipCount"; playerId: string; chipId: string; count: number | null }
   | { type: "applyPhotoCounts"; playerId: string; counts: Partial<Record<ChipColor, number>> }
@@ -64,10 +72,12 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
     case "addChip": {
       const [color] = availableColors(game.chips.map((chip) => chip.color));
       if (!color) return game;
-      const value = game.uniformValue ? (game.chips[0]?.value ?? NEW_CHIP_VALUE) : NEW_CHIP_VALUE;
       return {
         ...game,
-        chips: [...game.chips, { id: action.chipId, color, count: NEW_CHIP_COUNT, value }],
+        chips: [
+          ...game.chips,
+          { id: action.chipId, color, count: NEW_CHIP_COUNT, value: NEW_CHIP_VALUE },
+        ],
       };
     }
     case "removeChip":
@@ -86,15 +96,17 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
       return updateChip(game, action.chipId, (chip) => ({ ...chip, value: action.value }));
     case "setUniformValue": {
       if (!action.enabled) return { ...game, uniformValue: false };
-      const value = game.chips[0]?.value ?? NEW_CHIP_VALUE;
-      return {
-        ...game,
-        uniformValue: true,
-        chips: game.chips.map((chip) => ({ ...chip, value })),
-      };
+      // Start from the color rows: same chips per player, and the same stack value when it
+      // divides evenly into cents.
+      const colorRows = { ...game, uniformValue: false };
+      const count = game.chips.reduce((sum, chip) => sum + chip.count, 0);
+      const value = count > 0 ? Math.round((stackValue(colorRows) / count) * 100) / 100 : 0;
+      return { ...game, uniformValue: true, uniformChip: { count, value } };
     }
-    case "setAllChipValues":
-      return { ...game, chips: game.chips.map((chip) => ({ ...chip, value: action.value })) };
+    case "setUniformChipCount":
+      return { ...game, uniformChip: { ...game.uniformChip, count: action.count } };
+    case "setUniformChipValue":
+      return { ...game, uniformChip: { ...game.uniformChip, value: action.value } };
     case "adjustBuyins":
       return updatePlayer(game, action.playerId, (player) => ({
         ...player,
@@ -110,7 +122,15 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
     case "applyPhotoCounts":
       return updatePlayer(game, action.playerId, (player) => {
         const counts = { ...player.counts };
-        for (const chip of game.chips) counts[chip.id] = action.counts[chip.color] ?? 0;
+        if (game.uniformValue) {
+          // One-value mode: every counted color adds to the single "All colors" count.
+          counts[UNIFORM_CHIP_ID] = game.chips.reduce(
+            (sum, chip) => sum + (action.counts[chip.color] ?? 0),
+            0,
+          );
+        } else {
+          for (const chip of game.chips) counts[chip.id] = action.counts[chip.color] ?? 0;
+        }
         return { ...player, counts };
       });
     case "setScale":

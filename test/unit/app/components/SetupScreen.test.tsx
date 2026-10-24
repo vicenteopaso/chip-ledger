@@ -117,26 +117,36 @@ describe("SetupScreen", () => {
 });
 
 describe("SetupScreen: one value for all chips", () => {
-  it("AC-0001-14: the checkbox shares one value across every row", async () => {
+  it("AC-0001-14: switches between the color rows and one All colors row", async () => {
     const dispatch = vi.fn();
     render(<StatefulSetup onAction={dispatch} />);
-    expect(screen.queryByLabelText("Value of every chip")).not.toBeInTheDocument();
+    const toggle = screen.getByRole("checkbox", { name: "Use one value for all chips" });
 
-    await userEvent.click(screen.getByRole("checkbox", { name: "Use one value for all chips" }));
+    await userEvent.click(toggle);
     expect(dispatch).toHaveBeenCalledWith({ type: "setUniformValue", enabled: true });
     expect(screen.queryByLabelText("Red chip value")).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("The stack adds up to $10.00 but the buy-in is $20.00.");
+    expect(screen.queryAllByLabelText("Chip color")).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: "Add a chip color" })).not.toBeInTheDocument();
+    expect(screen.getByText("All colors")).toBeInTheDocument();
+    expect(screen.getByLabelText("Chips per player")).toHaveValue("40");
+    expect(screen.getByLabelText("Value of every chip")).toHaveValue("0.5");
+    expect(screen.getByRole("button", { name: "Remove All colors" })).toBeDisabled();
+    expect(screen.getByText("40 chips worth $20.00")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Each starting stack is worth $20.00, matching the buy-in.",
+    );
 
-    const shared = screen.getByLabelText("Value of every chip");
-    expect(shared).toHaveValue("0.25");
-    await userEvent.clear(shared);
-    await userEvent.type(shared, "0.5");
-    expect(dispatch).toHaveBeenLastCalledWith({ type: "setAllChipValues", value: 0.5 });
-    expect(screen.getByText("20 chips worth $10.00")).toBeInTheDocument();
-    expect(screen.getAllByText("10 chips worth $5.00")).toHaveLength(2);
-    expect(screen.getByRole("status")).toHaveTextContent("Each starting stack is worth $20.00, matching the buy-in.");
+    const value = screen.getByLabelText("Value of every chip");
+    await userEvent.clear(value);
+    await userEvent.type(value, "1");
+    expect(dispatch).toHaveBeenLastCalledWith({ type: "setUniformChipValue", value: 1 });
+    await userEvent.type(screen.getByLabelText("Chips per player"), "0");
+    expect(dispatch).toHaveBeenLastCalledWith({ type: "setUniformChipCount", count: 400 });
+    expect(screen.getByRole("status")).toHaveTextContent("The stack adds up to $400.00");
 
-    await userEvent.click(screen.getByRole("checkbox", { name: "Use one value for all chips" }));
+    await userEvent.click(toggle);
+    expect(screen.queryByText("All colors")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Red chip value")).toHaveValue("0.5");
+    expect(screen.getByRole("button", { name: "Add a chip color" })).toBeInTheDocument();
   });
 });

@@ -10,11 +10,16 @@ import { type CopyState, SettleScreen } from "@/app/components/SettleScreen";
 import { SetupScreen } from "@/app/components/SetupScreen";
 import { StepsNav } from "@/app/components/StepsNav";
 import { TableScreen } from "@/app/components/TableScreen";
-import { canStartGame, createGame, issuedChips, type Screen } from "@/lib/game";
+import { canStartGame, createGame, type Screen } from "@/lib/game";
 import { gameReducer } from "@/lib/game-reducer";
 import { randomId, sequentialIds } from "@/lib/ids";
 import { moneyFormatter } from "@/lib/money";
-import { COUNTING_STATUS, photoErrorStatus, photoResultStatus } from "@/lib/photo-count";
+import {
+  COUNTING_STATUS,
+  photoColorsFor,
+  photoErrorStatus,
+  photoResultStatus,
+} from "@/lib/photo-count";
 import { settle } from "@/lib/settlement";
 import { resultsText } from "@/lib/summaries";
 import { copyToClipboard } from "@/lib/infra/clipboard";
@@ -103,11 +108,7 @@ export function ChipLedgerApp({ photoCountingEnabled }: ChipLedgerAppProps) {
     thumbnails.current.add(thumbnailUrl);
     updatePhoto(playerId, { busy: true, thumbnailUrl, status: COUNTING_STATUS });
 
-    const colors = game.chips.map((chip) => ({
-      color: chip.color,
-      issued: issuedChips(game, chip),
-    }));
-    const outcome = await requestPhotoCount(file, colors);
+    const outcome = await requestPhotoCount(file, photoColorsFor(game));
     if (outcome.ok) {
       dispatch({ type: "applyPhotoCounts", playerId, counts: outcome.result.counts });
       updatePhoto(playerId, { busy: false, status: photoResultStatus(outcome.result) });

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CHIP_COLORS, ChipColorSchema } from "@/lib/chips";
+import { CHIP_COLORS, ChipColorSchema, MIXED, type StackColor } from "@/lib/chips";
 import { CurrencySchema, MAX_AMOUNT, MAX_COUNT } from "@/lib/money";
 
 export const SCREENS = ["setup", "table", "cashout", "settle"] as const;
@@ -45,6 +45,10 @@ export const GameStateSchema = z.object({
   scale: z.boolean(),
   /** Every chip shares one value (REQ-0001-28). Absent in games saved before it existed. */
   uniformValue: z.boolean().default(false),
+  /** The single "All colors" chip used while `uniformValue` is on. */
+  uniformChip: z
+    .object({ count: CountSchema, value: AmountSchema })
+    .default({ count: 0, value: 0 }),
   players: z.array(PlayerSchema).length(PLAYER_SLOTS),
   chips: z
     .array(ChipSchema)
@@ -75,6 +79,7 @@ export function createGame(newId: IdFactory): GameState {
     currency: "USD",
     scale: true,
     uniformValue: false,
+    uniformChip: { count: 0, value: 0 },
     players: Array.from({ length: PLAYER_SLOTS }, () => newPlayer(newId())),
     chips: [
       { id: newId(), color: "white", count: 20, value: 0.25 },
@@ -93,9 +98,21 @@ export function playerName(game: GameState, player: Player): string {
   return player.name.trim() || `Player ${game.players.indexOf(player) + 1}`;
 }
 
+/** Player counts for the "All colors" chip are stored under this id. */
+export const UNIFORM_CHIP_ID = "all";
+
+/** A chip row as the game uses it: one of the color rows, or the single "All colors" chip. */
+export type StackChip = { id: string; color: StackColor; count: number; value: number };
+
+/** The chips in play: the color rows, or only the "All colors" chip in one-value mode (REQ-0001-28). */
+export function stackChips(game: GameState): StackChip[] {
+  if (!game.uniformValue) return game.chips;
+  return [{ id: UNIFORM_CHIP_ID, color: MIXED, ...game.uniformChip }];
+}
+
 /** Face value of one starting stack. */
 export function stackValue(game: GameState): number {
-  return game.chips.reduce((sum, chip) => sum + chip.count * chip.value, 0);
+  return stackChips(game).reduce((sum, chip) => sum + chip.count * chip.value, 0);
 }
 
 /** Money per unit of chip face value: buy-in ÷ stack value, or 1 with no stack (REQ-0001-11). */
@@ -113,7 +130,10 @@ export function pot(game: GameState): number {
 }
 
 export function chipFaceValue(game: GameState, player: Player): number {
-  return game.chips.reduce((sum, chip) => sum + (player.counts[chip.id] ?? 0) * chip.value, 0);
+  return stackChips(game).reduce(
+    (sum, chip) => sum + (player.counts[chip.id] ?? 0) * chip.value,
+    0,
+  );
 }
 
 export function cashOutValue(game: GameState, player: Player): number {
@@ -121,11 +141,11 @@ export function cashOutValue(game: GameState, player: Player): number {
 }
 
 /** Chips of one row issued across the whole game. */
-export function issuedChips(game: GameState, chip: Chip): number {
+export function issuedChips(game: GameState, chip: StackChip): number {
   return chip.count * totalBuyins(game);
 }
 
-export function countedChips(game: GameState, chip: Chip): number {
+export function countedChips(game: GameState, chip: StackChip): number {
   return activePlayers(game).reduce((sum, player) => sum + (player.counts[chip.id] ?? 0), 0);
 }
 

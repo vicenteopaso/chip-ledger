@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { CHIP_COLORS, type ChipColor, ChipColorSchema } from "@/lib/chips";
+import { type GameState, issuedChips, stackChips } from "@/lib/game";
 import { MAX_COUNT } from "@/lib/money";
 
 /** Image types accepted by the photo-count endpoint and widely supported by vision models. */
@@ -35,6 +36,21 @@ export const PhotoCountResultSchema = z.object({
 });
 
 export type PhotoCountResult = z.infer<typeof PhotoCountResultSchema>;
+
+/**
+ * The colors to look for and how many of each exist. In one-value mode colors don't matter for
+ * money, so each color is capped by the total "All colors" chips issued (REQ-0001-15, -28).
+ */
+export function photoColorsFor(game: GameState): PhotoColor[] {
+  const [uniform] = stackChips(game);
+  return game.chips.map((chip) => ({
+    color: chip.color,
+    issued: Math.min(
+      MAX_ISSUED_PER_COLOR,
+      game.uniformValue && uniform ? issuedChips(game, uniform) : issuedChips(game, chip),
+    ),
+  }));
+}
 
 /** The prompt sent with the photo; wording carried over from the prototype. */
 export function buildPhotoPrompt(colors: readonly PhotoColor[]): string {

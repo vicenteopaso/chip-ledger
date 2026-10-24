@@ -20,15 +20,28 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByRole("button", { name: "Remove Blue" })).toBeDisabled();
   });
 
-  test("AC-0001-14: one value for all chips, kept after a reload", async ({ page }) => {
+  test("AC-0001-14: one value for all chips swaps the color rows for one row, kept after a reload", async ({
+    page,
+  }) => {
     await openFresh(page);
     await page.getByRole("checkbox", { name: "Use one value for all chips" }).check();
-    await expect(page.getByText(/The stack adds up to \$10\.00 but the buy-in is \$20\.00/)).toBeVisible();
-    await page.getByLabel("Value of every chip").fill("0.5");
-    await expect(page.getByText("Each starting stack is worth $20.00, matching the buy-in.")).toBeVisible();
+    await expect(page.getByLabel("Chip color")).toHaveCount(0);
+    await expect(page.getByText("All colors")).toBeVisible();
+    await expect(
+      page.getByText("Each starting stack is worth $20.00, matching the buy-in."),
+    ).toBeVisible();
+    await page.getByLabel("Value of every chip").fill("1");
+    await expect(
+      page.getByText(/The stack adds up to \$40\.00 but the buy-in is \$20\.00/),
+    ).toBeVisible();
+
     await page.reload();
     await expect(page.getByRole("checkbox", { name: "Use one value for all chips" })).toBeChecked();
-    await expect(page.getByLabel("Value of every chip")).toHaveValue("0.5");
+    await expect(page.getByLabel("Value of every chip")).toHaveValue("1");
+
+    await page.getByRole("checkbox", { name: "Use one value for all chips" }).uncheck();
+    await expect(page.getByText("All colors")).toBeHidden();
+    await expect(page.getByLabel("Red chip value")).toHaveValue("0.5");
   });
 
   test("AC-0001-01, -04, -05, -06: plays a game from setup to payments", async ({ page }) => {

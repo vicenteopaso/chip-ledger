@@ -31,6 +31,12 @@ export const CHIP_LABELS: Record<ChipColor, string> = {
   gray: "Gray",
 };
 
+/** The multi-color chip that stands for every color when all chips share one value (REQ-0001-28). */
+export const MIXED = "mixed";
+export type StackColor = ChipColor | typeof MIXED;
+
+export const STACK_LABELS: Record<StackColor, string> = { ...CHIP_LABELS, mixed: "All colors" };
+
 /** Colors not yet used by another row, keeping `current` selectable for its own row. */
 export function availableColors(used: readonly ChipColor[], current?: ChipColor): ChipColor[] {
   return CHIP_COLORS.filter((color) => color === current || !used.includes(color));

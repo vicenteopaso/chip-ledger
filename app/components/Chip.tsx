@@ -1,4 +1,4 @@
-import type { ChipColor } from "@/lib/chips";
+import type { StackColor } from "@/lib/chips";
 
 const SIZES = {
   sm: "size-6.5",
@@ -8,7 +8,8 @@ const SIZES = {
 } as const;
 
 export type ChipProps = {
-  color: ChipColor;
+  /** A palette color, or `mixed` for the multi-color "All colors" chip. */
+  color: StackColor;
   size?: keyof typeof SIZES;
   className?: string;
 };

@@ -4,8 +4,8 @@ import { ChipStackArt } from "@/app/components/ChipStackArt";
 import { DraftInput } from "@/app/components/DraftInput";
 import { Notice } from "@/app/components/Notice";
 import { Lede, PageTitle, SectionTitle, Hint } from "@/app/components/Typography";
-import { CHIP_COLORS } from "@/lib/chips";
-import { activePlayers, type GameState, PLAYER_COUNTS } from "@/lib/game";
+import { CHIP_COLORS, MIXED } from "@/lib/chips";
+import { activePlayers, type GameState, PLAYER_COUNTS, UNIFORM_CHIP_ID } from "@/lib/game";
 import type { GameAction } from "@/lib/game-reducer";
 import { CURRENCIES, CurrencySchema, type MoneyFormatter, parseDecimal } from "@/lib/money";
 import { setupSummary } from "@/lib/summaries";
@@ -21,6 +21,9 @@ export type SetupScreenProps = {
 const FIELD_BASE =
   "block min-w-0 rounded-md border-control border-border-control bg-surface px-3.5 py-3 focus:border-accent";
 const FIELD = `${FIELD_BASE} w-full text-body`;
+
+/** The single "All colors" row has no color to change and cannot be removed. */
+const ignore = () => undefined;
 
 /** Step 1: players, buy-in, and the starting stack (REQ-0001-03 … -07). */
 export function SetupScreen({
@@ -127,55 +130,55 @@ export function SetupScreen({
         />
         <span>Use one value for all chips</span>
       </label>
-      {game.uniformValue && (
-        <div className="mb-3 flex items-center gap-3">
-          <label htmlFor="shared-chip-value" className="text-md">
-            Value of every chip
-          </label>
-          <DraftInput
-            id="shared-chip-value"
-            className={`${FIELD_BASE} w-28 text-center text-body`}
-            inputMode="decimal"
-            value={game.chips[0]?.value ?? 0}
-            format={String}
-            parse={parseDecimal}
-            onValueChange={(value) => {
-              dispatch({ type: "setAllChipValues", value });
-            }}
-          />
-        </div>
-      )}
       <Hint>
         {game.uniformValue
-          ? "Color and how many each player gets. Every chip is worth the value above."
+          ? "How many chips each player gets, and what one chip is worth."
           : "Color, how many each player gets, and what one chip is worth."}
       </Hint>
-      {game.chips.map((chip) => (
+      {game.uniformValue ? (
         <ChipRow
-          key={chip.id}
-          chip={chip}
+          chip={{ id: UNIFORM_CHIP_ID, color: MIXED, ...game.uniformChip }}
           usedColors={usedColors}
-          canRemove={game.chips.length > 1}
-          sharedValue={game.uniformValue}
+          canRemove={false}
           money={money}
-          onColorChange={(color) => {
-            dispatch({ type: "setChipColor", chipId: chip.id, color });
-          }}
+          onColorChange={ignore}
           onCountChange={(count) => {
-            dispatch({ type: "setChipCount", chipId: chip.id, count });
+            dispatch({ type: "setUniformChipCount", count });
           }}
           onValueChange={(value) => {
-            dispatch({ type: "setChipValue", chipId: chip.id, value });
+            dispatch({ type: "setUniformChipValue", value });
           }}
-          onRemove={() => {
-            dispatch({ type: "removeChip", chipId: chip.id });
-          }}
+          onRemove={ignore}
         />
-      ))}
-      {usedColors.length < CHIP_COLORS.length && (
-        <Button variant="link" onClick={onAddChip}>
-          Add a chip color
-        </Button>
+      ) : (
+        <>
+          {game.chips.map((chip) => (
+            <ChipRow
+              key={chip.id}
+              chip={chip}
+              usedColors={usedColors}
+              canRemove={game.chips.length > 1}
+              money={money}
+              onColorChange={(color) => {
+                dispatch({ type: "setChipColor", chipId: chip.id, color });
+              }}
+              onCountChange={(count) => {
+                dispatch({ type: "setChipCount", chipId: chip.id, count });
+              }}
+              onValueChange={(value) => {
+                dispatch({ type: "setChipValue", chipId: chip.id, value });
+              }}
+              onRemove={() => {
+                dispatch({ type: "removeChip", chipId: chip.id });
+              }}
+            />
+          ))}
+          {usedColors.length < CHIP_COLORS.length && (
+            <Button variant="link" onClick={onAddChip}>
+              Add a chip color
+            </Button>
+          )}
+        </>
       )}
       <div role="status">
         <Notice notice={setupSummary(game, money)} />

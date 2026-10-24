@@ -13,7 +13,7 @@ Casino-chip artwork for one chip color. Decorative: always pair it with a text l
 
 | Prop        | Type                           | Default | Required | Description                    |
 | ----------- | ------------------------------ | ------- | -------- | ------------------------------ |
-| `color`     | `ChipColor`                    | —       | Yes      | One of the ten palette colors  |
+| `color`     | `StackColor`                   | —       | Yes      | One of the ten palette colors, or `"mixed"` for the multi-color "All colors" chip (REQ-0001-28) |
 | `size`      | `"sm" \| "md" \| "lg" \| "xl"` | `"md"`  | No       | 26, 30, 46, or 64 px           |
 | `className` | `string`                       | `""`    | No       | Layout utilities (offsets)     |
 
@@ -31,7 +31,7 @@ Casino-chip artwork for one chip color. Decorative: always pair it with a text l
 
 ## Design tokens
 
-`--color-chip-<color>`, `--color-chip-<color>-spot`, `--color-chip-spot`, `--color-chip-shadow`. Drawn by the `.chip` class in `app/globals.css` from the `data-color` attribute.
+`--color-chip-<color>`, `--color-chip-<color>-spot`, `--color-chip-spot`, `--color-chip-shadow`. Drawn by the `.chip` class in `app/globals.css` from the `data-color` attribute. The `mixed` chip draws a white center and an edge in red, blue, green, and yellow.
 
 ## Testing
 

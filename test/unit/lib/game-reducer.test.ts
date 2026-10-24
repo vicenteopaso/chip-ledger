@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CHIP_COLORS } from "@/lib/chips";
-import type { GameState } from "@/lib/game";
+import { type GameState, stackChips, stackValue, UNIFORM_CHIP_ID } from "@/lib/game";
 import { gameReducer, NEW_CHIP_COUNT, NEW_CHIP_VALUE } from "@/lib/game-reducer";
 import { defaultGame, gameWith } from "@/test/unit/fixtures";
 
@@ -117,28 +117,41 @@ describe("gameReducer", () => {
 });
 
 describe("one value for all chips", () => {
-  it("AC-0001-14: turning it on copies the first row's value to every row", () => {
+  it("AC-0001-14: turning it on starts from the color rows' total chips and stack value", () => {
     const game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
     expect(game.uniformValue).toBe(true);
-    expect(game.chips.map((c) => c.value)).toEqual([0.25, 0.25, 0.25]);
+    expect(game.uniformChip).toEqual({ count: 40, value: 0.5 });
+    expect(stackValue(game)).toBe(20);
+    expect(stackChips(game)).toEqual([
+      { id: UNIFORM_CHIP_ID, color: "mixed", count: 40, value: 0.5 },
+    ]);
   });
 
-  it("AC-0001-14: the shared value changes every row", () => {
+  it("AC-0001-14: edits the single chip and leaves the color rows untouched", () => {
     let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
-    game = gameReducer(game, { type: "setAllChipValues", value: 0.5 });
-    expect(game.chips.map((c) => c.value)).toEqual([0.5, 0.5, 0.5]);
-  });
-
-  it("REQ-0001-28: a new color uses the shared value while it is on", () => {
-    let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
-    game = gameReducer(game, { type: "addChip", chipId: "new" });
-    expect(game.chips.at(-1)?.value).toBe(0.25);
-  });
-
-  it("REQ-0001-28: turning it off keeps the current values", () => {
-    let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    game = gameReducer(game, { type: "setUniformChipValue", value: 1 });
+    game = gameReducer(game, { type: "setUniformChipCount", count: 30 });
+    expect(stackValue(game)).toBe(30);
     game = gameReducer(game, { type: "setUniformValue", enabled: false });
-    expect(game.uniformValue).toBe(false);
-    expect(game.chips.map((c) => c.value)).toEqual([0.25, 0.25, 0.25]);
+    expect(game.chips.map((c) => c.value)).toEqual([0.25, 0.5, 1]);
+    expect(stackValue(game)).toBe(20);
+  });
+
+  it("REQ-0001-28: uses a value of 0 when there are no chips to start from", () => {
+    const game = gameWith({ chips: [{ id: "red", color: "red", count: 0, value: 1 }] });
+    expect(gameReducer(game, { type: "setUniformValue", enabled: true }).uniformChip).toEqual({
+      count: 0,
+      value: 0,
+    });
+  });
+
+  it("REQ-0001-28: photo counts add up into the single chip in one-value mode", () => {
+    let game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    game = gameReducer(game, {
+      type: "applyPhotoCounts",
+      playerId: "p1",
+      counts: { white: 4, red: 3 },
+    });
+    expect(player(game, "p1")?.counts).toEqual({ [UNIFORM_CHIP_ID]: 7 });
   });
 });

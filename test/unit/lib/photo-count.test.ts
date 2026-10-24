@@ -7,15 +7,29 @@ import {
   PHOTO_ERROR_MESSAGES,
   PhotoColorsSchema,
   photoErrorCode,
+  photoColorsFor,
   photoErrorStatus,
   photoResultStatus,
 } from "@/lib/photo-count";
+import { gameReducer } from "@/lib/game-reducer";
+import { defaultGame } from "@/test/unit/fixtures";
 
 const colors = [
   { color: "white", issued: 80 },
   { color: "red", issued: 40 },
   { color: "blue", issued: 40 },
 ] as const;
+
+describe("photoColorsFor", () => {
+  it("REQ-0001-15: lists each color with the chips issued for it", () => {
+    expect(photoColorsFor(defaultGame())).toEqual(colors);
+  });
+
+  it("REQ-0001-28: caps every color by the All colors total in one-value mode", () => {
+    const game = gameReducer(defaultGame(), { type: "setUniformValue", enabled: true });
+    expect(photoColorsFor(game).map((c) => c.issued)).toEqual([160, 160, 160]);
+  });
+});
 
 describe("PhotoColorsSchema", () => {
   it("REQ-0001-15: accepts 1–10 unique palette colors with issued totals in range", () => {

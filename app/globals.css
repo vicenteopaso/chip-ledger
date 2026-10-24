@@ -83,6 +83,23 @@
   .chip[data-color="orange"] {
     --chip-body: var(--color-chip-orange);
   }
+  /* "All colors" chip: a white center, an edge in four chip colors, white edge spots. */
+  .chip[data-color="mixed"] {
+    background:
+      radial-gradient(
+        circle,
+        var(--color-chip-white) 0 47%,
+        var(--color-chip-spot) 47% 52%,
+        transparent 52%
+      ),
+      repeating-conic-gradient(transparent 0 33deg, var(--color-chip-spot) 33deg 45deg),
+      conic-gradient(
+        var(--color-chip-red) 0 90deg,
+        var(--color-chip-blue) 90deg 180deg,
+        var(--color-chip-green) 180deg 270deg,
+        var(--color-chip-yellow) 270deg 360deg
+      );
+  }
 
   /* Setup chip row: swatch, color, count, ×, value, remove. */
   .chip-row {

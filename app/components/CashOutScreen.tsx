@@ -1,7 +1,7 @@
 import { CountCheck } from "@/app/components/CountCheck";
 import { type PhotoState, PlayerCashCard } from "@/app/components/PlayerCashCard";
 import { Lede, PageTitle } from "@/app/components/Typography";
-import { activePlayers, cashOutValue, type GameState, playerName } from "@/lib/game";
+import { activePlayers, cashOutValue, type GameState, playerName, stackChips } from "@/lib/game";
 import type { GameAction } from "@/lib/game-reducer";
 import type { MoneyFormatter } from "@/lib/money";
 
@@ -24,7 +24,9 @@ export function CashOutScreen({ game, money, photos, dispatch, onPhoto }: CashOu
       <Lede>
         {photos
           ? "Tap Take photo on each player's card to snap their chips or pick a picture from your library, then check the counts. You can also type the counts in."
-          : "Type each player's chip counts, then check the count below."}
+          : game.uniformValue
+            ? "Type how many chips each player has, then check the count below. Colors don't matter."
+            : "Type each player's chip counts, then check the count below."}
       </Lede>
       {activePlayers(game).map((player) => (
         <PlayerCashCard
@@ -32,7 +34,7 @@ export function CashOutScreen({ game, money, photos, dispatch, onPhoto }: CashOu
           player={player}
           name={playerName(game, player)}
           value={money(cashOutValue(game, player))}
-          chips={game.chips}
+          chips={stackChips(game)}
           photo={photos ? (photos[player.id] ?? IDLE) : undefined}
           onCountChange={(chipId, count) => {
             dispatch({ type: "setPlayerChipCount", playerId: player.id, chipId, count });
