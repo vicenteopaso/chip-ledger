@@ -44,4 +44,5 @@ Ordered, small, independently verifiable. Check a box only when the done-conditi
   - Tests: reducer, schema default, SetupScreen, e2e; visual baselines refreshed
 - [x] T-16 Auto-balanced chips and currency support _(REQ-0001-29, -30, AC-0001-15, -16)_
   - Tests: planner, money, reducer, settlement in whole units, Setup, e2e
+- [x] T-17 EUR 10 default, Settle "Back to Setup", pot as plain text _(REQ-0001-02, -09, -26)_
 - [ ] T-14 Set spec status to `implemented` after merge

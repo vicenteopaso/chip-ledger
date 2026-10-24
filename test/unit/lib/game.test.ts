@@ -19,22 +19,26 @@ import { randomId, sequentialIds } from "@/lib/ids";
 import { defaultGame, gameWith } from "@/test/unit/fixtures";
 
 describe("createGame", () => {
-  it("REQ-0001-26: defaults to 4 players, 20 USD, spread on, white/red/blue chips", () => {
+  it("REQ-0001-26: defaults to 4 players, 10 EUR, spread on, and chips balanced for the buy-in", () => {
     const game = createGame(sequentialIds("x"));
     expect(game).toMatchObject({
       screen: "setup",
       count: 4,
-      buyIn: 20,
-      currency: "USD",
+      buyIn: 10,
+      currency: "EUR",
       scale: true,
+      uniformValue: false,
+      autoChips: true,
     });
     expect(game.players).toHaveLength(6);
     expect(game.players.every((p) => p.buyins === 1 && p.name === "")).toBe(true);
     expect(game.chips.map((c) => [c.color, c.count, c.value])).toEqual([
-      ["white", 20, 0.25],
-      ["red", 10, 0.5],
-      ["blue", 10, 1],
+      ["white", 22, 0.1],
+      ["red", 13, 0.2],
+      ["blue", 13, 0.4],
     ]);
+    expect(game.uniformChip).toEqual({ count: 40, value: 0.25 });
+    expect(stackValue(game)).toBeCloseTo(10, 10);
     expect(GameStateSchema.safeParse(game).success).toBe(true);
   });
 

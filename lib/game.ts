@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { planChips, planUniformChip } from "@/lib/chip-plan";
 import { CHIP_COLORS, ChipColorSchema, MIXED, type StackColor } from "@/lib/chips";
-import { CurrencySchema, MAX_AMOUNT, MAX_COUNT } from "@/lib/money";
+import { CurrencySchema, MAX_AMOUNT, MAX_COUNT, typicalBuyIn } from "@/lib/money";
 
 export const SCREENS = ["setup", "table", "cashout", "settle"] as const;
 export type Screen = (typeof SCREENS)[number];
@@ -73,20 +73,21 @@ export function newPlayer(id: string): Player {
   return { id, name: "", buyins: 1, counts: {} };
 }
 
-/** The default game (REQ-0001-26, -29): 4 players, 20 USD, spread on, balanced white/red/blue chips. */
+/** The default game (REQ-0001-26, -29): 4 players, 10 EUR, spread on, balanced white/red/blue chips. */
 export function createGame(newId: IdFactory): GameState {
-  const buyIn = 20;
+  const currency = "EUR";
+  const buyIn = typicalBuyIn(currency);
   const players = Array.from({ length: PLAYER_SLOTS }, () => newPlayer(newId()));
-  const planned = planChips(buyIn, "USD") ?? [];
+  const planned = planChips(buyIn, currency) ?? [];
   return {
     screen: "setup",
     count: 4,
     buyIn,
-    currency: "USD",
+    currency,
     scale: true,
     uniformValue: false,
     autoChips: true,
-    uniformChip: planUniformChip(buyIn, "USD") ?? { count: 0, value: 0 },
+    uniformChip: planUniformChip(buyIn, currency) ?? { count: 0, value: 0 },
     players,
     chips: planned.map((chip) => ({ id: newId(), ...chip })),
   };

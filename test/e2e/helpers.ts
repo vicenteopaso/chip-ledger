@@ -2,14 +2,18 @@ import { expect, type Page } from "@playwright/test";
 
 export const NAMES = ["Ana", "Ben", "Cy", "Dee"] as const;
 
-/** Opens the app with empty storage. */
-export async function openFresh(page: Page) {
+/**
+ * Opens the app with empty storage, then picks USD (20 USD and its balanced chips) so flows
+ * read in dollars. Pass `"EUR"` to keep the app's own default (10 EUR).
+ */
+export async function openFresh(page: Page, currency: "USD" | "EUR" = "USD") {
   await page.goto("/");
   await page.evaluate(() => {
     localStorage.clear();
   });
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+  if (currency !== "EUR") await page.getByLabel("Currency").selectOption(currency);
 }
 
 /** Names the four players and starts the game. */

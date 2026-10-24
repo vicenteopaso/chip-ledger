@@ -56,8 +56,8 @@ export function TableScreen({ game, money, dispatch }: TableScreenProps) {
           </div>
         );
       })}
-      <div className="mt-5.5 flex items-baseline justify-between rounded-2xl bg-accent p-4.5 text-accent-ink">
-        <span>Money in the pot</span>
+      <div className="mt-5.5 flex items-baseline justify-between border-b border-border py-4.5">
+        <span className="text-text-muted">Money in the pot</span>
         <b className="text-5xl font-extrabold tracking-display">{money(pot(game))}</b>
       </div>
       <Hint className="mt-3">{`${String(totalBuyins(game))} buy-ins so far.`}</Hint>

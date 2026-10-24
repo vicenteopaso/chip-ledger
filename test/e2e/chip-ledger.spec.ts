@@ -3,6 +3,16 @@ import { expect, test } from "@playwright/test";
 import { enterCounts, openFresh, playToSettle, startGame } from "./helpers";
 
 test.describe("SPEC-0001 Chip Ledger", () => {
+  test("REQ-0001-26: a first visit starts with 10 EUR and balanced chips", async ({ page }) => {
+    await openFresh(page, "EUR");
+    await expect(page.getByLabel("Buy-in amount")).toHaveValue("10");
+    await expect(page.getByLabel("Currency")).toHaveValue("EUR");
+    await expect(page.getByLabel("White chips per player")).toHaveValue("22");
+    await expect(page.getByLabel("White chip value")).toHaveValue("0.1");
+    await expect(page.getByLabel("Blue chip value")).toHaveValue("0.4");
+    await expect(page.getByText(/matching the buy-in/)).toBeVisible();
+  });
+
   test("AC-0001-02, -03: setup summary and start button follow buy-in and chips", async ({
     page,
   }) => {
@@ -139,7 +149,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     });
     await page.reload();
     await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
-    await expect(page.getByLabel("Buy-in amount")).toHaveValue("20");
+    await expect(page.getByLabel("Buy-in amount")).toHaveValue("10");
   });
 
   test("AC-0001-08: photo counting is hidden and its endpoint is off", async ({

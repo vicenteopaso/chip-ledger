@@ -1,6 +1,6 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChipLedgerApp } from "@/app/ChipLedgerApp";
 import { copyToClipboard } from "@/lib/infra/clipboard";
@@ -26,6 +26,12 @@ function savedGame() {
 }
 
 describe("ChipLedgerApp", () => {
+  // Start from a saved 20 USD game so these tests read in dollars; the app's own default
+  // (10 EUR) is covered below, with storage emptied first.
+  beforeEach(() => {
+    saved();
+  });
+
   afterEach(() => {
     copy.mockReset();
     photoCount.mockReset();
@@ -86,7 +92,18 @@ describe("ChipLedgerApp", () => {
     localStorage.setItem(STORAGE_KEY, '{"players":"oops"}');
     render(<ChipLedgerApp photoCountingEnabled={false} />);
     expect(heading()).toHaveTextContent("Chip Ledger");
-    expect(savedGame().buyIn).toBe(20);
+    expect(savedGame()).toMatchObject({ buyIn: 10, currency: "EUR" });
+  });
+
+  it("REQ-0001-26: a first visit starts with 10 EUR and balanced chips", () => {
+    localStorage.clear();
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(screen.getByLabelText("Buy-in amount")).toHaveValue("10");
+    expect(screen.getByLabelText("Currency")).toHaveValue("EUR");
+    expect(screen.getByLabelText("White chips per player")).toHaveValue("22");
+    expect(screen.getByLabelText("White chip value")).toHaveValue("0.1");
+    expect(screen.getByLabelText("Blue chip value")).toHaveValue("0.4");
+    expect(screen.getByRole("status")).toHaveTextContent("matching the buy-in");
   });
 
   it("AC-0001-05, AC-0001-08: types counts with no photo controls when photo counting is off", async () => {
@@ -221,7 +238,8 @@ describe("ChipLedgerApp", () => {
     const results = screen.getByRole("textbox", { name: "Results text" });
     expect((results as HTMLTextAreaElement).value).toContain("Payments:");
     expect(screen.getByText("Select the text above and copy it.")).toBeInTheDocument();
-    await userEvent.click(button("Back to table"));
+    await userEvent.click(button("Back to Setup"));
+    expect(heading()).toHaveTextContent("Chip Ledger");
     await userEvent.click(button("4 Settle"));
     expect(screen.queryByRole("textbox", { name: "Results text" })).not.toBeInTheDocument();
   });
@@ -258,7 +276,7 @@ describe("ChipLedgerApp", () => {
     await userEvent.click(button("Start over from scratch"));
     await userEvent.click(button("Tap again to erase everything"));
     expect(heading()).toHaveTextContent("Chip Ledger");
-    expect(savedGame().buyIn).toBe(20);
+    expect(savedGame().buyIn).toBe(10);
   });
 
   it("REQ-0001-02: shows each step's bottom actions", async () => {

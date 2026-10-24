@@ -248,10 +248,10 @@ export function ChipLedgerApp({ photoCountingEnabled }: ChipLedgerAppProps) {
             <Button
               variant="primary"
               onClick={() => {
-                go("table");
+                go("setup");
               }}
             >
-              Back to table
+              Back to Setup
             </Button>
           </>
         )}

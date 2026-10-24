@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 const CURRENCY_INFO = {
   USD: { digits: 2, buyIn: 20 },
-  EUR: { digits: 2, buyIn: 20 },
+  EUR: { digits: 2, buyIn: 10 },
   GBP: { digits: 2, buyIn: 20 },
   CAD: { digits: 2, buyIn: 25 },
   AUD: { digits: 2, buyIn: 25 },
