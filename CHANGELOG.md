@@ -6,6 +6,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Added
 
+- Copyright footer on every step, "© <current year> Vicente Opaso and Jason Johnson", with the year taken when the page is served (REQ-0001-31).
 - Player count is a − / + stepper from 2 to 10 players (default 4), replacing the 4 / 5 / 6 buttons; games saved with six slots still load (REQ-0001-03).
 - Default game is 10 EUR; Settle's "Back to table" is now "Back to Setup" and opens the first step; the Table pot is plain text instead of a filled box.
 - Chips are pre-populated to equal the buy-in and rebalance when the buy-in or currency changes until a chip is edited by hand (REQ-0001-29); 38 common currencies, with scaled typical buy-ins and whole-unit handling for CLP, JPY, KRW and VND (REQ-0001-30).

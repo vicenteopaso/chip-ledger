@@ -5,6 +5,8 @@ export const SITE = {
   description:
     "Track buy-ins during the game, count chips at the end, and see exactly who pays whom.",
   locale: "en_US",
+  /** Shown in the footer; keep in sync with LICENSE. */
+  copyrightHolders: "Vicente Opaso and Jason Johnson",
 } as const;
 
 /** Every path that should be indexed; the sitemap is generated from this list. */

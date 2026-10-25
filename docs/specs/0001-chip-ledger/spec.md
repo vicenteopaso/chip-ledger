@@ -97,6 +97,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 
 ### Presentation
 
+- REQ-0001-31: Every step MUST end with a footer reading "© <year> Vicente Opaso and Jason Johnson", where <year> is the current year when the page is served (not fixed at build time). The footer MUST be a `contentinfo` landmark, remain readable above the fixed bottom bar at the end of the page, and meet the same contrast as other muted text.
 - REQ-0001-27: The look MUST match the prototype — colors, type (Bricolage Grotesque), spacing, chip artwork, fixed bottom bar — in light and dark themes, following the system color scheme and honoring a `data-theme` attribute on the root element.
 
 ## 5. Acceptance criteria
@@ -114,6 +115,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 - AC-0001-08 (REQ-0001-13): Given `PHOTO_COUNT_ENABLED` unset, when the host opens Cash out, then no "Take photo" control exists, and `POST /api/photo-count` returns 404.
 - AC-0001-09 (REQ-0001-15 … -17): Given the flag on and a provider reply whose content is `{"counts":{"white":3.6,"red":-2},"confidence":"weird","note":"Blurry"}`, then white is 4, red is 0, blue is 0, and the status reads "Counted from the photo with medium confidence. Check the numbers below. Blurry"; given a cross-origin request, the server returns 403; given a 9 MB image, 400; given a sixth request within a minute from one client, 429; given an upstream timeout, a generic 500 and one logged error.
 - AC-0001-17 (REQ-0001-03): Given a new game, then "4" is shown between − and +, with four name fields; when the host taps + six times, then 10 is shown, ten name fields appear, and + is disabled; when the host taps − eight times, then 2 is shown and − is disabled; a name typed for Player 7 is still there after going 10 → 4 → 10; a game saved with six slots and 5 players loads with 5 players.
+- AC-0001-18 (REQ-0001-31): Given any step, when the host scrolls to the bottom, then "© 2026 Vicente Opaso and Jason Johnson" is visible above the bottom bar, with the year of the day the page was served.
 - AC-0001-10 (REQ-0001-24): When the host taps "Start over from scratch" once, then the label becomes "Tap again to erase everything" and nothing is erased; a second tap resets to defaults on Setup.
 - AC-0001-11 (REQ-0001-25, -26): Given a game in progress on Table, when the page reloads, then Table is shown with the same buy-ins; given `chip-ledger.v1` holds `{"players":"oops"}`, then the defaults load (10 EUR).
 - AC-0001-12 (REQ-0001-22): Given clipboard write rejects, when the host taps "Copy results", then a read-only field shows the results text.

@@ -46,4 +46,5 @@ Ordered, small, independently verifiable. Check a box only when the done-conditi
   - Tests: planner, money, reducer, settlement in whole units, Setup, e2e
 - [x] T-17 EUR 10 default, Settle "Back to Setup", pot as plain text _(REQ-0001-02, -09, -26)_
 - [x] T-18 Player count 2–10 with a − / + stepper _(REQ-0001-03, AC-0001-17)_
+- [x] T-19 Copyright footer with a dynamic year _(REQ-0001-31, AC-0001-18)_
 - [x] T-14 Set spec status to `implemented`

@@ -261,6 +261,21 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(violations).toEqual([]);
   });
 
+  test("AC-0001-18: the footer shows the copyright with the current year on every step", async ({
+    page,
+  }) => {
+    await openFresh(page);
+    const footer = page.getByRole("contentinfo");
+    const text = `© ${String(new Date().getFullYear())} Vicente Opaso and Jason Johnson`;
+    await expect(footer).toHaveText(text);
+    for (const step of ["2 Table", "3 Cash out", "4 Settle"]) {
+      await page.getByRole("button", { name: step }).click();
+      await footer.scrollIntoViewIfNeeded();
+      await expect(footer).toBeVisible();
+      await expect(footer).toHaveText(text);
+    }
+  });
+
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Chip Ledger");

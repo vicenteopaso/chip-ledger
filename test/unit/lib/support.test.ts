@@ -4,7 +4,7 @@ import { problemBody } from "@/lib/api-problem";
 import { logError, logWarning } from "@/lib/error-logging";
 import { clientKey, isSameOrigin } from "@/lib/request-guards";
 import { contentSecurityPolicy, SECURITY_HEADERS } from "@/lib/security-headers";
-import { pageMetadata, robotsRules, sitemapEntries } from "@/lib/seo";
+import { pageMetadata, robotsRules, SITE, sitemapEntries } from "@/lib/seo";
 
 describe("problemBody", () => {
   it("includes the request id only when there is one", () => {
@@ -79,6 +79,10 @@ describe("security headers", () => {
 });
 
 describe("seo", () => {
+  it("REQ-0001-31: names both copyright holders, matching the LICENSE", () => {
+    expect(SITE.copyrightHolders).toBe("Vicente Opaso and Jason Johnson");
+  });
+
   it("builds canonical metadata, sitemap and robots from one site URL", () => {
     const meta = pageMetadata({ siteUrl: "https://chips.example", path: "/" });
     expect(meta.alternates.canonical).toBe("https://chips.example/");
