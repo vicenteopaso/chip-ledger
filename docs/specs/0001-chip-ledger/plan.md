@@ -4,7 +4,7 @@
 | ------ | ----------------------------------------------------------------- |
 | Spec   | [spec.md](./spec.md)                                              |
 | ADR    | [ADR-0004](../../adr/0004-chip-ledger-client-architecture.md)     |
-| Status | approved                                                             |
+| Status | implemented                                                           |
 
 ## 1. Approach
 

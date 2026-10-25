@@ -2,7 +2,7 @@
 
 | Field   | Value                                                                       |
 | ------- | --------------------------------------------------------------------------- |
-| Status  | approved                                                                       |
+| Status  | implemented                                                                     |
 | Tier    | 2                                                                           |
 | Owner   | @vicenteopaso                                                               |
 | Created | 2026-10-24                                                                  |

@@ -24,4 +24,4 @@ The process is defined in [`../SDD_GUIDE.md`](../SDD_GUIDE.md). Start a new spec
 
 | #    | Title                                          | Status   | Tier | Links |
 | ---- | ---------------------------------------------- | -------- | ---- | ----- |
-| 0001 | Chip Ledger — poker buy-in and cash-out tracker | approved | 2    | [spec](./0001-chip-ledger/spec.md) · [plan](./0001-chip-ledger/plan.md) · [tasks](./0001-chip-ledger/tasks.md) · [ADR-0004](../adr/0004-chip-ledger-client-architecture.md) |
+| 0001 | Chip Ledger — poker buy-in and cash-out tracker | implemented | 2    | [spec](./0001-chip-ledger/spec.md) · [plan](./0001-chip-ledger/plan.md) · [tasks](./0001-chip-ledger/tasks.md) · [ADR-0004](../adr/0004-chip-ledger-client-architecture.md) |
