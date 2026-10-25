@@ -11,11 +11,12 @@ Engineering-side security guidance. For reporting a vulnerability, see the root 
 
 ## 2. Threat model (starting point)
 
-Replace with your own. Review when the architecture or data changes.
+Review when the architecture or data changes. Chip Ledger has no accounts, no datastore, and one optional endpoint (ADR-0004).
 
 | Asset / surface        | Threats                                   | Controls                                              |
 | ---------------------- | ----------------------------------------- | ----------------------------------------------------- |
-| Public forms and APIs  | Spam, abuse, injection, enumeration       | Schema validation, rate limit, bot protection, generic errors |
+| `POST /api/photo-count` (off by default) | Cost abuse, oversized uploads, cross-site use, prompt injection via image | 404 when off; same-origin check; per-client rate limit (per instance); type and 8 MB size limits; Zod on input and on the model reply; generic errors. **Before enabling in production:** bot protection, a shared rate limiter, provider spend cap (SPEC-0001 §7) |
+| Saved game in `localStorage` | Tampered or corrupted state           | Zod schema on load; invalid state falls back to defaults |
 | Rendered user content  | XSS                                       | Sanitization, strict CSP, controlled markdown components |
 | Secrets and tokens     | Leak via repo, logs, client bundle        | Env vars, secret scanning, redacting logger, `NEXT_PUBLIC_*` discipline |
 | Dependencies           | Known CVEs, malicious packages            | Audit in CI, lockfile, update bot, review of new deps |
@@ -64,7 +65,7 @@ The built-in scanner is a lightweight net, not a replacement for platform scanni
 
 ## 5. Headers and CSP
 
-Configure in one place (`sdd.yaml` → `security.headers`). Baseline:
+Configured in one place: `lib/security-headers.ts` (`sdd.yaml` → `security.headers`). Static headers are applied by `next.config.ts`; the CSP is generated per request with a nonce in `proxy.ts`, which makes the page dynamically rendered. `test/e2e` asserts them. Baseline:
 
 | Header                        | Value (starting point)                                  |
 | ----------------------------- | ------------------------------------------------------- |

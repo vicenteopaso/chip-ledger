@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@layer base {
+  :root {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Border width of inputs, selects, and outlined buttons. */
+@utility border-control {
+  border-width: var(--border-control);
+}
+
+@layer components {
+  /* Casino-chip artwork: body color with edge spots, drawn with gradients. */
+  .chip {
+    --chip-body: var(--color-chip-gray);
+    --chip-edge: var(--color-chip-spot);
+    display: inline-block;
+    flex: none;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, var(--chip-body) 0 47%, var(--chip-edge) 47% 52%, transparent 52%),
+      repeating-conic-gradient(var(--chip-body) 0 33deg, var(--chip-edge) 33deg 45deg);
+    box-shadow:
+      0 0 0 1px var(--color-chip-shadow),
+      0 1px 2px var(--color-chip-shadow);
+  }
+  .chip[data-color="white"] {
+    --chip-body: var(--color-chip-white);
+    --chip-edge: var(--color-chip-white-spot);
+  }
+  .chip[data-color="red"] {
+    --chip-body: var(--color-chip-red);
+  }
+  .chip[data-color="blue"] {
+    --chip-body: var(--color-chip-blue);
+  }
+  .chip[data-color="green"] {
+    --chip-body: var(--color-chip-green);
+  }
+  .chip[data-color="black"] {
+    --chip-body: var(--color-chip-black);
+    --chip-edge: var(--color-chip-black-spot);
+  }
+  .chip[data-color="yellow"] {
+    --chip-body: var(--color-chip-yellow);
+    --chip-edge: var(--color-chip-yellow-spot);
+  }
+  .chip[data-color="purple"] {
+    --chip-body: var(--color-chip-purple);
+  }
+  .chip[data-color="pink"] {
+    --chip-body: var(--color-chip-pink);
+  }
+  .chip[data-color="orange"] {
+    --chip-body: var(--color-chip-orange);
+  }
+  /* "All colors" chip: a white center, an edge in four chip colors, white edge spots. */
+  .chip[data-color="mixed"] {
+    background:
+      radial-gradient(
+        circle,
+        var(--color-chip-white) 0 47%,
+        var(--color-chip-spot) 47% 52%,
+        transparent 52%
+      ),
+      repeating-conic-gradient(transparent 0 33deg, var(--color-chip-spot) 33deg 45deg),
+      conic-gradient(
+        var(--color-chip-red) 0 90deg,
+        var(--color-chip-blue) 90deg 180deg,
+        var(--color-chip-green) 180deg 270deg,
+        var(--color-chip-yellow) 270deg 360deg
+      );
+  }
+
+  /* Setup chip row: swatch, color, count, ×, value, remove. */
+  .chip-row {
+    grid-template-columns:
+      calc(var(--spacing) * 7.5) 1fr calc(var(--spacing) * 15.5) calc(var(--spacing) * 3.5)
+      calc(var(--spacing) * 19) calc(var(--spacing) * 9);
+  }
+
+  .count-grid {
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing) * 24), 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .press:active {
+    transform: scale(0.97);
+  }
+}
+
+@layer components {
+  .action-bar {
+    padding-bottom: calc(var(--spacing) * 3 + env(safe-area-inset-bottom, 0px));
+  }
+}

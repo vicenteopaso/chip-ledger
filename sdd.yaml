@@ -4,15 +4,11 @@
 # docs/CONSTITUTION.md. Validated against sdd.schema.json and cross-checked by
 # scripts/check-sdd-refs.mjs in CI.
 #
-# Lines marked "TEMPLATE:" are defaults for a typical Next.js + TypeScript web
-# app. Change them to match your project, then delete the marker.
-# Double-brace tokens (PROJECT_NAME, PROJECT_DESCRIPTION) are filled in by
-# `node scripts/init-template.mjs`.
 
 version: 1
-name: "{{PROJECT_NAME}}"
+name: "chip-ledger"
 description: >
-  {{PROJECT_DESCRIPTION}}
+  Poker night buy-in and cash-out tracker: set up chip stacks, record rebuys, count chips, and see who pays whom.
 status: active # draft | active | deprecated
 
 principles:
@@ -52,7 +48,7 @@ constitution:
     CONSTITUTION-18: [ci:verify, review]
 
 # ---------------------------------------------------------------------------
-# Stack  (TEMPLATE: defaults — replace with your choices)
+# Stack  (chosen in ADR-0004)
 # ---------------------------------------------------------------------------
 stack:
   runtime: node-lts # pinned in .nvmrc
@@ -90,14 +86,19 @@ standards:
       - presentational-components
       - pure-logic-in-lib
       - schema-validated-boundaries
-    # Layer contract. Enforce with lint import rules (no-restricted-imports /
-    # eslint-plugin-boundaries / dependency-cruiser). Paths are TEMPLATE defaults.
+    # Layer contract, enforced by no-restricted-imports in eslint.config.mjs.
+    # Imports use the @/ alias; relative parent imports are rejected so the rules apply.
     layers:
       ui:
         paths: ["app/components"]
         may-import: [domain]
-        must-not-import: [api, infra]
+        must-not-import: [api, infra, routes]
         rules: "UI only. No fs, no process.env, no direct datastore access. Props in, events out."
+      routes:
+        paths: ["app", "proxy.ts"]
+        may-import: [ui, domain, infra]
+        must-not-import: [api]
+        rules: "Pages, layouts, framework files, and client containers that own state and wire infra to UI (ADR-0004). Everything under app/ except app/components and app/api."
       api:
         paths: ["app/api"]
         may-import: [domain, infra]
@@ -106,13 +107,13 @@ standards:
       domain:
         paths: ["lib"]
         may-import: []
-        must-not-import: [ui, api]
-        rules: "Pure, framework-agnostic helpers with unit tests. No React imports."
+        must-not-import: [ui, api, routes, infra]
+        rules: "Pure, framework-agnostic helpers with unit tests. No React or Next.js imports."
       infra:
         paths: ["lib/infra"]
         may-import: [domain]
-        must-not-import: [ui]
-        rules: "Adapters for external services (datastore, email, queues). Only layer allowed to read secrets."
+        must-not-import: [ui, api, routes]
+        rules: "Adapters for browser storage, clipboard, and external services. Only layer allowed to read environment variables and secrets."
     prohibited:
       - shared mutable state across requests or routes
       - cross-layer imports that violate the layer contract
@@ -126,13 +127,13 @@ accessibility:
       - "pnpm test:a11y (axe, light and dark themes)"
 
 performance:
-  budgets: # TEMPLATE: tune per project
+  budgets:
     lighthouse-performance: 90
     lighthouse-accessibility: 95
     lighthouse-seo: 95
 
 security:
-  headers: next.config.mjs # TEMPLATE: where CSP and security headers live
+  headers: lib/security-headers.ts # applied by next.config.ts (static) and proxy.ts (per-request CSP nonce)
   secrets-management:
     - "No secrets in the repo; read from environment variables only."
     - "Secret scanning runs in CI (scripts/scan-secrets.mjs) and in the pre-commit hook."
@@ -140,7 +141,11 @@ security:
   rules:
     - "Do not weaken CSP, CORS, rate limits, or security headers without an ADR."
     - "Validate every external input with a schema at the boundary."
-  external-services: [] # TEMPLATE: list third-party services and what data they receive
+  external-services:
+    - name: OpenAI-compatible vision model provider (default OpenRouter)
+      purpose: "Count chips in a photo (SPEC-0001 REQ-0001-15). Disabled unless PHOTO_COUNT_ENABLED=true."
+      receives: "One player's chip photo and the list of chip colors with issued totals. No names, no identifiers."
+      credentials: "PHOTO_COUNT_API_KEY, server-only, read in lib/infra/env.ts"
 
 # ---------------------------------------------------------------------------
 # Developer experience and CI

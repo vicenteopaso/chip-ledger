@@ -25,6 +25,6 @@ This applies in all project spaces — issues, pull requests, discussions, revie
 
 ## Enforcement
 
-Report concerns to **{{CONTACT_EMAIL}}**. Reports are handled confidentially. Maintainers may edit or remove comments, lock threads, block accounts, or remove contributions that violate this code. Serious or repeated violations will not be tolerated.
+Report concerns to **vicente@opa.so**. Reports are handled confidentially. Maintainers may edit or remove comments, lock threads, block accounts, or remove contributions that violate this code. Serious or repeated violations will not be tolerated.
 
 This policy is adapted in spirit from widely used open-source community standards such as the Contributor Covenant.

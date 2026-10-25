@@ -3,8 +3,8 @@
 |                |                                    |
 | -------------- | ---------------------------------- |
 | **Status**     | Accepted                           |
-| **Date**       | {{YEAR}}-01-01                     |
-| **Deciders**   | {{GITHUB_OWNER}}                   |
+| **Date**       | 2026-01-01                     |
+| **Deciders**   | vicenteopaso                   |
 | **Area**       | Process, governance                |
 | **Related**    | ADR-0001, ADR-0002                 |
 

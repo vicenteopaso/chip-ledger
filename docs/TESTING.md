@@ -2,7 +2,7 @@
 
 How we prove behavior. Tests are the executable half of the spec: every requirement in `docs/specs/` should be verified by at least one test that cites its ID.
 
-> **Template note:** commands and file paths assume Vitest + Testing Library + Playwright + axe. Swap tools freely; keep the principles and the CI gates.
+Tools: Vitest + Testing Library (jsdom) for unit and component tests, Playwright for e2e, visual, and axe audits.
 
 ## 1. Principles
 
@@ -46,7 +46,7 @@ Thresholds are declared in `sdd.yaml` (`devex.ci.coverage-thresholds`) and enfor
 
 ## 5. Conventions
 
-- Unit/component tests live in `test/unit/` mirroring `app/` and `lib/` (or colocated `*.test.ts`; pick one per repo and say so in `sdd.yaml`).
+- Unit/component tests live in `test/unit/`, mirroring `app/` and `lib/`. Route-handler tests opt into the Node environment with `// @vitest-environment node`.
 - E2E in `test/e2e/`, visual in `test/visual/`, accessibility in `test/a11y/`.
 - Name tests by behavior and cite requirements: `it("REQ-0007-01: rejects a malformed email")`.
 - Arrange–Act–Assert. One reason to fail per test.
@@ -106,7 +106,7 @@ Use visual tests to catch layout and theme regressions, not to assert behavior.
 - Wait for stable state with shared helpers (fonts loaded, images decoded, network idle, animation off) — never `waitForTimeout`.
 - Mask or freeze dynamic regions (dates, ads, charts with live data) and disable animations globally.
 - Keep a small tolerance (`maxDiffPixelRatio`) to absorb anti-aliasing noise; never raise it to hide a real diff.
-- Baselines are committed. Update them only for intentional changes, in the same PR, and review the image diff. Generate baselines in the same environment as CI (container or the CI workflow) to avoid OS rendering drift.
+- Baselines are committed per platform (`*-linux.png` for CI, `*-darwin.png` for local runs on macOS). Update them only for intentional changes, in the same PR, and review the image diff. Take Linux baselines from the CI run's `playwright-report` artifact (the actual images of a failed run) rather than generating them on another OS.
 - Suppress third-party widgets (analytics toolbars, consent banners) in test mode.
 
 ## 7. Accessibility tests

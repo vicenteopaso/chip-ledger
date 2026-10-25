@@ -1,0 +1,39 @@
+import { Chip } from "@/app/components/Chip";
+import { Notice } from "@/app/components/Notice";
+import { SectionTitle } from "@/app/components/Typography";
+import type { GameState } from "@/lib/game";
+import type { MoneyFormatter } from "@/lib/money";
+import { countCheckRows, countCheckSummary } from "@/lib/summaries";
+
+export type CountCheckProps = { game: GameState; money: MoneyFormatter };
+
+/** Counted chips against chips issued, per color, and against the pot (REQ-0001-12). */
+export function CountCheck({ game, money }: CountCheckProps) {
+  return (
+    <>
+      <SectionTitle>Check the count</SectionTitle>
+      <table className="mt-1.5 w-full border-collapse text-md">
+        <caption className="sr-only">Chips counted against chips issued, by color</caption>
+        <tbody>
+          {countCheckRows(game).map((row) => (
+            <tr key={row.chipId} className="border-b border-border">
+              <td className="w-9.5 py-1.75">
+                <Chip color={row.color} />
+              </td>
+              <td className="py-1.75">{row.label}</td>
+              <td
+                className={`py-1.75 text-right ${row.mismatch ? "font-semibold text-danger" : ""}`}
+              >
+                {`${String(row.counted)} of ${String(row.issued)}`}
+                {row.mismatch && <span className="sr-only"> (does not match)</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div role="status">
+        <Notice notice={countCheckSummary(game, money)} />
+      </div>
+    </>
+  );
+}

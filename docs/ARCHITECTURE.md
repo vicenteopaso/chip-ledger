@@ -1,6 +1,6 @@
 # Architecture
 
-> **Template note:** this document ships with a sensible default for a server-rendered web app (Next.js App Router, TypeScript). Replace the diagrams, layer names, and directory map with your own. Keep it consistent with the `standards.architecture` section of `sdd.yaml` — when they disagree, `sdd.yaml` wins and this file is the bug.
+Chip Ledger is a single-page poker buy-in and cash-out tracker ([SPEC-0001](./specs/0001-chip-ledger/spec.md), [ADR-0004](./adr/0004-chip-ledger-client-architecture.md)). Keep this file consistent with the `standards.architecture` section of `sdd.yaml` — when they disagree, `sdd.yaml` wins and this file is the bug.
 
 ## 1. Goals
 
@@ -9,30 +9,31 @@
 - **Changeable.** Clear layers and tests let people and agents modify the system without fear.
 - **Explainable.** Every significant decision has an ADR; every feature has a spec.
 
-Non-goals: _list what this system deliberately does not try to do._
+Non-goals: accounts, server-side storage of games, syncing across devices, and localization beyond English strings with locale-aware money formatting.
 
 ## 2. System context
 
 ```mermaid
 flowchart LR
-  U[User / Browser] -->|HTTPS| E[Edge / CDN]
-  E --> A[Web app<br/>UI + API routes]
-  A --> D[(Datastore)]
-  A --> X[Third-party services]
-  A --> O[Observability<br/>logs, errors, metrics]
+  U[Browser] -->|HTTPS| E[Edge / CDN]
+  E --> A[Next.js app<br/>one page + /api/photo-count]
+  U --> L[(localStorage<br/>chip-ledger.v1)]
+  A -.->|only when PHOTO_COUNT_ENABLED=true| X[OpenAI-compatible<br/>vision provider]
+  A --> O[Platform logs]
   CI[CI/CD] -->|deploys prebuilt artifact| E
 ```
 
-Replace with your actual containers and external systems. Name every third-party service and record what data it receives in `sdd.yaml` (`security.external-services`).
+The game lives in the browser's `localStorage`; the server stores nothing. The only third-party service is the optional vision provider, recorded in `sdd.yaml` (`security.external-services`).
 
 ## 3. Layers and boundaries
 
 | Layer  | Default location     | Responsibility                                           | May import      | Must not import |
 | ------ | -------------------- | -------------------------------------------------------- | --------------- | --------------- |
-| UI     | `app/components`     | Presentational components, layout, interaction           | domain          | api, infra      |
-| Routes | `app/**/page`, `app/api` | Wire requests to domain; validate input; shape responses | domain, infra   | ui internals    |
-| Domain | `lib`                | Pure business and content logic, schemas, formatting     | —               | ui, api, infra  |
-| Infra  | `lib/infra`          | Adapters for datastore, email, queues, external APIs; the only layer that reads secrets | domain | ui |
+| UI     | `app/components`     | Presentational components: props in, events out          | domain          | api, infra, routes |
+| Routes | `app/` (except `components/`, `api/`), `proxy.ts` | Pages, layout, framework files; `ChipLedgerApp` owns state and wires infra to UI | ui, domain, infra | api |
+| API    | `app/api`            | Validate input, guard, delegate, shape responses         | domain, infra   | ui              |
+| Domain | `lib`                | Game rules, settlement, schemas, formatting, prompt      | —               | ui, api, routes, infra |
+| Infra  | `lib/infra`          | Browser storage, clipboard, photo-count client, vision provider, rate limiter, env; the only layer that reads env vars | domain | ui, api, routes |
 
 Rules (CONSTITUTION-04 to -07):
 
@@ -40,26 +41,30 @@ Rules (CONSTITUTION-04 to -07):
 2. UI does no I/O and reads no secrets.
 3. API routes validate input, authorize, call domain/infra, and map results to responses. They contain no business rules.
 4. A new layer needs an ADR and an `sdd.yaml` update.
-5. Boundaries are enforced by lint (`no-restricted-imports` or `eslint-plugin-boundaries`), mirroring `sdd.yaml`.
+5. Boundaries are enforced by `no-restricted-imports` in `eslint.config.mjs`, mirroring `sdd.yaml`. Imports use the `@/` alias; relative parent imports are rejected so the rules cannot be bypassed.
 
 ## 4. Request flow
 
+Game changes never leave the browser: a screen emits an action, `ChipLedgerApp` runs it through the pure `gameReducer`, and `lib/infra/game-storage` saves the result.
+
+The one server request, photo counting, only exists when `PHOTO_COUNT_ENABLED=true`:
+
 ```mermaid
 sequenceDiagram
-  participant B as Browser
-  participant R as Route handler
+  participant B as ChipLedgerApp
+  participant R as POST /api/photo-count
   participant S as Schema (Zod)
-  participant D as Domain
-  participant I as Infra adapter
-  B->>R: POST /api/things
-  R->>R: rate limit, origin check
-  R->>S: parse body
+  participant D as Domain (lib/photo-count)
+  participant I as vision-client (infra)
+  B->>R: multipart: image + colors
+  R->>R: flag (404 when off), origin check, rate limit
+  R->>S: validate image type/size, colors
   S-->>R: typed data or 400
-  R->>D: execute use case
-  D->>I: persist / call service
-  I-->>D: result
-  D-->>R: result
-  R-->>B: 2xx JSON or generic error (detail logged server-side)
+  R->>D: build prompt
+  R->>I: chat completion (60 s timeout)
+  I-->>R: reply text or coded failure
+  R->>D: parse and normalize reply
+  R-->>B: { counts, confidence, note } or problem JSON (detail logged server-side)
 ```
 
 ## 5. Data and contracts
@@ -82,19 +87,20 @@ sequenceDiagram
 ## 7. Directory map (default)
 
 ```text
-app/                    Routes, layouts, and UI
-  components/           Shared presentational components
-  api/                  Route handlers (validate → delegate → respond)
-lib/                    Domain logic, schemas, helpers (no React)
-  infra/                External adapters; only place that reads secrets
-content/                Markdown/JSON content, schema-validated at load
-styles/                 Tokens and global styles
-public/                 Static assets
+app/                    Routes layer: page, layout, error/not-found, robots, sitemap
+  ChipLedgerApp.tsx     Client container: game state, persistence, photo and clipboard wiring
+  components/           Presentational screens and shared components
+  api/photo-count/      The one route handler (off by default)
+  globals.css           Tailwind entry, base styles, chip artwork
+lib/                    Domain: game, reducer, settlement, summaries, money, photo-count, seo
+  infra/                Adapters: storage, clipboard, photo-count client, vision client, rate limit, env
+proxy.ts                Per-request CSP nonce
+styles/tokens.css       Design tokens (Tailwind theme)
 test/
-  unit/                 Domain and component tests
-  e2e/                  Critical user flows
-  visual/               Visual regression
-  a11y/                 Axe audits
+  unit/                 Domain, infra, route, component, and container tests (Vitest)
+  e2e/                  User flows, headers, SEO (Playwright)
+  visual/               Every step × theme × width (Playwright screenshots)
+  a11y/                 Axe audits in both themes
 docs/                   Governance, standards, ADRs, specs, component docs
 scripts/                Repo automation (checks, audits, init)
 .github/                CI, templates, ownership, dependency automation
@@ -102,7 +108,7 @@ scripts/                Repo automation (checks, audits, init)
 
 ## 8. Decision trees
 
-**Where do I add a page?** Create the route under `app/`, load data through a domain helper, set metadata via the metadata module, add an e2e test, and add the path to the sitemap source.
+**Where do I add a page?** Create the route under `app/`, load data through a domain helper, set metadata via `lib/seo.ts`, add an e2e test, and add the path to `INDEXABLE_PATHS`.
 
 **Where does this logic go?** If it has no React or I/O: `lib/`. If it needs a datastore or external API: `lib/infra`, called from a route or server component. If it only shapes pixels: `app/components`.
 

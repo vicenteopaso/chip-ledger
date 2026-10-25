@@ -6,13 +6,20 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Added
 
+- Theme button in the footer row that cycles System, Light and Dark, remembered in the browser and applied before the first paint (REQ-0001-32); the copyright sits under the buttons in the bottom bar, with Jason Johnson named first (REQ-0001-31).
+- Copyright footer on every step, "© <current year> Vicente Opaso and Jason Johnson", with the year taken when the page is served (REQ-0001-31).
+- Player count is a − / + stepper from 2 to 10 players (default 4), replacing the 4 / 5 / 6 buttons; games saved with six slots still load (REQ-0001-03).
+- Default game is 10 EUR; Settle's "Back to table" is now "Back to Setup" and opens the first step; the Table pot is plain text instead of a filled box.
+- Chips are pre-populated to equal the buy-in and rebalance when the buy-in or currency changes until a chip is edited by hand (REQ-0001-29); 38 common currencies, with scaled typical buy-ins and whole-unit handling for CLP, JPY, KRW and VND (REQ-0001-30).
+- "Use one value for all chips" option on Setup (REQ-0001-28): swaps the color rows for one multi-color "All colors" row, and Cash out and the count check follow with a single count per player.
+- Chip Ledger app ([SPEC-0001](./docs/specs/0001-chip-ledger/spec.md), [ADR-0004](./docs/adr/0004-chip-ledger-client-architecture.md)): setup, table, cash out, and settle steps ported from the single-file prototype, with validated browser storage, layered code, unit/component/e2e/visual/axe tests, security headers with a nonce CSP, and photo counting through an OpenAI-compatible provider (disabled by default).
 - Initial governance baseline: Constitution, `sdd.yaml` and schema, ADRs 0001–0003, spec templates, AI guardrails, engineering and operations docs, CI workflows, PR and issue templates, and dependency-free governance scripts.
 
-## [0.1.0] - {{YEAR}}-01-01
+## [0.1.0] - 2026-01-01
 
 ### Added
 
 - First release of the template.
 
-[Unreleased]: https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/releases/tag/v0.1.0
+[Unreleased]: https://github.com/vicenteopaso/chip-ledger/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/vicenteopaso/chip-ledger/releases/tag/v0.1.0

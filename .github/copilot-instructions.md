@@ -1,4 +1,4 @@
-# Copilot instructions — {{PROJECT_NAME}}
+# Copilot instructions — chip-ledger
 
 The canonical agent instructions are in [`AGENTS.md`](../AGENTS.md). Read it first. This file is a condensed copy for tools that only load `.github/copilot-instructions.md`.
 
