@@ -8,7 +8,7 @@ describe("SiteFooter", () => {
   it("REQ-0001-31: shows the copyright with the given year, as a contentinfo landmark", () => {
     render(<SiteFooter year={2031} holders={SITE.copyrightHolders} />);
     expect(screen.getByRole("contentinfo")).toHaveTextContent(
-      "© 2031 Vicente Opaso and Jason Johnson",
+      "© 2031 Jason Johnson and Vicente Opaso",
     );
   });
 });

@@ -261,19 +261,58 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(violations).toEqual([]);
   });
 
-  test("AC-0001-18: the footer shows the copyright with the current year on every step", async ({
+  test("AC-0001-18: the copyright sits under the buttons in the bottom bar on every step", async ({
     page,
   }) => {
     await openFresh(page);
     const footer = page.getByRole("contentinfo");
-    const text = `© ${String(new Date().getFullYear())} Vicente Opaso and Jason Johnson`;
-    await expect(footer).toHaveText(text);
-    for (const step of ["2 Table", "3 Cash out", "4 Settle"]) {
+    const text = `© ${String(new Date().getFullYear())} Jason Johnson and Vicente Opaso`;
+    for (const step of ["1 Setup", "2 Table", "3 Cash out", "4 Settle"]) {
       await page.getByRole("button", { name: step }).click();
-      await footer.scrollIntoViewIfNeeded();
-      await expect(footer).toBeVisible();
+      // Visible without scrolling, and directly below the step's main button.
+      await expect(footer).toBeInViewport();
       await expect(footer).toHaveText(text);
+      const main = await page.locator(".action-bar > div:first-child button").last().boundingBox();
+      const note = await footer.boundingBox();
+      expect(main && note && note.y >= main.y + main.height).toBe(true);
     }
+  });
+
+  test("AC-0001-19: the theme button cycles System, Light, Dark and the choice survives a reload", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await openFresh(page);
+    const html = page.locator("html");
+    const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
+    expect(await bg()).toBe("rgb(233, 239, 234)");
+
+    await page.getByRole("button", { name: "Theme: System" }).click();
+    await expect(page.getByRole("button", { name: "Theme: Light" })).toBeVisible();
+    await expect(html).toHaveAttribute("data-theme", "light");
+
+    await page.getByRole("button", { name: "Theme: Light" }).click();
+    await expect(page.getByRole("button", { name: "Theme: Dark" })).toBeVisible();
+    await expect(html).toHaveAttribute("data-theme", "dark");
+    expect(await bg()).toBe("rgb(11, 38, 29)");
+
+    await page.reload();
+    // Already dark when the page first renders, with no light flash, and the button agrees.
+    await expect(html).toHaveAttribute("data-theme", "dark");
+    expect(await bg()).toBe("rgb(11, 38, 29)");
+    await expect(page.getByRole("button", { name: "Theme: Dark" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Theme: Dark" }).click();
+    await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
+    await expect(html).not.toHaveAttribute("data-theme", /.+/);
+    expect(await bg()).toBe("rgb(233, 239, 234)");
+
+    await page.evaluate(() => {
+      localStorage.setItem("chip-ledger.theme", "nonsense");
+    });
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
   });
 
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {

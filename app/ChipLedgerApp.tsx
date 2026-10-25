@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { ActionBar } from "@/app/components/ActionBar";
 import { Button } from "@/app/components/Button";
@@ -10,6 +10,7 @@ import { type CopyState, SettleScreen } from "@/app/components/SettleScreen";
 import { SetupScreen } from "@/app/components/SetupScreen";
 import { StepsNav } from "@/app/components/StepsNav";
 import { TableScreen } from "@/app/components/TableScreen";
+import { ThemeToggle } from "@/app/components/ThemeToggle";
 import { canStartGame, createGame, type Screen } from "@/lib/game";
 import { gameReducer } from "@/lib/game-reducer";
 import { randomId, sequentialIds } from "@/lib/ids";
@@ -23,6 +24,8 @@ import {
 import { settle } from "@/lib/settlement";
 import { resultsText } from "@/lib/summaries";
 import { copyToClipboard } from "@/lib/infra/clipboard";
+import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
+import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { loadSavedGame, saveGame } from "@/lib/infra/game-storage";
 import { requestPhotoCount } from "@/lib/infra/photo-count-client";
 
@@ -31,18 +34,23 @@ const RENDER_LOCALE = "en-US";
 
 const defaultGame = () => createGame(sequentialIds("default-"));
 
-export type ChipLedgerAppProps = { photoCountingEnabled: boolean };
+export type ChipLedgerAppProps = {
+  photoCountingEnabled: boolean;
+  /** Rendered by the page (it needs the request time) and shown inside the bottom bar. */
+  footer?: ReactNode;
+};
 
 /**
  * Owns the game state and wires browser adapters (storage, clipboard, photo counting) to the
  * presentational screens. The only component that talks to `lib/infra`.
  */
-export function ChipLedgerApp({ photoCountingEnabled }: ChipLedgerAppProps) {
+export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppProps) {
   const [game, dispatch] = useReducer(gameReducer, undefined, defaultGame);
   const [hydrated, setHydrated] = useState(false);
   const [photos, setPhotos] = useState<Record<string, PhotoState>>({});
   const [copy, setCopy] = useState<CopyState>({ kind: "idle" });
   const [resetArmed, setResetArmed] = useState(false);
+  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const thumbnails = useRef(new Set<string>());
 
   // Restore the saved game once, after hydration (REQ-0001-25). Browser storage and the
@@ -50,8 +58,10 @@ export function ChipLedgerApp({ photoCountingEnabled }: ChipLedgerAppProps) {
   useEffect(() => {
     const saved = loadSavedGame();
     if (saved) dispatch({ type: "replace", game: saved });
-    // One-time sync from an external system after mount; there is no event to subscribe to.
+    // One-time sync from external systems after mount; there is no event to subscribe to. The
+    // pre-paint script in the layout already applied a forced theme; this only syncs the button.
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTheme(loadTheme());
     setHydrated(true);
   }, []);
 
@@ -133,57 +143,72 @@ export function ChipLedgerApp({ photoCountingEnabled }: ChipLedgerAppProps) {
     go("setup");
   };
 
+  const changeTheme = (next: Theme) => {
+    setTheme(next);
+    applyTheme(next);
+    saveTheme(next);
+  };
+
   return (
     <>
-      <StepsNav current={game.screen} onSelect={go} />
-      {game.screen === "setup" && (
-        <SetupScreen
-          game={game}
-          money={money}
-          photoCountingEnabled={photoCountingEnabled}
-          dispatch={dispatch}
-          onAddChip={() => {
-            dispatch({ type: "addChip", chipId: randomId() });
-          }}
-          onAutoFill={() => {
-            dispatch({ type: "autoFillChips", chipIds: [randomId(), randomId(), randomId()] });
-          }}
-        />
-      )}
-      {game.screen === "table" && <TableScreen game={game} money={money} dispatch={dispatch} />}
-      {game.screen === "cashout" && (
-        <CashOutScreen
-          game={game}
-          money={money}
-          photos={photoCountingEnabled ? photos : undefined}
-          dispatch={dispatch}
-          onPhoto={(playerId, file) => {
-            void countPhoto(playerId, file);
-          }}
-        />
-      )}
-      {game.screen === "settle" && (
-        <SettleScreen
-          game={game}
-          settlement={settlement}
-          money={money}
-          copy={copy}
-          resetArmed={resetArmed}
-          onScaleChange={(scale) => {
-            dispatch({ type: "setScale", scale });
-          }}
-          onCopy={() => {
-            void copyResults();
-          }}
-          onNewGame={() => {
-            clearPhotos();
-            dispatch({ type: "newGameSamePlayers" });
-            go("table");
-          }}
-          onReset={reset}
-        />
-      )}
-      <ActionBar>
+      <main id="main" className="mx-auto max-w-app px-4 pt-3.5 pb-44">
+        <StepsNav current={game.screen} onSelect={go} />
+        {game.screen === "setup" && (
+          <SetupScreen
+            game={game}
+            money={money}
+            photoCountingEnabled={photoCountingEnabled}
+            dispatch={dispatch}
+            onAddChip={() => {
+              dispatch({ type: "addChip", chipId: randomId() });
+            }}
+            onAutoFill={() => {
+              dispatch({ type: "autoFillChips", chipIds: [randomId(), randomId(), randomId()] });
+            }}
+          />
+        )}
+        {game.screen === "table" && <TableScreen game={game} money={money} dispatch={dispatch} />}
+        {game.screen === "cashout" && (
+          <CashOutScreen
+            game={game}
+            money={money}
+            photos={photoCountingEnabled ? photos : undefined}
+            dispatch={dispatch}
+            onPhoto={(playerId, file) => {
+              void countPhoto(playerId, file);
+            }}
+          />
+        )}
+        {game.screen === "settle" && (
+          <SettleScreen
+            game={game}
+            settlement={settlement}
+            money={money}
+            copy={copy}
+            resetArmed={resetArmed}
+            onScaleChange={(scale) => {
+              dispatch({ type: "setScale", scale });
+            }}
+            onCopy={() => {
+              void copyResults();
+            }}
+            onNewGame={() => {
+              clearPhotos();
+              dispatch({ type: "newGameSamePlayers" });
+              go("table");
+            }}
+            onReset={reset}
+          />
+        )}
+      </main>
+      <ActionBar
+        footer={
+          <>
+            {footer}
+            <ThemeToggle theme={theme} onChange={changeTheme} />
+          </>
+        }
+      >
         {game.screen === "setup" && (
           <Button
             variant="primary"

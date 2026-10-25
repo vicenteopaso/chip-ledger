@@ -4,10 +4,10 @@ export type SiteFooterProps = {
   holders: string;
 };
 
-/** Copyright line at the end of the page. Leaves room for the fixed bottom bar. */
+/** Copyright line, shown in the fixed bottom bar under the step's buttons (REQ-0001-31). */
 export function SiteFooter({ year, holders }: SiteFooterProps) {
   return (
-    <footer className="mx-auto max-w-app px-4 pt-2 pb-33 text-sm text-text-muted">
+    <footer className="text-xs whitespace-nowrap text-text-muted">
       <p>{`© ${String(year)} ${holders}`}</p>
     </footer>
   );

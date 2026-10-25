@@ -80,7 +80,7 @@ describe("security headers", () => {
 
 describe("seo", () => {
   it("REQ-0001-31: names both copyright holders, matching the LICENSE", () => {
-    expect(SITE.copyrightHolders).toBe("Vicente Opaso and Jason Johnson");
+    expect(SITE.copyrightHolders).toBe("Jason Johnson and Vicente Opaso");
   });
 
   it("builds canonical metadata, sitemap and robots from one site URL", () => {

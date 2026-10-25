@@ -279,6 +279,28 @@ describe("ChipLedgerApp", () => {
     expect(savedGame().buyIn).toBe(10);
   });
 
+  it("AC-0001-19: the theme button cycles, applies, saves, and survives Start over", async () => {
+    saved({ screen: "settle" });
+    localStorage.setItem("chip-ledger.theme", "light");
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(await screen.findByRole("button", { name: "Theme: Light" })).toBeInTheDocument();
+
+    await userEvent.click(button("Theme: Light"));
+    expect(button("Theme: Dark")).toBeInTheDocument();
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem("chip-ledger.theme")).toBe("dark");
+
+    await userEvent.click(button("Start over from scratch"));
+    await userEvent.click(button("Tap again to erase everything"));
+    expect(localStorage.getItem("chip-ledger.theme")).toBe("dark");
+    expect(button("Theme: Dark")).toBeInTheDocument();
+
+    await userEvent.click(button("Theme: Dark"));
+    expect(button("Theme: System")).toBeInTheDocument();
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+    delete document.documentElement.dataset.theme;
+  });
+
   it("REQ-0001-02: shows each step's bottom actions", async () => {
     render(<ChipLedgerApp photoCountingEnabled={false} />);
     await userEvent.click(button("2 Table"));

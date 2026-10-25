@@ -6,6 +6,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Added
 
+- Theme button in the footer row that cycles System, Light and Dark, remembered in the browser and applied before the first paint (REQ-0001-32); the copyright sits under the buttons in the bottom bar, with Jason Johnson named first (REQ-0001-31).
 - Copyright footer on every step, "© <current year> Vicente Opaso and Jason Johnson", with the year taken when the page is served (REQ-0001-31).
 - Player count is a − / + stepper from 2 to 10 players (default 4), replacing the 4 / 5 / 6 buttons; games saved with six slots still load (REQ-0001-03).
 - Default game is 10 EUR; Settle's "Back to table" is now "Back to Setup" and opens the first step; the Table pot is plain text instead of a filled box.

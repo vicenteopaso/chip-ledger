@@ -11,11 +11,9 @@ export default async function Home() {
   await connection();
   const { enabled } = getPhotoCountConfig();
   return (
-    <>
-      <main id="main" className="mx-auto max-w-app px-4 pt-3.5 pb-6">
-        <ChipLedgerApp photoCountingEnabled={enabled} />
-      </main>
-      <SiteFooter year={new Date().getFullYear()} holders={SITE.copyrightHolders} />
-    </>
+    <ChipLedgerApp
+      photoCountingEnabled={enabled}
+      footer={<SiteFooter year={new Date().getFullYear()} holders={SITE.copyrightHolders} />}
+    />
   );
 }
