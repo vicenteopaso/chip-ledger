@@ -12,14 +12,15 @@ export const SECURITY_HEADERS = [
 
 /**
  * Per-request CSP. Next.js reads the nonce from this header and applies it to its own inline
- * scripts. `blob:` images are the local photo thumbnails. `unsafe-eval` only in development,
- * where React uses eval for error overlays.
+ * scripts. `blob:` images are the local photo thumbnails. In development only, `unsafe-eval`
+ * (React uses eval for error overlays) and inline styles (Next's dev tooling injects them; a
+ * nonce would make browsers ignore `unsafe-inline`, so the style nonce is omitted there).
  */
 export function contentSecurityPolicy(nonce: string, isDev: boolean): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
-    `style-src 'self' 'nonce-${nonce}'`,
+    isDev ? "style-src 'self' 'unsafe-inline'" : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data:",
     "font-src 'self'",
     "connect-src 'self'",

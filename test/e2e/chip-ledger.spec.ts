@@ -315,6 +315,27 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
   });
 
+  test("no console errors or page errors while using every step and the theme button", async ({
+    page,
+  }) => {
+    const problems: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") problems.push(message.text());
+    });
+    page.on("pageerror", (error) => {
+      problems.push(error.message);
+    });
+    await openFresh(page);
+    for (const theme of ["System", "Light", "Dark"]) {
+      await page.getByRole("button", { name: `Theme: ${theme}` }).click();
+    }
+    await page.reload();
+    for (const step of ["2 Table", "3 Cash out", "4 Settle", "1 Setup"]) {
+      await page.getByRole("button", { name: step }).click();
+    }
+    expect(problems).toEqual([]);
+  });
+
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Chip Ledger");

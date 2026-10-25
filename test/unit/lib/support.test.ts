@@ -73,7 +73,11 @@ describe("security headers", () => {
     expect(csp).toContain("script-src 'self' 'nonce-abc' 'strict-dynamic'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).not.toContain("unsafe-eval");
-    expect(contentSecurityPolicy("abc", true)).toContain("'unsafe-eval'");
+    expect(csp).toContain("style-src 'self' 'nonce-abc'");
+    expect(csp).not.toContain("unsafe-inline");
+    const dev = contentSecurityPolicy("abc", true);
+    expect(dev).toContain("'unsafe-eval'");
+    expect(dev).toContain("style-src 'self' 'unsafe-inline'");
     expect(SECURITY_HEADERS.map((h) => h.key)).toContain("Strict-Transport-Security");
   });
 });
