@@ -7,7 +7,8 @@ const VIEWPORTS = { mobile: { width: 375, height: 812 }, desktop: { width: 1280,
 
 async function snap(page: Page, name: string) {
   await page.evaluate(() => document.fonts.ready);
-  await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+  // Soft: a stale baseline must not hide the steps after it, so one CI run lists every image to refresh.
+  await expect.soft(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
 }
 
 for (const colorScheme of ["light", "dark"] as const) {

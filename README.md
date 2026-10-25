@@ -50,6 +50,10 @@ Playwright needs a browser once: `pnpm exec playwright install chromium`. E2E, a
 
 Layer rules come from [`sdd.yaml`](./sdd.yaml) and are enforced by lint. Details: [Architecture](./docs/ARCHITECTURE.md).
 
+## What is planned
+
+UI polish, enabling AI chip counting, a more modern look, and full offline support are tracked in the [roadmap](./docs/ROADMAP.md).
+
 ## How this repository works
 
 The repository is spec-driven: the [Constitution](./docs/CONSTITUTION.md) and [`sdd.yaml`](./sdd.yaml) set the rules, [ADRs](./docs/adr/README.md) record decisions, and [feature specs](./docs/specs/README.md) describe behavior before code changes it. Start with [`docs/SDD_GUIDE.md`](./docs/SDD_GUIDE.md) and the [documentation map](./docs/README.md). AI agents start at [`AGENTS.md`](./AGENTS.md).

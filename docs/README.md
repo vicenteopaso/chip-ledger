@@ -48,6 +48,7 @@ Start here. Documents are grouped by the question they answer. Precedence for co
 | --------------------------------------- | ---------------------------------------- |
 | [Configuration](./CONFIGURATION.md)     | Which variables and config files exist?  |
 | [Deployment](./DEPLOYMENT.md)           | How does it get to production?           |
+| [Roadmap](./ROADMAP.md)                 | What is planned, not yet scheduled?      |
 | [Release Process](./RELEASE_PROCESS.md) | How do we version and release?           |
 | [Observability](./OBSERVABILITY.md)     | How do we see what it is doing?          |
 
