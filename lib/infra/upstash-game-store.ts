@@ -1,5 +1,10 @@
 import { logError } from "@/lib/error-logging";
-import { parseStoredGame, PRESENCE_WINDOW_MS, type GameStore } from "@/lib/infra/game-store";
+import {
+  GAME_STORE_ERROR,
+  parseStoredGame,
+  PRESENCE_WINDOW_MS,
+  type GameStore,
+} from "@/lib/infra/game-store";
 import { RECORD_TTL_SECONDS } from "@/lib/shared-game";
 
 /**
@@ -54,13 +59,13 @@ export function createUpstashGameStore(options: UpstashOptions): GameStore {
       });
     } catch (error) {
       logError(error, { context: "upstash-game-store.request" });
-      throw new Error("Game store request failed.");
+      throw new Error(GAME_STORE_ERROR);
     }
     if (!response.ok) {
       logError(new Error(`Game store answered ${String(response.status)}`), {
         context: "upstash-game-store.request",
       });
-      throw new Error("Game store request failed.");
+      throw new Error(GAME_STORE_ERROR);
     }
     return response.json();
   }
@@ -68,7 +73,7 @@ export function createUpstashGameStore(options: UpstashOptions): GameStore {
   function unwrap(reply: Reply): unknown {
     if (reply.error) {
       logError(new Error(reply.error), { context: "upstash-game-store.command" });
-      throw new Error("Game store request failed.");
+      throw new Error(GAME_STORE_ERROR);
     }
     return reply.result;
   }

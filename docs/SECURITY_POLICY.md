@@ -63,6 +63,16 @@ The built-in scanner is a lightweight net, not a replacement for platform scanni
 - CSRF: rely on `SameSite` plus origin checks for state-changing requests, or tokens.
 - Uploads: validate type and size server-side, store outside the web root, scan if risk warrants.
 
+### Shared games (SPEC-0003, ADR-0005)
+
+- **Access is by possession of a key.** A watch key and one edit key per editor, each 128 random bits, carried in the URL fragment (never sent with the page request) and sent as a bearer token. The server stores only SHA-256 hashes and compares them in constant time.
+- **Edit codes** are 6 characters, salted and hashed, valid for 10 minutes, and replaced by the next one. Five wrong codes lock the game's upgrades for a minute for everybody. A device that upgrades receives its own new edit key; other editors keep theirs.
+- **One answer for "not found".** An unknown id, a deleted game, a malformed key, and a wrong key all return the same 404.
+- **Edits are an allowlist** of the reducer's actions, applied on the server and checked with the saved-game rules. The browser's step and whole-game replacement are not accepted. Bodies are capped (8 KB for an edit, 32 KB for a game), and creation, edits, and codes are limited in the shared store so the limits hold across instances.
+- **No secrets in logs or answers.** Keys, codes, and hashes are never logged or returned; store failures answer a generic 503.
+- **Retention:** 24 hours after the last change or connected device the game becomes read-only; 30 days later the store deletes it. An editor can delete it earlier. Player names are the only personal data.
+- **Not covered:** anyone who holds an edit link or code can edit; there is no way to remove one editor, only to delete the game (SPEC-0003 Q3).
+
 ## 5. Headers and CSP
 
 Configured in one place: `lib/security-headers.ts` (`sdd.yaml` → `security.headers`). Static headers are applied by `next.config.ts`; the CSP is generated per request with a nonce in `proxy.ts`, which makes the page dynamically rendered. `test/e2e` asserts them. Baseline:

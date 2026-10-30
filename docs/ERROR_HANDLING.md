@@ -69,6 +69,8 @@ Handle three states explicitly: loading, success, failure. Failure UI says what 
 
 ### API routes
 
+Shared-game routes (`/api/games`) add two cases: a store failure, such as the free plan's monthly quota, answers a generic `503 unavailable` with `Retry-After` and the client keeps the local game running; and every "game not found" case (unknown id, deleted, bad key) answers the same `404`. See [SPEC-0003](./specs/0003-shared-live-games/spec.md).
+
 ```typescript
 export async function POST(request: Request) {
   const requestId = crypto.randomUUID();

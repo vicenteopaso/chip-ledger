@@ -51,8 +51,10 @@ describe("hashing (REQ-0003-24)", () => {
   it("REQ-0003-05, -06: the key decides the role", () => {
     const edit = newKey();
     const watch = newKey();
-    const doc = { editKeyHash: hashKey(edit), watchKeyHash: hashKey(watch) };
+    const second = newKey();
+    const doc = { editKeyHashes: [hashKey(edit), hashKey(second)], watchKeyHash: hashKey(watch) };
     expect(roleForKey(edit, doc)).toBe("edit");
+    expect(roleForKey(second, doc)).toBe("edit");
     expect(roleForKey(watch, doc)).toBe("watch");
     expect(roleForKey(newKey(), doc)).toBeNull();
   });

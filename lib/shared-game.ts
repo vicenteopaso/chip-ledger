@@ -30,6 +30,9 @@ export const KeySchema = z.string().regex(/^[A-Za-z0-9_-]{22}$/);
 /** A stored game, edit body, or request larger than this is refused (REQ-0003-25). */
 export const MAX_GAME_BYTES = 32 * 1024;
 
+/** Each device that upgrades gets its own edit key; this caps how many a game can hold. */
+export const MAX_EDITORS = 20;
+
 /** How many recent action ids a game remembers, so a retried edit is applied once (REQ-0003-11). */
 export const RECENT_ACTIONS = 50;
 
@@ -63,6 +66,8 @@ export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 export const CODE_LENGTH = 6;
 export const CODE_TTL_MS = 10 * 60 * 1000;
 export const CODE_MAX_FAILURES = 5;
+/** A connected device sends a heartbeat this often; presence lasts twice as long (ADR-0005 addendum). */
+export const HEARTBEAT_MS = 45_000;
 export const CODE_LOCKOUT_MS = 60 * 1000;
 
 /**
@@ -138,7 +143,7 @@ export const StoredGameSchema = z.object({
   started: z.boolean(),
   game: SharedGameBodySchema,
   watchKeyHash: HashSchema,
-  editKeyHash: HashSchema,
+  editKeyHashes: z.array(HashSchema).min(1).max(MAX_EDITORS),
   code: StoredCodeSchema.nullable(),
   recentActionIds: z.array(z.uuid()).max(RECENT_ACTIONS),
 });
@@ -151,14 +156,15 @@ export type GameSnapshot = {
   game: SharedGameBody;
   role: Role;
   archived: boolean;
-  online: number;
+  /** Connected devices, or null when this request did not ask for a heartbeat. */
+  online: number | null;
 };
 
 export function toSnapshot(
   doc: StoredGame,
   role: Role,
   status: LifecycleStatus,
-  online: number,
+  online: number | null,
 ): GameSnapshot {
   return {
     rev: doc.rev,
@@ -198,10 +204,26 @@ export function createStoredGame(input: NewGameInput): StoredGame | null {
     started: input.request.started,
     game: input.request.game,
     watchKeyHash: input.watchKeyHash,
-    editKeyHash: input.editKeyHash,
+    editKeyHashes: [input.editKeyHash],
     code: null,
     recentActionIds: [],
   };
+}
+
+/** A new revision with some fields replaced. Every write bumps it, so compare-and-set stays safe. */
+export function revised(doc: StoredGame, patch: Partial<StoredGame>, now: number): StoredGame {
+  return { ...doc, ...patch, rev: doc.rev + 1, updatedAt: now };
+}
+
+/** Adds one editor's key hash, or `null` when the game already has the most it can hold. */
+export function withEditor(doc: StoredGame, editKeyHash: string, now: number): StoredGame | null {
+  if (doc.editKeyHashes.length >= MAX_EDITORS) return null;
+  return revised(doc, { editKeyHashes: [...doc.editKeyHashes, editKeyHash] }, now);
+}
+
+/** Replaces the edit code, which also ends the previous one (REQ-0003-08). */
+export function withCode(doc: StoredGame, code: StoredCode, now: number): StoredGame {
+  return revised(doc, { code }, now);
 }
 
 // --- Edits (REQ-0003-06, -07, -10, -11, -23) ----------------------------------------------------

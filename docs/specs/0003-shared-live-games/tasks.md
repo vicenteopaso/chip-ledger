@@ -41,21 +41,21 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 ## 2. API routes (PR 2)
 
-- [ ] T-10a Presence window 90 s (was 45 s) and heartbeat every 45 s, from the T-03 result; update `PRESENCE_WINDOW_MS`, the memory and Upstash adapters' tests, and the contract test _(REQ-0003-13)_
+- [x] T-10a Presence window 90 s (was 45 s) and heartbeat every 45 s, from the T-03 result; update `PRESENCE_WINDOW_MS`, the memory and Upstash adapters' tests, and the contract test _(REQ-0003-13)_
   - Done when: the contract test passes against both adapters with the new window.
-- [ ] T-11 `POST /api/games` and `GET /api/games/{id}` _(REQ-0003-04, -05, -23, -25, -26)_
+- [x] T-11 `POST /api/games` and `GET /api/games/{id}` _(REQ-0003-04, -05, -23, -25, -26)_
   - Tests: route tests for success, bad body, oversize, rate limit, wrong key, unknown id (identical 404)
   - Done when: error bodies are generic with a request ID and details go to the server log.
-- [ ] T-12 `POST /api/games/{id}/actions` _(REQ-0003-06, -07, -10, -11, -23)_
+- [x] T-12 `POST /api/games/{id}/actions` _(REQ-0003-06, -07, -10, -11, -23)_
   - Tests: editor accepted; watcher 403-equivalent; stale `baseRev` merged or retried; forged kinds rejected
   - Done when: AC-0003-05, -06 and -18 pass at route level.
-- [ ] T-13 `POST /api/games/{id}/code`, `POST /api/games/{id}/upgrade`, `DELETE /api/games/{id}` _(REQ-0003-08, -09, -21)_
+- [x] T-13 `POST /api/games/{id}/code`, `POST /api/games/{id}/upgrade`, `DELETE /api/games/{id}` _(REQ-0003-08, -09, -21)_
   - Tests: route tests for expiry, replacement, lockout, delete
   - Done when: AC-0003-07, -08 and -16 pass at route level.
-- [ ] T-14 `GET /api/games/{id}/events` (SSE) _(REQ-0003-10, -13)_
+- [ ] T-14 `GET /api/games/{id}/events` (SSE) _(REQ-0003-10, -13)_ **Deferred to PR 4**: polling is the baseline (ADR-0005 addendum), so PR 2 ships `GET /api/games/{id}` with `rev` and `connection` parameters instead.
   - Tests: route test for the first snapshot, change events, heartbeat and the reconnect cursor
   - Done when: the connection closes at 55 s (Hobby limit is 60 s), the next stream can overlap the old one, and a reconnect loses no revision. Log client error events at reconnects: T-03 saw 5 and could not explain them.
-- [ ] T-15 Close PR 2: `pnpm verify` green; no secrets or keys in logs (AC-0003-19).
+- [x] T-15 Close PR 2: `pnpm verify` green; no secrets or keys in logs (AC-0003-19).
 
 ## 3. Join and watch (PR 3)
 
