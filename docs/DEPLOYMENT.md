@@ -45,6 +45,7 @@ Set in GitHub: **Settings → Secrets and variables → Actions**.
 | `DEPLOY_TOKEN`            | Secret   | Platform API token (scoped to this project) |
 | `DEPLOY_ORG_ID`           | Variable | Platform organization/team ID            |
 | `DEPLOY_PROJECT_ID`       | Variable | Platform project ID                      |
+| `VISUAL_BASELINES_TOKEN`  | Secret (optional) | Fine-grained token, Contents: read and write on this repository only. Lets `update-visual-baselines` push so CI re-runs on its commit; without it, push any commit afterwards |
 
 Runtime application variables are set on the platform per environment. See [Configuration](./CONFIGURATION.md).
 

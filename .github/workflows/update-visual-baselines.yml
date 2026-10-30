@@ -1,0 +1,88 @@
+name: Update visual baselines
+
+# Regenerates the Linux visual baselines with CI's own pinned browser and commits them to the
+# pull request's branch. Other browser builds wrap text differently, so Linux baselines must
+# come from CI (docs/TESTING.md §6). Run it by adding the `update-visual-baselines` label to a
+# pull request; the label is removed when the run finishes.
+#
+# A commit pushed with the default GITHUB_TOKEN does not start new workflow runs, so CI would
+# not re-run on it. Set the optional `VISUAL_BASELINES_TOKEN` secret (a fine-grained token with
+# Contents: read and write on this repository) to have CI re-run automatically.
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-visual-baselines:
+    name: update-visual-baselines
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Only for the label, and only for branches in this repository (a fork's token is read-only).
+    if: >-
+      github.event.label.name == 'update-visual-baselines' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_TOKEN: ${{ github.token }}
+      HAS_PUSH_TOKEN: ${{ secrets.VISUAL_BASELINES_TOKEN != '' }}
+    steps:
+      - name: Checkout the pull request branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.VISUAL_BASELINES_TOKEN || github.token }}
+
+      - name: Setup application
+        uses: ./.github/actions/setup-app
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build
+        run: pnpm build
+
+      - name: Regenerate visual baselines
+        run: pnpm test:visual:update
+
+      - name: Commit changed Linux baselines
+        id: commit
+        run: |
+          git add -- 'test/visual/*-linux.png'
+          if git diff --cached --quiet; then
+            echo "changed=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "changed=$(git diff --cached --name-only | wc -l | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test: refresh Linux visual baselines from CI"
+          git push origin "HEAD:refs/heads/${HEAD_REF}"
+
+      - name: Report on the pull request
+        if: always()
+        env:
+          CHANGED: ${{ steps.commit.outputs.changed }}
+          OUTCOME: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr edit "$PR_NUMBER" --remove-label update-visual-baselines || true
+          if [ "$OUTCOME" != "success" ]; then
+            body="Updating the Linux visual baselines failed. See the [run]($RUN_URL)."
+          elif [ "${CHANGED:-0}" = "0" ]; then
+            body="The Linux visual baselines already match CI's renders. Nothing to commit."
+          elif [ "$HAS_PUSH_TOKEN" = "true" ]; then
+            body="Committed ${CHANGED} refreshed Linux visual baselines from CI's renders. CI re-runs on that commit."
+          else
+            body="Committed ${CHANGED} refreshed Linux visual baselines from CI's renders. CI does not re-run on a commit pushed with the default token: push any commit, or set the \`VISUAL_BASELINES_TOKEN\` secret so this happens automatically."
+          fi
+          gh pr comment "$PR_NUMBER" --body "$body"

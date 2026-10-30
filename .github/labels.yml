@@ -30,6 +30,9 @@
 - name: docs
   description: Documentation changes
   color: "0075ca"
+- name: update-visual-baselines
+  description: Regenerate Linux visual baselines in CI and commit them to this PR
+  color: "fbca04"
 - name: chore
   description: Maintenance or housekeeping
   color: "fef2c0"

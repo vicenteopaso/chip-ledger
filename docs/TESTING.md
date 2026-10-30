@@ -106,7 +106,7 @@ Use visual tests to catch layout and theme regressions, not to assert behavior.
 - Wait for stable state with shared helpers (fonts loaded, images decoded, network idle, animation off) — never `waitForTimeout`.
 - Mask or freeze dynamic regions (dates, ads, charts with live data) and disable animations globally.
 - Keep a small tolerance (`maxDiffPixelRatio`) to absorb anti-aliasing noise; never raise it to hide a real diff.
-- Baselines are committed per platform (`*-linux.png` for CI, `*-darwin.png` for local runs on macOS). Update them only for intentional changes, in the same PR, and review the image diff. Take Linux baselines from the CI run's `playwright-report` artifact (the actual images of a failed run) rather than generating them on another OS.
+- Baselines are committed per platform (`*-linux.png` for CI, `*-darwin.png` for local runs on macOS). Update them only for intentional changes, in the same PR, and review the image diff. Linux baselines must come from CI's pinned browser: other Chromium builds wrap text differently at mobile widths. Add the `update-visual-baselines` label to the pull request, and `.github/workflows/update-visual-baselines.yml` regenerates them, commits only `*-linux.png`, removes the label, and comments the result. The fallback is to copy the actual images from a failed run's `playwright-report` artifact.
 - Suppress third-party widgets (analytics toolbars, consent banners) in test mode.
 
 ## 7. Accessibility tests
