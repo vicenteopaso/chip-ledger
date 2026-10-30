@@ -5,6 +5,7 @@ Planned work that is not scheduled yet. Each item becomes a feature spec ([SDD G
 ## TODO
 
 1. **Polish the UI for consistency.**
+   - Proposed in [SPEC-0002](./specs/0002-a11y-ux-polish/spec.md) (draft), which also covers an accessibility and UX pass.
    - Audit spacing, type sizes, control heights, and states across the four steps and the Setup rows; fold one-off values (for example the 52 px thumbnail, the `w-23` currency select) into tokens.
    - Known gaps to close: name and chip-count fields have hidden labels, not visible ones ([ACCESSIBILITY](./ACCESSIBILITY.md)); the Settle and Cash out screens still use cards with different borders than Setup.
    - Touches `styles/tokens.css`, `app/components/`, visual baselines.
