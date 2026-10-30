@@ -43,24 +43,37 @@ function CheckMark() {
 export function StepsNav({ current, onSelect }: StepsNavProps) {
   const currentIndex = SCREENS.indexOf(current);
   return (
-    <nav aria-label="Steps">
-      <ol className="grid grid-cols-4">
+    <nav aria-label="Steps" className="relative">
+      {/* One track from the first circle's center to the last, filled up to the current step.
+          The circles sit above it. */}
+      <span
+        aria-hidden="true"
+        className="step-line absolute inset-x-4 top-4.75 h-0.5 bg-border-control"
+      />
+      <span
+        aria-hidden="true"
+        data-step={currentIndex}
+        className="step-line step-progress absolute top-4.75 left-4 h-0.5 bg-accent"
+      />
+      {/* Full width: the first step sits flush left, the last flush right. The end buttons are
+          48 px and the middle ones 64 px, so with the free space shared between them the four
+          circles are evenly spaced. */}
+      <ol className="flex items-start justify-between">
         {SCREENS.map((screen, index) => {
           const state =
             index < currentIndex ? "done" : index === currentIndex ? "current" : "upcoming";
           const label = `${String(index + 1)} ${LABELS[screen]}`;
+          const align =
+            index === 0
+              ? "w-12 items-start"
+              : index === SCREENS.length - 1
+                ? "w-12 items-end"
+                : "w-16 items-center";
           return (
-            <li key={screen} className="relative flex justify-center">
-              {index > 0 && (
-                // The line from the previous circle's center to this one's.
-                <span
-                  aria-hidden="true"
-                  className={`step-line absolute top-5 right-1/2 h-0.5 w-full ${index <= currentIndex ? "bg-accent" : "bg-border-control"}`}
-                />
-              )}
+            <li key={screen} className="flex">
               <button
                 type="button"
-                className={`relative flex min-h-11 w-full min-w-0 flex-col items-center gap-1.5 group rounded-md border-0 bg-transparent px-0.5 pt-1 pb-1.5 text-md leading-tight ${state === "current" ? "font-bold text-text" : "text-text-muted"}`}
+                className={`group relative flex min-h-11 flex-none flex-col gap-1.5 rounded-md border-0 bg-transparent pt-1 pb-1.5 text-md leading-tight ${align} ${state === "current" ? "font-bold text-text" : "text-text-muted"}`}
                 aria-current={state === "current" ? "step" : undefined}
                 // A done step shows a check mark, so its name adds the number and "(done)" to the
                 // visible label. Other steps are named by their visible number and label.
@@ -69,7 +82,7 @@ export function StepsNav({ current, onSelect }: StepsNavProps) {
                   onSelect(screen);
                 }}
               >
-                {/* Above the connecting lines, which belong to the next item. */}
+                {/* Above the track. */}
                 <span
                   aria-hidden={state === "done"}
                   data-state={state}

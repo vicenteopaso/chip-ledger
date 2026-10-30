@@ -14,8 +14,9 @@ export type AppHeaderProps = {
 export function AppHeader({ children }: AppHeaderProps) {
   return (
     <header className="mx-auto max-w-app px-4 pt-5">
-      <p className="mb-5 flex items-center gap-2.5 text-2xl leading-display font-extrabold tracking-display">
-        <BrandMark className="size-10 flex-none" />
+      {/* Sized to balance the step title below it (REQ-0002-28). */}
+      <p className="mb-6 flex items-center gap-3 text-4xl leading-display font-extrabold tracking-display">
+        <BrandMark className="size-12 flex-none" />
         Chip Ledger
       </p>
       {children}

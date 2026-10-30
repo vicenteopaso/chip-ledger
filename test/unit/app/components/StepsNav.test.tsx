@@ -33,7 +33,7 @@ describe("StepsNav", () => {
     expect(screen.getByRole("button", { name: "4 Settle" })).not.toHaveTextContent("done");
   });
 
-  it("AC-0002-27: is an ordered list of circles joined by a line that fills up to the current step", () => {
+  it("AC-0002-27: is an ordered list of circles on a line that fills up to the current step", () => {
     const { container } = render(<StepsNav current="table" onSelect={vi.fn()} />);
     const items = within(screen.getByRole("list")).getAllByRole("listitem");
     expect(items).toHaveLength(4);
@@ -43,9 +43,11 @@ describe("StepsNav", () => {
     // The current circle has a halo; later ones are outlined, not filled.
     expect(dots[1]).toHaveClass("bg-accent", "ring-4");
     expect(dots[2]).toHaveClass("bg-surface", "border-border-control");
+    // One track, and a fill up to the current step (the second of four).
     const lines = [...container.querySelectorAll(".step-line")];
-    expect(lines).toHaveLength(3);
-    expect(lines.map((line) => line.classList.contains("bg-accent"))).toEqual([true, false, false]);
+    expect(lines).toHaveLength(2);
+    expect(container.querySelector(".step-progress")).toHaveAttribute("data-step", "1");
+    expect(container.querySelector(".step-progress")).toHaveClass("bg-accent");
     for (const decoration of [dots[0], ...lines]) {
       expect(decoration).toHaveAttribute("aria-hidden", "true");
     }

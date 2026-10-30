@@ -120,6 +120,21 @@
   }
 
   /* Setup chip row: swatch, color, count, ×, value, remove. */
+  /* The steps' progress line: from the first circle's center (2rem in from both ends) to the
+     current one's, in thirds for the four steps (REQ-0002-27). */
+  .step-progress {
+    width: 0;
+  }
+  .step-progress[data-step="1"] {
+    width: calc((100% - 2rem) / 3);
+  }
+  .step-progress[data-step="2"] {
+    width: calc((100% - 2rem) * 2 / 3);
+  }
+  .step-progress[data-step="3"] {
+    width: calc(100% - 2rem);
+  }
+
   /* Swatch, color, count, ×, value, remove. The color takes what is left. */
   .chip-row {
     grid-template-columns:

@@ -14,7 +14,7 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 | Component   | Prop        | Type        | Required | Description                             |
 | ----------- | ----------- | ----------- | -------- | --------------------------------------- |
 | `AppHeader` | `children`  | `ReactNode` | Yes      | The step navigation                     |
-| `BrandMark` | `className` | `string`    | No       | Size and layout classes, e.g. `size-10` |
+| `BrandMark` | `className` | `string`    | No       | Size and layout classes, e.g. `size-12` |
 
 ## Usage
 
@@ -32,7 +32,7 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 
 ## Design tokens
 
-`--color-chip-blue`, `--color-chip-green`, `--color-chip-red` (bodies), `--color-chip-spot` (spots and rings), `--color-bg` (each chip's outline, so overlaps read in both themes), `--text-2xl`, `--leading-display`, `--tracking-display`, `--container-app`.
+`--color-chip-blue`, `--color-chip-green`, `--color-chip-red` (bodies), `--color-chip-spot` (spots and rings), `--color-bg` (each chip's outline, so overlaps read in both themes), `--text-4xl` (the wordmark balances the 34 px step title), `--leading-display`, `--tracking-display`, `--container-app`.
 
 ## Assets
 
