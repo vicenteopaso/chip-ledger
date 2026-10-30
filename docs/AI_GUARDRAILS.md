@@ -69,11 +69,11 @@ End every task with:
 
 Mirrors `ai-governance.autonomy` in `sdd.yaml`.
 
-| Tier      | Agent may…                                                                                                                  |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Autonomous | Implement an approved spec within scope; add tests, docs, types; run lint, typecheck, tests, builds                       |
-| Ask first | Add or major-bump a dependency; change the public API, data model, or `sdd.yaml`; touch auth, payments, security headers, CI config, or permission scopes; delete anything outside its own changes |
-| Never     | Weaken a security control, gate, or test; commit secrets; push to `main`; present partial work as finished                  |
+| Tier       | Agent may…                                                                                                                                                                                         |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Autonomous | Implement an approved spec within scope; add tests, docs, types; run lint, typecheck, tests, builds                                                                                                |
+| Ask first  | Add or major-bump a dependency; change the public API, data model, or `sdd.yaml`; touch auth, payments, security headers, CI config, or permission scopes; delete anything outside its own changes |
+| Never      | Weaken a security control, gate, or test; commit secrets; push to `main`; present partial work as finished                                                                                         |
 
 ## 4. Hard constraints
 
@@ -99,17 +99,17 @@ New behavior gets tests; bug fixes get a regression test; tests assert observabl
 
 Machine enforcement beats reminders. Configure these in your linter (flat ESLint config shown as the default).
 
-| Category        | Rule (typical)                                                                       | Why                                        |
-| --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------ |
-| Type safety     | `@typescript-eslint/no-explicit-any`, `consistent-type-imports`, `no-non-null-assertion` | No silent loss of type information         |
-| Async safety    | `@typescript-eslint/no-floating-promises`, `no-misused-promises`                     | Unhandled rejections hide failures         |
-| Logging         | `no-console` (allow only inside the logging helper and server entry points)          | Central, structured error reporting        |
-| Security        | `eslint-plugin-security`, `no-eval`, `no-implied-eval`, `react/no-danger`            | Injection and XSS classes                  |
-| Accessibility   | `eslint-plugin-jsx-a11y` (recommended + strict where practical)                      | Catch a11y bugs at author time             |
-| Architecture    | `no-restricted-imports` or `eslint-plugin-boundaries` mirroring `sdd.yaml` layers    | Enforce CONSTITUTION-04                    |
-| Imports         | `eslint-plugin-simple-import-sort`, `import/no-cycle`                                | Deterministic diffs, no cycles             |
-| Dead code       | An unused-exports tool such as `knip`                                                | No dead code accumulates                   |
-| React           | `react-hooks/rules-of-hooks`, `exhaustive-deps`; no direct `document`/`window` in components | Predictable rendering, SSR safety   |
+| Category      | Rule (typical)                                                                               | Why                                 |
+| ------------- | -------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Type safety   | `@typescript-eslint/no-explicit-any`, `consistent-type-imports`, `no-non-null-assertion`     | No silent loss of type information  |
+| Async safety  | `@typescript-eslint/no-floating-promises`, `no-misused-promises`                             | Unhandled rejections hide failures  |
+| Logging       | `no-console` (allow only inside the logging helper and server entry points)                  | Central, structured error reporting |
+| Security      | `eslint-plugin-security`, `no-eval`, `no-implied-eval`, `react/no-danger`                    | Injection and XSS classes           |
+| Accessibility | `eslint-plugin-jsx-a11y` (recommended + strict where practical)                              | Catch a11y bugs at author time      |
+| Architecture  | `no-restricted-imports` or `eslint-plugin-boundaries` mirroring `sdd.yaml` layers            | Enforce CONSTITUTION-04             |
+| Imports       | `eslint-plugin-simple-import-sort`, `import/no-cycle`                                        | Deterministic diffs, no cycles      |
+| Dead code     | An unused-exports tool such as `knip`                                                        | No dead code accumulates            |
+| React         | `react-hooks/rules-of-hooks`, `exhaustive-deps`; no direct `document`/`window` in components | Predictable rendering, SSR safety   |
 
 ### Exceptions
 
@@ -188,29 +188,29 @@ if (!result.success) {
 
 ## 8. CI enforcement
 
-| Gate (job ID)         | Enforces                                                                  |
-| --------------------- | ------------------------------------------------------------------------- |
+| Gate (job ID)         | Enforces                                                                    |
+| --------------------- | --------------------------------------------------------------------------- |
 | `pr-template-check`   | Title format; PR body has the template's sections; ADR linked when required |
-| `test-coverage-check` | Code changes come with test changes                                       |
-| `sdd-check`           | `sdd.yaml` schema; Constitution traceability; internal doc links          |
-| `audit-secrets`       | No secret-like strings in tracked files                                   |
-| `verify`              | Lint, typecheck, unit tests with coverage thresholds, production build    |
-| `test-e2e`            | Critical user flows                                                       |
-| `test-a11y`           | Automated accessibility audits                                            |
-| `codeql`              | Static security analysis                                                  |
-| `lighthouse`          | Performance, accessibility, SEO budgets                                   |
+| `test-coverage-check` | Code changes come with test changes                                         |
+| `sdd-check`           | `sdd.yaml` schema; Constitution traceability; internal doc links            |
+| `audit-secrets`       | No secret-like strings in tracked files                                     |
+| `verify`              | Lint, typecheck, unit tests with coverage thresholds, production build      |
+| `test-e2e`            | Critical user flows                                                         |
+| `test-a11y`           | Automated accessibility audits                                              |
+| `codeql`              | Static security analysis                                                    |
+| `lighthouse`          | Performance, accessibility, SEO budgets                                     |
 
 **Auto-merge eligible** (if you enable it): dependency patch/minor updates from the dependency bot with green checks, and docs-only changes. **Always human-reviewed:** security, API, auth, architecture, new dependencies, breaking changes.
 
 ## 9. Escalation
 
-| Situation                         | Action                                                                                          |
-| --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| CI failure                        | Read the logs, reproduce locally, fix the cause, rerun. Never bypass.                          |
-| Security finding                  | Stop. Read `docs/SECURITY_POLICY.md`. Fix, rescan. Document any accepted advisory in that file. |
-| Accessibility regression          | Fix with keyboard and screen-reader checks; update a11y and visual tests.                      |
-| Architecture violation            | Refactor to the layer contract, or write an ADR and get approval to change it.                 |
-| Request conflicts with Constitution | Explain the conflict and refuse; propose a compliant alternative.                             |
+| Situation                           | Action                                                                                          |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| CI failure                          | Read the logs, reproduce locally, fix the cause, rerun. Never bypass.                           |
+| Security finding                    | Stop. Read `docs/SECURITY_POLICY.md`. Fix, rescan. Document any accepted advisory in that file. |
+| Accessibility regression            | Fix with keyboard and screen-reader checks; update a11y and visual tests.                       |
+| Architecture violation              | Refactor to the layer contract, or write an ADR and get approval to change it.                  |
+| Request conflicts with Constitution | Explain the conflict and refuse; propose a compliant alternative.                               |
 
 **Emergency stop — halt and escalate to the owners listed in `.github/CODEOWNERS` if:** high or critical vulnerabilities are found, a secret appears in a commit, production errors spike after a deploy, or data loss or corruption is possible.
 

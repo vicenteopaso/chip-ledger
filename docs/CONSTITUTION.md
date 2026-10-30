@@ -77,11 +77,11 @@ The Constitution changes rarely and deliberately.
 
 ## Traceability
 
-| Invariant group | Primary enforcement                                              |
-| --------------- | ---------------------------------------------------------------- |
-| Governance      | PR template, CODEOWNERS, `sdd-check` workflow, review checklist  |
-| Architecture    | Lint import rules, `sdd.yaml` layers, code review                |
-| Security        | Secret scanning, dependency audit, CodeQL, lint security rules   |
-| Quality         | CI test/coverage/a11y gates, `check-pr-tests`, review checklist  |
+| Invariant group | Primary enforcement                                             |
+| --------------- | --------------------------------------------------------------- |
+| Governance      | PR template, CODEOWNERS, `sdd-check` workflow, review checklist |
+| Architecture    | Lint import rules, `sdd.yaml` layers, code review               |
+| Security        | Secret scanning, dependency audit, CodeQL, lint security rules  |
+| Quality         | CI test/coverage/a11y gates, `check-pr-tests`, review checklist |
 
 The authoritative per-invariant mapping lives in `sdd.yaml` (`constitution.enforcement`).

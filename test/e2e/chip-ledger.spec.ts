@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { enterCounts, openFresh, playToSettle, startGame } from "./helpers";
+import { enterCounts, openFresh, playToSettle, SHORT_COUNTS, startGame } from "./helpers";
 
 test.describe("SPEC-0001 Chip Ledger", () => {
   test("REQ-0001-26: a first visit starts with 10 EUR and balanced chips", async ({ page }) => {
@@ -10,7 +10,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByLabel("White chips per player")).toHaveValue("22");
     await expect(page.getByLabel("White chip value")).toHaveValue("0.1");
     await expect(page.getByLabel("Blue chip value")).toHaveValue("0.4");
-    await expect(page.getByText(/matching the buy-in/)).toBeVisible();
+    await expect(page.getByRole("main").getByText(/matching the buy-in/)).toBeVisible();
   });
 
   test("AC-0001-17: player count steps from 2 to 10, keeps names, and loads older saves", async ({
@@ -21,16 +21,22 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(players).toContainText("4");
     for (let i = 0; i < 6; i += 1) await page.getByRole("button", { name: "More players" }).click();
     await expect(players).toContainText("10");
-    await expect(page.getByRole("button", { name: "More players" })).toBeDisabled();
-    await expect(page.getByLabel(/^Name of player/)).toHaveCount(10);
-    await page.getByLabel("Name of player 7").fill("Gus");
+    await expect(page.getByRole("button", { name: "More players" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(page.getByLabel(/^Player \d+ name$/)).toHaveCount(10);
+    await page.getByLabel("Player 7 name").fill("Gus");
     for (let i = 0; i < 8; i += 1)
       await page.getByRole("button", { name: "Fewer players" }).click();
     await expect(players).toContainText("2");
-    await expect(page.getByRole("button", { name: "Fewer players" })).toBeDisabled();
-    await expect(page.getByLabel(/^Name of player/)).toHaveCount(2);
+    await expect(page.getByRole("button", { name: "Fewer players" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(page.getByLabel(/^Player \d+ name$/)).toHaveCount(2);
     for (let i = 0; i < 8; i += 1) await page.getByRole("button", { name: "More players" }).click();
-    await expect(page.getByLabel("Name of player 7")).toHaveValue("Gus");
+    await expect(page.getByLabel("Player 7 name")).toHaveValue("Gus");
 
     // A game saved by the first version had six player slots and a count of 4 to 6.
     await page.evaluate(() => {
@@ -45,7 +51,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     });
     await page.reload();
     await expect(players).toContainText("5");
-    await expect(page.getByLabel(/^Name of player/)).toHaveCount(5);
+    await expect(page.getByLabel(/^Player \d+ name$/)).toHaveCount(5);
   });
 
   test("AC-0001-02, -03: setup summary and start button follow buy-in and chips", async ({
@@ -53,15 +59,21 @@ test.describe("SPEC-0001 Chip Ledger", () => {
   }) => {
     await openFresh(page);
     await expect(
-      page.getByText("Each starting stack is worth $20.00, matching the buy-in."),
+      page.getByRole("main").getByText("Each starting stack is worth $20.00, matching the buy-in."),
     ).toBeVisible();
     await page.getByLabel("Buy-in amount").fill("");
-    await expect(page.getByText("Enter a buy-in amount.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Start the game" })).toBeDisabled();
+    await expect(page.getByRole("main").getByText("Enter a buy-in amount.")).toBeVisible();
+    // REQ-0002-08: unusable but still focusable, so the reason can be found.
+    await expect(page.getByRole("button", { name: "Start the game" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     await page.getByLabel("Buy-in amount").fill("20");
     await page.getByRole("button", { name: "Remove White" }).click();
     await page.getByRole("button", { name: "Remove Red" }).click();
-    await expect(page.getByText(/cash out at 200% of the values above/)).toBeVisible();
+    await expect(
+      page.getByRole("main").getByText(/cash out at 200% of the values above/),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "Remove Blue" })).toBeDisabled();
   });
 
@@ -70,14 +82,14 @@ test.describe("SPEC-0001 Chip Ledger", () => {
   }) => {
     await openFresh(page);
     await page.getByRole("checkbox", { name: "Use one value for all chips" }).check();
-    await expect(page.getByLabel("Chip color")).toHaveCount(0);
-    await expect(page.getByText("All colors")).toBeVisible();
+    await expect(page.getByLabel(/chip color$/)).toHaveCount(0);
+    await expect(page.getByRole("main").getByText("All colors")).toBeVisible();
     await expect(
-      page.getByText("Each starting stack is worth $20.00, matching the buy-in."),
+      page.getByRole("main").getByText("Each starting stack is worth $20.00, matching the buy-in."),
     ).toBeVisible();
     await page.getByLabel("Value of every chip").fill("1");
     await expect(
-      page.getByText(/The stack adds up to \$40\.00 but the buy-in is \$20\.00/),
+      page.getByRole("main").getByText(/The stack adds up to \$40\.00 but the buy-in is \$20\.00/),
     ).toBeVisible();
 
     await page.reload();
@@ -85,7 +97,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByLabel("Value of every chip")).toHaveValue("1");
 
     await page.getByRole("checkbox", { name: "Use one value for all chips" }).uncheck();
-    await expect(page.getByText("All colors")).toBeHidden();
+    await expect(page.getByRole("main").getByText("All colors")).toBeHidden();
     await expect(page.getByLabel("Red chip value")).toHaveValue("0.5");
   });
 
@@ -95,7 +107,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByLabel("White chip value")).toHaveValue("0.5");
     await expect(page.getByLabel("Blue chip value")).toHaveValue("2");
     await expect(
-      page.getByText("Each starting stack is worth $40.00, matching the buy-in."),
+      page.getByRole("main").getByText("Each starting stack is worth $40.00, matching the buy-in."),
     ).toBeVisible();
 
     await page.getByLabel("White chips per player").fill("21");
@@ -103,11 +115,11 @@ test.describe("SPEC-0001 Chip Ledger", () => {
       page.getByRole("button", { name: "Fill the chips to match the buy-in" }),
     ).toBeVisible();
     await page.getByLabel("Buy-in amount").fill("25");
-    await expect(page.getByText(/The stack adds up to/)).toBeVisible();
+    await expect(page.getByRole("main").getByText(/The stack adds up to/)).toBeVisible();
     await page.getByRole("button", { name: "Fill the chips to match the buy-in" }).click();
     await expect(page.getByLabel("White chips per player")).toHaveValue("22");
     await expect(
-      page.getByText("Each starting stack is worth $25.00, matching the buy-in."),
+      page.getByRole("main").getByText("Each starting stack is worth $25.00, matching the buy-in."),
     ).toBeVisible();
   });
 
@@ -122,7 +134,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await page.getByLabel("Buy-in amount").fill("20.000");
     await expect(page.getByLabel("White chip value")).toHaveValue("250");
     await expect(page.getByLabel("Blue chip value")).toHaveValue("1000");
-    await expect(page.getByText(/matching the buy-in/)).toBeVisible();
+    await expect(page.getByRole("main").getByText(/matching the buy-in/)).toBeVisible();
 
     await page.getByRole("button", { name: "Start the game" }).click();
     await page.getByRole("button", { name: "Cash out", exact: true }).click();
@@ -139,9 +151,9 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await startGame(page);
     await page.getByRole("button", { name: "Add a buy-in for Ana" }).click();
     await page.getByRole("button", { name: "Add a buy-in for Ana" }).click();
-    await expect(page.getByText("$60.00 in")).toBeVisible();
-    await expect(page.getByText("$120.00")).toBeVisible();
-    await expect(page.getByText("6 buy-ins so far.")).toBeVisible();
+    await expect(page.getByRole("main").getByText("$60.00 in")).toBeVisible();
+    await expect(page.getByRole("main").getByText("$120.00")).toBeVisible();
+    await expect(page.getByRole("main").getByText("6 buy-ins so far.")).toBeVisible();
     await page.getByRole("button", { name: "Remove a buy-in for Ana" }).click();
 
     await page
@@ -159,10 +171,12 @@ test.describe("SPEC-0001 Chip Ledger", () => {
       Cy: [0, 5, 10],
       Dee: [20, 5, 35],
     });
-    await expect(page.getByText("Counted chips match the pot exactly.")).toBeVisible();
+    await expect(
+      page.getByRole("main").getByText("Counted chips match the pot exactly."),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Settle up" }).click();
-    await expect(page.getByText("Everyone broke even.")).toBeHidden();
+    await expect(page.getByRole("main").getByText("Everyone broke even.")).toBeHidden();
     const payments = page.getByRole("listitem").filter({ hasText: "pays" });
     await expect(payments).toHaveText([
       "Ana pays Dee$10.00",
@@ -177,13 +191,13 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await page.getByRole("button", { name: "Add a buy-in for Cy" }).click();
     await page.reload();
     await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
-    await expect(page.getByText("$40.00 in")).toBeVisible();
+    await expect(page.getByRole("main").getByText("$40.00 in")).toBeVisible();
 
     await page.evaluate(() => {
       localStorage.setItem("chip-ledger.v1", '{"players":"oops"}');
     });
     await page.reload();
-    await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
     await expect(page.getByLabel("Buy-in amount")).toHaveValue("10");
   });
 
@@ -192,17 +206,21 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     request,
   }) => {
     await openFresh(page);
-    await expect(page.getByText(/from a photo/)).toBeHidden();
+    await expect(page.getByRole("main").getByText(/from a photo/)).toBeHidden();
     await page.getByRole("button", { name: "3 Cash out" }).click();
     await expect(
-      page.getByText("Type each player's chip counts, then check the count below."),
+      page
+        .getByRole("main")
+        .getByText("Type each player's chip counts, then check the count below."),
     ).toBeVisible();
-    await expect(page.getByText(/photo/i)).toHaveCount(0);
+    await expect(page.getByRole("main").getByText(/photo/i)).toHaveCount(0);
     const response = await request.post("/api/photo-count", { multipart: { colors: "[]" } });
     expect(response.status()).toBe(404);
   });
 
-  test("AC-0001-10, -12: copy falls back to text; start over needs two taps", async ({ page }) => {
+  test("AC-0001-12, AC-0002-11: copy falls back to text; start over asks in place", async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       Object.defineProperty(navigator, "clipboard", {
         value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) },
@@ -210,30 +228,33 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     });
     await playToSettle(page);
     await expect(
-      page.getByText("The counted chips are $15.00 short of the $100.00 pot."),
+      page.getByRole("main").getByText("The counted chips are $15.00 short of the $100.00 pot."),
     ).toBeVisible();
     await page.getByRole("button", { name: "Copy results" }).click();
     await expect(page.getByRole("textbox", { name: "Results text" })).toHaveValue(/Pot: \$100\.00/);
 
     await page.getByRole("button", { name: "Start over from scratch" }).click();
-    await expect(page.getByRole("button", { name: "Tap again to erase everything" })).toBeVisible();
-    await page.getByRole("button", { name: "Tap again to erase everything" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
-    await expect(page.getByLabel("Name of player 1")).toHaveValue("");
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Start over from scratch" })).toBeFocused();
+    await page.getByRole("button", { name: "Start over from scratch" }).click();
+    await page.getByRole("button", { name: "Erase everything" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
+    await expect(page.getByLabel("Player 1 name")).toHaveValue("");
   });
 
   test("AC-0001-13: the whole flow works with the keyboard only", async ({ page }) => {
     await openFresh(page);
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
-    await page.getByLabel("Name of player 1").focus();
+    await page.getByLabel("Player 1 name").focus();
     await page.keyboard.type("Ana");
     await page.getByRole("button", { name: "Start the game" }).focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
     await page.getByRole("button", { name: "Add a buy-in for Ana" }).focus();
     await page.keyboard.press("Space");
-    await expect(page.getByText("$40.00 in")).toBeVisible();
+    await expect(page.getByRole("main").getByText("$40.00 in")).toBeVisible();
     await page.getByRole("button", { name: "Cash out", exact: true }).focus();
     await page.keyboard.press("Enter");
     await page.getByLabel("White chips for Ana").focus();
@@ -336,6 +357,34 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(problems).toEqual([]);
   });
 
+  test("AC-0002-28: one banner holds the brand and the steps, in the same place on every step", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const banner = page.getByRole("banner");
+    await expect(banner).toHaveCount(1);
+    await expect(banner.getByText("Chip Ledger", { exact: true })).toBeVisible();
+    const top = async () => (await page.getByRole("main").boundingBox())?.y;
+    const setupTop = await top();
+    for (const step of ["2 Table", "3 Cash out", "4 Settle"]) {
+      await banner.getByRole("button", { name: new RegExp(`^${step}`) }).click();
+      // The content starts at the same height on every step: no jump (REQ-0002-28).
+      expect(await top()).toBe(setupTop);
+    }
+  });
+
+  test("AC-0002-29: serves an SVG favicon and a home-screen icon", async ({ page, request }) => {
+    await page.goto("/");
+    const icon = page.locator('link[rel="icon"][type="image/svg+xml"]');
+    await expect(icon).toHaveCount(1);
+    const svg = await request.get((await icon.getAttribute("href")) ?? "");
+    expect(svg.headers()["content-type"]).toContain("image/svg+xml");
+    const apple = page.locator('link[rel="apple-touch-icon"]');
+    await expect(apple).toHaveAttribute("sizes", "180x180");
+    const png = await request.get((await apple.getAttribute("href")) ?? "");
+    expect(png.headers()["content-type"]).toBe("image/png");
+  });
+
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Chip Ledger");
@@ -350,5 +399,106 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /api/");
     expect((await request.get("/sitemap.xml")).ok()).toBe(true);
     expect((await request.get("/nope")).status()).toBe(404);
+  });
+});
+
+test.describe("SPEC-0002 phase 1 accessibility", () => {
+  test("AC-0002-02: a keyboard step change lands on the new step's title", async ({ page }) => {
+    await openFresh(page);
+    await startGame(page);
+    // startGame clicked; repeat from the keyboard on the next step.
+    await page.getByRole("button", { name: "Cash out", exact: true }).focus();
+    await page.keyboard.press("Enter");
+    const title = page.getByRole("heading", { level: 1, name: "Cash out" });
+    await expect(title).toBeFocused();
+    await expect(page).toHaveTitle("Cash out · Chip Ledger");
+    // Tab continues into the step, not back to the top of the page.
+    await page.keyboard.press("Tab");
+    await expect(page.getByLabel("White chips for Ana")).toBeFocused();
+  });
+
+  test("AC-0002-08: Start the game leads to the field that blocks it", async ({ page }) => {
+    await openFresh(page);
+    const buyIn = page.getByLabel("Buy-in amount");
+    await buyIn.fill("");
+    await expect(buyIn).toHaveAttribute("aria-invalid", "true");
+    const start = page.getByRole("button", { name: "Start the game" });
+    await start.focus();
+    await expect(start).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(buyIn).toBeFocused();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Setup");
+  });
+
+  test("AC-0002-10: the bottom bar never covers the focused field", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await openFresh(page);
+    const field = page.getByLabel("Blue chip value");
+    await page.getByLabel("Blue chips per player").focus();
+    await page.keyboard.press("Tab");
+    await expect(field).toBeFocused();
+    const fieldBox = await field.boundingBox();
+    const barBox = await page.locator(".action-bar").boundingBox();
+    expect(fieldBox && barBox && fieldBox.y + fieldBox.height <= barBox.y).toBe(true);
+  });
+
+  test("AC-0002-10: on a short screen the bottom bar scrolls with the page", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 400 });
+    await openFresh(page);
+    await expect(page.locator(".action-bar")).toHaveCSS("position", "static");
+    await page.setViewportSize({ width: 375, height: 812 });
+    await expect(page.locator(".action-bar")).toHaveCSS("position", "fixed");
+  });
+});
+
+test.describe("SPEC-0002 phase 2 experience", () => {
+  test("AC-0002-12: Settle's primary action starts the next game with the same players", async ({
+    page,
+  }) => {
+    await playToSettle(page);
+    await page.getByRole("button", { name: "New game, same players" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeFocused();
+    await expect(page.getByRole("main").getByText("Ana", { exact: true })).toBeVisible();
+    await expect(page.getByRole("status", { name: "Buy-ins for Ana" })).toHaveText("1");
+  });
+
+  test("AC-0002-13: Table − stops at 0 and keeps focus", async ({ page }) => {
+    await openFresh(page);
+    await startGame(page);
+    const remove = page.getByRole("button", { name: "Remove a buy-in for Ana" });
+    await remove.focus();
+    await page.keyboard.press("Enter");
+    await expect(remove).toHaveAttribute("aria-disabled", "true");
+    await expect(remove).toBeFocused();
+  });
+
+  test("AC-0002-14: a count mismatch is stated in words", async ({ page }) => {
+    await openFresh(page);
+    await startGame(page);
+    await page.getByRole("button", { name: "Cash out", exact: true }).click();
+    await enterCounts(page, SHORT_COUNTS);
+    await expect(page.getByRole("row", { name: /^Blue/ })).toContainText(
+      /\d+ of \d+ · \d+ (short|over)/,
+    );
+  });
+
+  test("AC-0002-16: controls and hints use at least 15 px, the footer at least 14 px", async ({
+    page,
+  }) => {
+    await openFresh(page);
+    const size = (locator: ReturnType<typeof page.locator>) =>
+      locator.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+    expect(await size(page.getByRole("button", { name: "2 Table" }))).toBeGreaterThanOrEqual(15);
+    expect(await size(page.getByText(/^20 chips worth/))).toBeGreaterThanOrEqual(15);
+    expect(await size(page.getByText(/^© /))).toBeGreaterThanOrEqual(14);
+  });
+
+  test("AC-0002-17: the primary button changes on hover", async ({ page }) => {
+    await openFresh(page);
+    const start = page.getByRole("button", { name: "Start the game" });
+    const background = () => start.evaluate((element) => getComputedStyle(element).backgroundColor);
+    const resting = await background();
+    await start.hover();
+    await expect.poll(background).not.toBe(resting);
   });
 });

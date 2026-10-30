@@ -7,6 +7,14 @@ import { CurrencySchema, MAX_AMOUNT, MAX_COUNT, typicalBuyIn } from "@/lib/money
 export const SCREENS = ["setup", "table", "cashout", "settle"] as const;
 export type Screen = (typeof SCREENS)[number];
 
+/** Each step's page title, used for the document title (REQ-0002-02). */
+export const STEP_TITLES: Record<Screen, string> = {
+  setup: "Setup",
+  table: "At the table",
+  cashout: "Cash out",
+  settle: "Settle up",
+};
+
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 10;
 export const DEFAULT_PLAYERS = 4;
@@ -35,6 +43,10 @@ export const PlayerSchema = z.object({
   counts: z.record(z.string(), CountSchema),
 });
 
+/** How a pot difference is shared when spreading is on (REQ-0002-33). */
+export const SPREAD_BY = ["chips", "equal"] as const;
+export type SpreadBy = (typeof SPREAD_BY)[number];
+
 /**
  * Saved game state. Same JSON shape as the prototype's `chip-ledger.v1` value (REQ-0001-25).
  * Parsed on load because browser storage is external input (REQ-0001-26, CONSTITUTION-10).
@@ -45,6 +57,8 @@ const GameFieldsSchema = z.object({
   buyIn: AmountSchema,
   currency: CurrencySchema,
   scale: z.boolean(),
+  /** How `scale` shares the difference (REQ-0002-33). Absent in games saved before it existed. */
+  spreadBy: z.enum(SPREAD_BY).default("chips"),
   /** Every chip shares one value (REQ-0001-28). Absent in games saved before it existed. */
   uniformValue: z.boolean().default(false),
   /** Chips follow the buy-in until the host edits one (REQ-0001-29). False for older saved games. */
@@ -103,6 +117,7 @@ export function createGame(newId: IdFactory): GameState {
     buyIn,
     currency,
     scale: true,
+    spreadBy: "chips",
     uniformValue: false,
     autoChips: true,
     uniformChip: planUniformChip(buyIn, currency) ?? { count: 0, value: 0 },

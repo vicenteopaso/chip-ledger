@@ -22,8 +22,20 @@
   --color-danger: #b0342b;
   --color-warn-bg: #fbf1dc;
   --color-warn-ink: #6b4a0e;
-  --color-step-done: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
   --color-bar: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  /* Hover: a step toward the text color, so it darkens in light and lightens in dark (REQ-0002-17). */
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, var(--color-text));
+  --color-surface-hover: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
+  /* Disabled: readable (3:1) but clearly unavailable, instead of opacity (REQ-0002-18). */
+  --color-disabled-bg: #dce3de;
+  --color-disabled-ink: #5f6e66;
+  /* Soft fills, so buttons, fields, and notices each look different (REQ-0002-31): secondary
+   * buttons and stepper keys are a tint of the page, danger buttons a tint of the surface. */
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 18%, var(--color-bg));
+  --color-accent-soft-hover: color-mix(in srgb, var(--color-accent) 26%, var(--color-bg));
+  --color-danger-soft: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface));
+  --color-danger-soft-hover: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  --color-success-bg: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
 
   /* Chip artwork: body and edge-spot colors, the same in every theme. */
   --color-chip-white: #ecebe4;
@@ -73,6 +85,10 @@
   --border-control: 1.5px;
   --blur-bar: 10px;
   --container-app: 35rem;
+  /* Comfortable line length for intro text (REQ-0002-26). */
+  --container-lede: 40ch;
+  /* Room kept under the content for the fixed bottom bar; also its scroll padding (REQ-0002-10). */
+  --bar-clearance: calc(var(--spacing) * 44);
 }
 
 @layer theme {
@@ -92,6 +108,8 @@
       --color-danger: #f28274;
       --color-warn-bg: #3a2f12;
       --color-warn-ink: #f2d58c;
+      --color-disabled-bg: #1a3d31;
+      --color-disabled-ink: #8fa89b;
     }
   }
 
@@ -110,5 +128,7 @@
     --color-danger: #f28274;
     --color-warn-bg: #3a2f12;
     --color-warn-ink: #f2d58c;
+    --color-disabled-bg: #1a3d31;
+    --color-disabled-ink: #8fa89b;
   }
 }

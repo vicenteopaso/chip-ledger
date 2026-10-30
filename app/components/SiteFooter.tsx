@@ -7,7 +7,7 @@ export type SiteFooterProps = {
 /** Copyright line, shown in the fixed bottom bar under the step's buttons (REQ-0001-31). */
 export function SiteFooter({ year, holders }: SiteFooterProps) {
   return (
-    <footer className="text-xs whitespace-nowrap text-text-muted">
+    <footer className="text-sm whitespace-nowrap text-text-muted">
       <p>{`© ${String(year)} ${holders}`}</p>
     </footer>
   );

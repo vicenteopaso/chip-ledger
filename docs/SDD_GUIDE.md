@@ -4,14 +4,14 @@ How this repository turns intent into shipped software. Specs are the source of 
 
 ## 1. The artifacts
 
-| Artifact       | Location                | Answers                                   | Changes via                                 |
-| -------------- | ----------------------- | ----------------------------------------- | ------------------------------------------- |
-| Constitution   | `docs/CONSTITUTION.md`  | What must always be true?                 | Amendment process (ADR + owner approval)    |
-| System SDD     | `sdd.yaml`              | How is the system shaped and gated?       | PR + ADR for structural changes             |
-| ADRs           | `docs/adr/`             | Why did we choose this?                   | New ADR; old ones are superseded, not edited |
-| Feature specs  | `docs/specs/NNNN-slug/` | What should this feature do, and how?     | Spec PR before or with the code             |
-| Reference docs | `docs/*.md`             | How do we build, test, secure, and ship?  | Normal PR, updated with the behavior        |
-| Code + tests   | repo                    | What does the system actually do?         | Normal PR                                   |
+| Artifact       | Location                | Answers                                  | Changes via                                  |
+| -------------- | ----------------------- | ---------------------------------------- | -------------------------------------------- |
+| Constitution   | `docs/CONSTITUTION.md`  | What must always be true?                | Amendment process (ADR + owner approval)     |
+| System SDD     | `sdd.yaml`              | How is the system shaped and gated?      | PR + ADR for structural changes              |
+| ADRs           | `docs/adr/`             | Why did we choose this?                  | New ADR; old ones are superseded, not edited |
+| Feature specs  | `docs/specs/NNNN-slug/` | What should this feature do, and how?    | Spec PR before or with the code              |
+| Reference docs | `docs/*.md`             | How do we build, test, secure, and ship? | Normal PR, updated with the behavior         |
+| Code + tests   | repo                    | What does the system actually do?        | Normal PR                                    |
 
 Precedence runs top to bottom (see the Constitution). When a lower artifact disagrees with a higher one, the lower one is the bug.
 
@@ -28,15 +28,15 @@ flowchart LR
   F -. spec was wrong .-> A
 ```
 
-| Phase     | Output                                    | Exit gate                                                              |
-| --------- | ----------------------------------------- | ---------------------------------------------------------------------- |
-| Specify   | `spec.md`: problem, stories, requirements | Every requirement has an ID and an acceptance criterion                |
-| Clarify   | Resolved open questions                   | Zero `[NEEDS CLARIFICATION]` markers remain                            |
-| Plan      | `plan.md`: design, layers, risks          | Plan passes the Constitution check; ADR written if architectural       |
-| Tasks     | `tasks.md`: ordered, testable steps       | Each task is small, has a done-condition, and names its tests          |
-| Implement | Code + tests + docs, in small commits     | Each task's done-condition holds                                       |
-| Verify    | CI green, acceptance criteria demonstrated | Evidence attached to the PR (test output, screenshot, trace)           |
-| Close     | Spec status set to `implemented`          | Docs and `sdd.yaml` updated; follow-ups filed as issues                |
+| Phase     | Output                                     | Exit gate                                                        |
+| --------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| Specify   | `spec.md`: problem, stories, requirements  | Every requirement has an ID and an acceptance criterion          |
+| Clarify   | Resolved open questions                    | Zero `[NEEDS CLARIFICATION]` markers remain                      |
+| Plan      | `plan.md`: design, layers, risks           | Plan passes the Constitution check; ADR written if architectural |
+| Tasks     | `tasks.md`: ordered, testable steps        | Each task is small, has a done-condition, and names its tests    |
+| Implement | Code + tests + docs, in small commits      | Each task's done-condition holds                                 |
+| Verify    | CI green, acceptance criteria demonstrated | Evidence attached to the PR (test output, screenshot, trace)     |
+| Close     | Spec status set to `implemented`           | Docs and `sdd.yaml` updated; follow-ups filed as issues          |
 
 Do not start **Plan** with open clarifications, and do not start **Implement** until the plan is reviewed (Tier 2: by a human; Tier 1: by the author).
 
@@ -44,10 +44,10 @@ Do not start **Plan** with open clarifications, and do not start **Implement** u
 
 Pick the lightest tier that is honest about the risk.
 
-| Tier | Examples                                                                  | Required artifacts                                |
-| ---- | ------------------------------------------------------------------------- | ------------------------------------------------- |
-| 0    | Typo or copy fix, patch-level dependency bump, refactor with no behavior change | PR only (tests still must pass)                   |
-| 1    | New feature, behavior change, bug fix with user-visible effect            | Short feature spec + tests that cite requirement IDs |
+| Tier | Examples                                                                           | Required artifacts                                     |
+| ---- | ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| 0    | Typo or copy fix, patch-level dependency bump, refactor with no behavior change    | PR only (tests still must pass)                        |
+| 1    | New feature, behavior change, bug fix with user-visible effect                     | Short feature spec + tests that cite requirement IDs   |
 | 2    | New layer, new class of dependency, auth or security model, data model, public API | Spec + plan + ADR + `sdd.yaml` update + human approval |
 
 If unsure, go one tier up. A bug fix is Tier 1 when it changes documented behavior; the regression test cites the requirement it restores.

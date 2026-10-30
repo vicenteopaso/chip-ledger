@@ -1,4 +1,4 @@
-import { activePlayers, cashOutValue, type GameState, playerName } from "@/lib/game";
+import { activePlayers, cashOutValue, type GameState, playerName, type SpreadBy } from "@/lib/game";
 import { type Currency, minorPerUnit } from "@/lib/money";
 
 export type SettlementRow = {
@@ -21,6 +21,8 @@ export type Settlement = {
   counted: number;
   /** counted − pot. */
   difference: number;
+  /** How the difference was shared, or null when it was not (REQ-0002-33). */
+  spreadBy: SpreadBy | null;
   payments: Payment[];
   /** Debts left after payments minus credits left, in smallest units (non-zero only without scaling). */
   unaccountedMinor: number;
@@ -46,7 +48,12 @@ function matchPayments(debtors: Balance[], creditors: Balance[]): Payment[] {
 
 const byAmountDescending = (a: Balance, b: Balance) => b.minor - a.minor;
 
-/** Nets, scaling, rounding residue, and payments for the Settle step (REQ-0001-18 … -20). */
+/**
+ * Nets, spreading, rounding residue, and payments for the Settle step (REQ-0001-18 … -20).
+ * Spreading shares the pot difference so the payments balance: by chips scales every cash-out
+ * by pot ÷ counted, so bigger stacks take a bigger share; equally adds the same amount to every
+ * cash-out (REQ-0002-33).
+ */
 export function settle(game: GameState): Settlement {
   const players = activePlayers(game);
   const raw = players.map((player) => ({
@@ -57,11 +64,12 @@ export function settle(game: GameState): Settlement {
   }));
   const potTotal = raw.reduce((sum, row) => sum + row.putIn, 0);
   const counted = raw.reduce((sum, row) => sum + row.value, 0);
-  const scaling = game.scale && counted > 0;
-  const factor = scaling ? potTotal / counted : 1;
+  const spreadBy = game.scale && counted > 0 ? game.spreadBy : null;
+  const factor = spreadBy === "chips" ? potTotal / counted : 1;
+  const share = spreadBy === "equal" ? (potTotal - counted) / raw.length : 0;
 
   const rows: SettlementRow[] = raw.map((row) => {
-    const cashedOut = row.value * factor;
+    const cashedOut = row.value * factor + share;
     return {
       playerId: row.playerId,
       name: row.name,
@@ -71,7 +79,7 @@ export function settle(game: GameState): Settlement {
     };
   });
 
-  if (scaling) {
+  if (spreadBy) {
     const residue = rows.reduce((sum, row) => sum + row.netMinor, 0);
     const [largest] = rows.toSorted((a, b) => Math.abs(b.netMinor) - Math.abs(a.netMinor));
     if (residue !== 0 && largest) largest.netMinor -= residue;
@@ -95,6 +103,7 @@ export function settle(game: GameState): Settlement {
     pot: potTotal,
     counted,
     difference: counted - potTotal,
+    spreadBy,
     payments,
     unaccountedMinor: sumMinor(debtors) - sumMinor(creditors),
   };

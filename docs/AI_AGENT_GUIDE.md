@@ -14,21 +14,21 @@ Quick reference for AI coding agents (Claude Code, Copilot, Cursor, Codex, …).
 
 ## 2. Commands
 
-| Command             | Purpose                                         |
-| ------------------- | ----------------------------------------------- |
-| `pnpm dev`          | Dev server                                      |
-| `pnpm build`        | Production build                                |
-| `pnpm lint`         | Lint (warnings are errors)                      |
-| `pnpm typecheck`    | TypeScript                                      |
-| `pnpm test`         | Unit and component tests                        |
-| `pnpm coverage`     | Tests with coverage thresholds                  |
-| `pnpm test:e2e`     | End-to-end tests                                |
-| `pnpm test:visual`  | Visual regression                               |
-| `pnpm test:a11y`    | Accessibility audits                            |
-| `pnpm verify`       | Everything CI runs, locally                     |
-| `node scripts/check-sdd-refs.mjs` | Validate Constitution ↔ `sdd.yaml` traceability and file references |
-| `node scripts/check-doc-links.mjs` | Validate relative links in markdown     |
-| `node scripts/scan-secrets.mjs --changed` | Scan changed files for secrets   |
+| Command                                   | Purpose                                                             |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `pnpm dev`                                | Dev server                                                          |
+| `pnpm build`                              | Production build                                                    |
+| `pnpm lint`                               | Lint (warnings are errors)                                          |
+| `pnpm typecheck`                          | TypeScript                                                          |
+| `pnpm test`                               | Unit and component tests                                            |
+| `pnpm coverage`                           | Tests with coverage thresholds                                      |
+| `pnpm test:e2e`                           | End-to-end tests                                                    |
+| `pnpm test:visual`                        | Visual regression                                                   |
+| `pnpm test:a11y`                          | Accessibility audits                                                |
+| `pnpm verify`                             | Everything CI runs, locally                                         |
+| `node scripts/check-sdd-refs.mjs`         | Validate Constitution ↔ `sdd.yaml` traceability and file references |
+| `node scripts/check-doc-links.mjs`        | Validate relative links in markdown                                 |
+| `node scripts/scan-secrets.mjs --changed` | Scan changed files for secrets                                      |
 
 Commands come from `sdd.yaml` (`devex.commands`). If they differ, `sdd.yaml` wins.
 
@@ -68,12 +68,12 @@ Full lists: [AI Guardrails](./AI_GUARDRAILS.md), [Forbidden Patterns](./FORBIDDE
 
 ## 5. Asking vs. acting
 
-| Act without asking                                   | Ask first                                              |
-| ---------------------------------------------------- | ------------------------------------------------------ |
-| Implement an approved spec in scope                  | Add or major-bump a dependency                         |
-| Add tests, docs, types                               | Change public API, data model, or `sdd.yaml`           |
-| Run lint, typecheck, tests, builds                   | Touch auth, payments, security headers, CI, permissions |
-| Fix lint/format issues in files you changed          | Delete files or data you did not create               |
+| Act without asking                          | Ask first                                               |
+| ------------------------------------------- | ------------------------------------------------------- |
+| Implement an approved spec in scope         | Add or major-bump a dependency                          |
+| Add tests, docs, types                      | Change public API, data model, or `sdd.yaml`            |
+| Run lint, typecheck, tests, builds          | Touch auth, payments, security headers, CI, permissions |
+| Fix lint/format issues in files you changed | Delete files or data you did not create                 |
 
 ## 6. Debugging
 

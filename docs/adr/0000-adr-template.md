@@ -1,12 +1,12 @@
 # ADR-0000: [Short title of the problem and solution]
 
-|                |                                                                     |
-| -------------- | ------------------------------------------------------------------- |
-| **Status**     | Proposed \| Accepted \| Deprecated \| Superseded by ADR-NNNN       |
-| **Date**       | YYYY-MM-DD                                                          |
-| **Deciders**   | [People or roles who made or must approve this decision]            |
-| **Area**       | [e.g. frontend architecture, CI/CD, security, data]                 |
-| **Related**    | [Specs, issues, earlier ADRs]                                       |
+|              |                                                              |
+| ------------ | ------------------------------------------------------------ |
+| **Status**   | Proposed \| Accepted \| Deprecated \| Superseded by ADR-NNNN |
+| **Date**     | YYYY-MM-DD                                                   |
+| **Deciders** | [People or roles who made or must approve this decision]     |
+| **Area**     | [e.g. frontend architecture, CI/CD, security, data]          |
+| **Related**  | [Specs, issues, earlier ADRs]                                |
 
 ## Context and problem statement
 

@@ -20,13 +20,15 @@ export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
   try {
     const limited = await checkRateLimit(getClientIp(request));
-    if (!limited.ok) return problem(429, "rate_limited", "Too many requests.", requestId, { "Retry-After": "60" });
+    if (!limited.ok)
+      return problem(429, "rate_limited", "Too many requests.", requestId, { "Retry-After": "60" });
 
     const session = await requireSession(request); // 401 if absent
     await assertCan(session.user, "things:create"); // 403 if not allowed
 
     const parsed = CreateThing.safeParse(await request.json());
-    if (!parsed.success) return problem(400, "invalid_request", "The request was not valid.", requestId);
+    if (!parsed.success)
+      return problem(400, "invalid_request", "The request was not valid.", requestId);
 
     const thing = await createThing(parsed.data, session.user);
     return Response.json(thing, { status: 201, headers: { Location: `/api/things/${thing.id}` } });
@@ -60,16 +62,16 @@ One shape for every error (modeled on RFC 9457 problem details):
 }
 ```
 
-| Status | Use for                                       |
-| ------ | --------------------------------------------- |
-| 400    | Malformed or invalid input                    |
-| 401    | Not authenticated                             |
-| 403    | Authenticated but not permitted               |
-| 404    | Not found (also for resources the caller must not know exist) |
-| 409    | Conflict with current state                   |
+| Status | Use for                                                                                       |
+| ------ | --------------------------------------------------------------------------------------------- |
+| 400    | Malformed or invalid input                                                                    |
+| 401    | Not authenticated                                                                             |
+| 403    | Authenticated but not permitted                                                               |
+| 404    | Not found (also for resources the caller must not know exist)                                 |
+| 409    | Conflict with current state                                                                   |
 | 422    | Well-formed but semantically unacceptable (optional; pick one of 400/422 and stay consistent) |
-| 429    | Rate limited, with `Retry-After`              |
-| 500    | Unexpected error (generic body, detail in logs) |
+| 429    | Rate limited, with `Retry-After`                                                              |
+| 500    | Unexpected error (generic body, detail in logs)                                               |
 
 `errors[].message` is user-safe text. Never include stack traces, SQL, internal IDs, or hostnames.
 

@@ -34,7 +34,8 @@ export async function POST(request: Request) {
   }
   const parsed = Schema.safeParse(await request.json());
   if (!parsed.success) return new Response("Invalid request", { status: 400 });
-  if (!(await verifyBotToken(parsed.data.token))) return new Response("Verification failed", { status: 400 });
+  if (!(await verifyBotToken(parsed.data.token)))
+    return new Response("Verification failed", { status: 400 });
   return handle(parsed.data);
 }
 ```
@@ -79,7 +80,7 @@ if (!parsed.success) return new Response("Invalid request", { status: 400 });
 
 ```tsx
 // ❌
-<div dangerouslySetInnerHTML={{ __html: userContent }} />
+<div dangerouslySetInnerHTML={{ __html: userContent }} />;
 element.innerHTML = externalData;
 ```
 
@@ -131,7 +132,9 @@ Query strings land in logs, referrers, and analytics. Tokens go in headers or PO
 
 ```tsx
 // ❌ A div pretending to be a button; outline removed
-<div onClick={save} style={{ outline: "none" }}>Save</div>
+<div onClick={save} style={{ outline: "none" }}>
+  Save
+</div>
 ```
 
 ```tsx
@@ -294,13 +297,13 @@ Lorem ipsum, stub implementations, brand-only mock-ups, or an unverified fix des
 
 ## Enforcement
 
-| Layer         | Mechanism                                                                   |
-| ------------- | --------------------------------------------------------------------------- |
-| Editor/lint   | ESLint (security, a11y, boundaries, type safety), Prettier                  |
-| Types         | TypeScript strict; schemas at every boundary                                |
-| Hooks         | Pre-commit secret scan and lint-staged                                      |
-| CI            | Tests, coverage, a11y, CodeQL, dependency audit, PR checks                  |
-| Review        | [Review Checklist](./REVIEW_CHECKLIST.md) and cited `FP-NN` IDs             |
+| Layer       | Mechanism                                                       |
+| ----------- | --------------------------------------------------------------- |
+| Editor/lint | ESLint (security, a11y, boundaries, type safety), Prettier      |
+| Types       | TypeScript strict; schemas at every boundary                    |
+| Hooks       | Pre-commit secret scan and lint-staged                          |
+| CI          | Tests, coverage, a11y, CodeQL, dependency audit, PR checks      |
+| Review      | [Review Checklist](./REVIEW_CHECKLIST.md) and cited `FP-NN` IDs |
 
 ## Adding a pattern
 

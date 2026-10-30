@@ -124,12 +124,12 @@ Strategy and templates are in [Testing](./TESTING.md). In short:
 
 Keep this set current; it is the project's memory.
 
-| Document                          | Purpose                                         |
-| --------------------------------- | ----------------------------------------------- |
-| `README.md`                       | What it is, how to run it, where to read more   |
-| `CONTRIBUTING.md`                 | Workflow, commands, expectations                |
+| Document                           | Purpose                                         |
+| ---------------------------------- | ----------------------------------------------- |
+| `README.md`                        | What it is, how to run it, where to read more   |
+| `CONTRIBUTING.md`                  | Workflow, commands, expectations                |
 | `docs/CONSTITUTION.md`, `sdd.yaml` | Invariants and the machine-readable system spec |
-| `docs/ARCHITECTURE.md`            | Shape of the system and where things go         |
-| `docs/adr/`, `docs/specs/`        | Decisions and feature intent                    |
-| `docs/*.md` reference docs        | Testing, security, errors, config, deploy, etc. |
-| `CHANGELOG.md`                    | What changed, by release                        |
+| `docs/ARCHITECTURE.md`             | Shape of the system and where things go         |
+| `docs/adr/`, `docs/specs/`         | Decisions and feature intent                    |
+| `docs/*.md` reference docs         | Testing, security, errors, config, deploy, etc. |
+| `CHANGELOG.md`                     | What changed, by release                        |

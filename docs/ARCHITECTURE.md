@@ -27,13 +27,13 @@ The game lives in the browser's `localStorage`; the server stores nothing. The o
 
 ## 3. Layers and boundaries
 
-| Layer  | Default location     | Responsibility                                           | May import      | Must not import |
-| ------ | -------------------- | -------------------------------------------------------- | --------------- | --------------- |
-| UI     | `app/components`     | Presentational components: props in, events out          | domain          | api, infra, routes |
-| Routes | `app/` (except `components/`, `api/`), `proxy.ts` | Pages, layout, framework files; `ChipLedgerApp` owns state and wires infra to UI | ui, domain, infra | api |
-| API    | `app/api`            | Validate input, guard, delegate, shape responses         | domain, infra   | ui              |
-| Domain | `lib`                | Game rules, settlement, schemas, formatting, prompt      | —               | ui, api, routes, infra |
-| Infra  | `lib/infra`          | Browser storage, clipboard, photo-count client, vision provider, rate limiter, env; the only layer that reads env vars | domain | ui, api, routes |
+| Layer  | Default location                                  | Responsibility                                                                                                         | May import        | Must not import        |
+| ------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------- |
+| UI     | `app/components`                                  | Presentational components: props in, events out                                                                        | domain            | api, infra, routes     |
+| Routes | `app/` (except `components/`, `api/`), `proxy.ts` | Pages, layout, framework files; `ChipLedgerApp` owns state and wires infra to UI                                       | ui, domain, infra | api                    |
+| API    | `app/api`                                         | Validate input, guard, delegate, shape responses                                                                       | domain, infra     | ui                     |
+| Domain | `lib`                                             | Game rules, settlement, schemas, formatting, prompt                                                                    | —                 | ui, api, routes, infra |
+| Infra  | `lib/infra`                                       | Browser storage, clipboard, photo-count client, vision provider, rate limiter, env; the only layer that reads env vars | domain            | ui, api, routes        |
 
 Rules (CONSTITUTION-04 to -07):
 
@@ -75,14 +75,14 @@ sequenceDiagram
 
 ## 6. Cross-cutting concerns
 
-| Concern        | Where it lives                       | Reference                                   |
-| -------------- | ------------------------------------ | ------------------------------------------- |
-| Error handling | central logging helper, error boundaries | [Error Handling](./ERROR_HANDLING.md)    |
-| Security       | middleware, headers config, validation | [Security Policy](./SECURITY_POLICY.md)    |
-| Config         | validated env module                 | [Configuration](./CONFIGURATION.md)         |
-| Observability  | logger, tracing, error tracker       | [Observability](./OBSERVABILITY.md)         |
-| Accessibility  | components, tokens, tests            | [Accessibility](./ACCESSIBILITY.md)         |
-| SEO            | single metadata module               | [SEO Guide](./SEO_GUIDE.md)                 |
+| Concern        | Where it lives                           | Reference                               |
+| -------------- | ---------------------------------------- | --------------------------------------- |
+| Error handling | central logging helper, error boundaries | [Error Handling](./ERROR_HANDLING.md)   |
+| Security       | middleware, headers config, validation   | [Security Policy](./SECURITY_POLICY.md) |
+| Config         | validated env module                     | [Configuration](./CONFIGURATION.md)     |
+| Observability  | logger, tracing, error tracker           | [Observability](./OBSERVABILITY.md)     |
+| Accessibility  | components, tokens, tests                | [Accessibility](./ACCESSIBILITY.md)     |
+| SEO            | single metadata module                   | [SEO Guide](./SEO_GUIDE.md)             |
 
 ## 7. Directory map (default)
 

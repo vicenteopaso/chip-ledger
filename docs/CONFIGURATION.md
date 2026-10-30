@@ -19,21 +19,21 @@ Columns: **Scope** is where the value is available (`Server`, `Client`, `Build`,
 
 ### Application
 
-| Variable               | Scope  | Required | Secret | Description                                                  |
-| ---------------------- | ------ | -------- | ------ | ------------------------------------------------------------ |
+| Variable               | Scope  | Required | Secret | Description                                                              |
+| ---------------------- | ------ | -------- | ------ | ------------------------------------------------------------------------ |
 | `NEXT_PUBLIC_SITE_URL` | Client | Prod     | No     | Canonical origin, no trailing slash. Defaults to `http://localhost:3000` |
-| `NODE_ENV`             | Both   | Auto     | No     | Set by the framework/runtime                                 |
+| `NODE_ENV`             | Both   | Auto     | No     | Set by the framework/runtime                                             |
 
 ### Photo counting
 
 Off unless `PHOTO_COUNT_ENABLED=true` ([SPEC-0001](./specs/0001-chip-ledger/spec.md) REQ-0001-13). With it on and a key or model missing, the server fails fast naming the variable. Read SPEC-0001 §7 before enabling in production.
 
-| Variable                   | Scope  | Required     | Secret | Description                                                   |
-| -------------------------- | ------ | ------------ | ------ | ------------------------------------------------------------- |
-| `PHOTO_COUNT_ENABLED`      | Server | No           | No     | `true` turns photo counting on; anything else keeps it off    |
+| Variable                   | Scope  | Required     | Secret | Description                                                            |
+| -------------------------- | ------ | ------------ | ------ | ---------------------------------------------------------------------- |
+| `PHOTO_COUNT_ENABLED`      | Server | No           | No     | `true` turns photo counting on; anything else keeps it off             |
 | `PHOTO_COUNT_API_BASE_URL` | Server | No           | No     | OpenAI-compatible base URL. Defaults to `https://openrouter.ai/api/v1` |
-| `PHOTO_COUNT_API_KEY`      | Server | When enabled | Yes    | Provider API key                                              |
-| `PHOTO_COUNT_MODEL`        | Server | When enabled | No     | Vision-capable model id at that provider                      |
+| `PHOTO_COUNT_API_KEY`      | Server | When enabled | Yes    | Provider API key                                                       |
+| `PHOTO_COUNT_MODEL`        | Server | When enabled | No     | Vision-capable model id at that provider                               |
 
 All of them are read only in `lib/infra/env.ts`.
 
@@ -41,32 +41,32 @@ No error tracker is configured yet; errors go to platform logs through `lib/erro
 
 ## 3. Configuration files
 
-| File                      | Purpose                                      |
-| ------------------------- | -------------------------------------------- |
-| `.nvmrc`                  | Node.js version (single source for local + CI) |
+| File                      | Purpose                                                         |
+| ------------------------- | --------------------------------------------------------------- |
+| `.nvmrc`                  | Node.js version (single source for local + CI)                  |
 | `package.json`            | Dependencies, scripts, `packageManager`, `engines`, lint-staged |
-| `pnpm-workspace.yaml`     | pnpm settings: which dependency build scripts may run |
-| `tsconfig.json`           | TypeScript (strict)                          |
-| `eslint.config.mjs`       | Lint rules, including layer boundaries       |
-| `prettier.config.mjs`     | Formatting                                   |
-| `postcss.config.mjs`      | Tailwind CSS                                 |
-| `vitest.config.ts`        | Unit tests and coverage thresholds           |
-| `playwright.config.ts`    | E2E, visual, and a11y projects               |
-| `lighthouserc.json`       | Lighthouse CI budgets                        |
-| `next.config.ts`          | Framework config; applies static security headers |
-| `lib/security-headers.ts` | Security header values and the CSP           |
-| `proxy.ts`                | Per-request CSP nonce                        |
-| `.github/workflows/*`     | CI/CD                                        |
+| `pnpm-workspace.yaml`     | pnpm settings: which dependency build scripts may run           |
+| `tsconfig.json`           | TypeScript (strict)                                             |
+| `eslint.config.mjs`       | Lint rules, including layer boundaries                          |
+| `prettier.config.mjs`     | Formatting                                                      |
+| `postcss.config.mjs`      | Tailwind CSS                                                    |
+| `vitest.config.ts`        | Unit tests and coverage thresholds                              |
+| `playwright.config.ts`    | E2E, visual, and a11y projects                                  |
+| `lighthouserc.json`       | Lighthouse CI budgets                                           |
+| `next.config.ts`          | Framework config; applies static security headers               |
+| `lib/security-headers.ts` | Security header values and the CSP                              |
+| `proxy.ts`                | Per-request CSP nonce                                           |
+| `.github/workflows/*`     | CI/CD                                                           |
 
 ## 4. Governance files
 
-| File                   | Purpose                                              |
-| ---------------------- | ---------------------------------------------------- |
-| `docs/CONSTITUTION.md` | Immutable invariants                                 |
-| `sdd.yaml`             | Machine-readable system spec                         |
-| `sdd.schema.json`      | Schema validating `sdd.yaml`                         |
-| `.github/CODEOWNERS`   | Required reviewers for governance and sensitive paths |
-| `AGENTS.md` / `CLAUDE.md` | Entry point for AI agents                         |
+| File                      | Purpose                                               |
+| ------------------------- | ----------------------------------------------------- |
+| `docs/CONSTITUTION.md`    | Immutable invariants                                  |
+| `sdd.yaml`                | Machine-readable system spec                          |
+| `sdd.schema.json`         | Schema validating `sdd.yaml`                          |
+| `.github/CODEOWNERS`      | Required reviewers for governance and sensitive paths |
+| `AGENTS.md` / `CLAUDE.md` | Entry point for AI agents                             |
 
 ## 5. Adding a variable (checklist)
 

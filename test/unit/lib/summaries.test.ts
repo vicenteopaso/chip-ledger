@@ -14,12 +14,16 @@ describe("setupSummary", () => {
   it("AC-0001-02: confirms a stack that matches the buy-in", () => {
     expect(setupSummary(defaultGame(), usd)).toEqual({
       kind: "ok",
+      code: "balanced",
       text: "Each starting stack is worth $20.00, matching the buy-in.",
     });
   });
 
   it("AC-0001-02: asks for a buy-in first", () => {
-    expect(setupSummary(gameWith({ buyIn: 0 }), usd).text).toBe("Enter a buy-in amount.");
+    expect(setupSummary(gameWith({ buyIn: 0 }), usd)).toMatchObject({
+      code: "no-buy-in",
+      text: "Enter a buy-in amount.",
+    });
   });
 
   it("REQ-0001-06: asks for chips when the stack is worth nothing", () => {
@@ -33,6 +37,7 @@ describe("setupSummary", () => {
     const game = gameWith({ chips: [{ id: "blue", color: "blue", count: 10, value: 1 }] });
     expect(setupSummary(game, usd)).toEqual({
       kind: "warn",
+      code: "unbalanced",
       text: "The stack adds up to $10.00 but the buy-in is $20.00. Chips will cash out at 200% of the values above so the money always balances. Adjust the counts or values if that isn't what you want.",
     });
   });
@@ -48,10 +53,12 @@ describe("count check", () => {
       counted: 40,
       issued: 80,
       mismatch: true,
+      note: "40 short",
     });
     expect(countCheckSummary(counted, usd)).toEqual({
       kind: "warn",
-      text: "Counted chips are worth $10.00, which is $70.00 less than the $80.00 pot. Recount the colors marked in red, or settle anyway and the difference is spread across everyone.",
+      code: "under",
+      text: "Counted chips are worth $10.00, which is $70.00 less than the $80.00 pot. Recount the colors marked in red, or settle anyway and choose how to share the difference.",
     });
   });
 
@@ -59,9 +66,20 @@ describe("count check", () => {
     const game = defaultGame();
     const over = { ...game, players: game.players.map((p) => ({ ...p, counts: { blue: 30 } })) };
     expect(countCheckSummary(over, usd).text).toContain("$40.00 more than the $80.00 pot");
+    expect(countCheckSummary(over, usd).code).toBe("over");
+    // AC-0002-14: the mismatch is stated in words, not only by color.
+    expect(countCheckRows(over).find((row) => row.chipId === "blue")?.note).toBe("80 over");
+    expect(countCheckRows(defaultGame())[0]?.note).toBe("80 short");
     const exact = { ...game, players: game.players.map((p) => ({ ...p, counts: { blue: 20 } })) };
+    const issuedCounts = { white: 20, red: 10, blue: 10 };
+    const allMatch = {
+      ...game,
+      players: game.players.map((p) => ({ ...p, counts: issuedCounts })),
+    };
+    expect(countCheckRows(allMatch).map((row) => row.note)).toEqual([null, null, null]);
     expect(countCheckSummary(exact, usd)).toEqual({
       kind: "ok",
+      code: "match",
       text: "Counted chips match the pot exactly.",
     });
   });
@@ -98,6 +116,22 @@ describe("resultsText", () => {
 
   it("REQ-0001-22: says nobody pays when everyone broke even", () => {
     expect(resultsText(settle(defaultGame()), usd, "d")).toContain("None, everyone broke even");
+  });
+
+  it("REQ-0002-33: says how a pot difference was shared", () => {
+    const game = defaultGame();
+    const short = {
+      ...game,
+      spreadBy: "equal" as const,
+      players: game.players.map((p, i) => ({ ...p, counts: { blue: [35, 25, 10, 0][i] ?? 0 } })),
+    };
+    expect(resultsText(settle(short), usd, "d")).toContain(
+      "Counted chips: $70.00, the $10.00 difference shared equally",
+    );
+    expect(resultsText(settle({ ...short, spreadBy: "chips" }), usd, "d")).toContain(
+      "shared in proportion to chips",
+    );
+    expect(resultsText(settle({ ...short, scale: false }), usd, "d")).not.toContain("shared");
   });
 
   it("REQ-0001-20: detects a pot mismatch", () => {

@@ -28,8 +28,14 @@ const SKIP_DIRS = new Set([
 
 /** Remove HTML comments, fenced code blocks, and inline code so sample links are not checked. */
 export function stripCode(markdown) {
-  return markdown
-    .replace(/<!--[\s\S]*?-->/g, "")
+  let sanitized = markdown;
+  let previous;
+  do {
+    previous = sanitized;
+    sanitized = sanitized.replace(/<!--[\s\S]*?-->/g, "");
+  } while (sanitized !== previous);
+
+  return sanitized
     .replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, "")
     .replace(/`[^`\n]*`/g, "");
 }

@@ -26,13 +26,13 @@ flowchart LR
 
 Workflow responsibilities (`.github/workflows/`):
 
-| Workflow                | Trigger        | Does                                                   |
-| ----------------------- | -------------- | ------------------------------------------------------ |
-| `ci.yml`                | PR, push       | Governance checks, lint, typecheck, tests, build, e2e, a11y |
-| `deploy.yml`            | PR, push `main`| Pull platform settings, build, deploy preview/production. Skipped until `DEPLOY_PROJECT_ID` is set |
-| `codeql.yml`            | PR, weekly     | Static security analysis                               |
-| `security-audit.yml`    | Manifest change, weekly | Dependency audit, opens an issue on scheduled failures |
-| `release-drafter.yml`   | push `main`    | Drafts release notes from PR labels                    |
+| Workflow              | Trigger                 | Does                                                                                               |
+| --------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `ci.yml`              | PR, push                | Governance checks, lint, typecheck, tests, build, e2e, a11y                                        |
+| `deploy.yml`          | PR, push `main`         | Pull platform settings, build, deploy preview/production. Skipped until `DEPLOY_PROJECT_ID` is set |
+| `codeql.yml`          | PR, weekly              | Static security analysis                                                                           |
+| `security-audit.yml`  | Manifest change, weekly | Dependency audit, opens an issue on scheduled failures                                             |
+| `release-drafter.yml` | push `main`             | Drafts release notes from PR labels                                                                |
 
 Skip builds for changes that cannot affect the artifact (docs-only, tests-only) using path filters or the platform's ignored-build-step.
 
@@ -40,11 +40,12 @@ Skip builds for changes that cannot affect the artifact (docs-only, tests-only) 
 
 Set in GitHub: **Settings → Secrets and variables → Actions**.
 
-| Name                      | Kind     | Purpose                                  |
-| ------------------------- | -------- | ---------------------------------------- |
-| `DEPLOY_TOKEN`            | Secret   | Platform API token (scoped to this project) |
-| `DEPLOY_ORG_ID`           | Variable | Platform organization/team ID            |
-| `DEPLOY_PROJECT_ID`       | Variable | Platform project ID                      |
+| Name                     | Kind              | Purpose                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DEPLOY_TOKEN`           | Secret            | Platform API token (scoped to this project)                                                                                                                                                                                                                                                                                                      |
+| `DEPLOY_ORG_ID`          | Variable          | Platform organization/team ID                                                                                                                                                                                                                                                                                                                    |
+| `DEPLOY_PROJECT_ID`      | Variable          | Platform project ID                                                                                                                                                                                                                                                                                                                              |
+| `VISUAL_BASELINES_TOKEN` | Secret (optional) | Fine-grained token, Contents: read and write on this repository only, for an account allowed to bypass the branch ruleset. Lets `update-visual-baselines` push its commit (the default token is rejected by the ruleset) and CI re-run on it. Without it, the workflow uploads a `linux-baselines` artifact and comments the command to apply it |
 
 Runtime application variables are set on the platform per environment. See [Configuration](./CONFIGURATION.md).
 
@@ -95,13 +96,13 @@ Database or data migrations must be backward compatible for one release so a rol
 
 ## 9. Troubleshooting
 
-| Symptom                                   | Likely cause and fix                                                        |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| Platform builds every commit on its own   | Auto-deploy still enabled. Disable "Git integration" deploys for this project |
-| Workflow cannot pull platform settings    | Wrong token scope or project/org IDs. Re-issue the token; check variables   |
-| Preview missing on a PR                   | Path filter skipped the build, or the job failed. Check the workflow run    |
-| Build fails only in CI                    | Missing environment variable or version drift. Match `.nvmrc`; check [Configuration](./CONFIGURATION.md) |
-| Works in preview, fails in production     | Environment-specific variable missing in production scope                   |
+| Symptom                                 | Likely cause and fix                                                                                     |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Platform builds every commit on its own | Auto-deploy still enabled. Disable "Git integration" deploys for this project                            |
+| Workflow cannot pull platform settings  | Wrong token scope or project/org IDs. Re-issue the token; check variables                                |
+| Preview missing on a PR                 | Path filter skipped the build, or the job failed. Check the workflow run                                 |
+| Build fails only in CI                  | Missing environment variable or version drift. Match `.nvmrc`; check [Configuration](./CONFIGURATION.md) |
+| Works in preview, fails in production   | Environment-specific variable missing in production scope                                                |
 
 ## Related
 

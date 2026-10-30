@@ -2,27 +2,32 @@
 
 The app's native button with its four variants. Use it for every action; use `next/link` for navigation.
 
-| Field    | Value                         |
-| -------- | ----------------------------- |
-| Location | `app/components/Button.tsx`   |
-| Type     | Server-compatible component   |
-| Status   | stable                        |
-| Spec     | SPEC-0001                     |
+| Field    | Value                                                  |
+| -------- | ------------------------------------------------------ |
+| Location | `app/components/Button.tsx`                            |
+| Type     | Server-compatible component                            |
+| Status   | stable                                                 |
+| Spec     | SPEC-0001, SPEC-0002 (REQ-0002-08, -09, -17, -18, -21) |
 
 ## Props
 
 All `<button>` attributes except `type` (always `"button"`) and `className`, plus:
 
-| Prop      | Type                                              | Default | Required | Description  |
-| --------- | ------------------------------------------------- | ------- | -------- | ------------ |
-| `variant` | `"primary" \| "secondary" \| "danger" \| "link"`  | —       | Yes      | Visual style |
+| Prop      | Type                                                          | Default | Required | Description                                    |
+| --------- | ------------------------------------------------------------- | ------- | -------- | ---------------------------------------------- |
+| `variant` | `"primary" \| "secondary" \| "danger" \| "link" \| "outline"` | —       | Yes      | Visual style                                   |
+| `ref`     | `Ref<HTMLButtonElement>`                                      | —       | No       | For moving focus to it (used by ConfirmInline) |
 
 ## Usage
 
 ```tsx
-<Button variant="primary" disabled={!canStart} onClick={start}>Start the game</Button>
+<Button variant="primary" aria-disabled={!canStart} aria-describedby="setup-summary" onClick={start}>
+  Start the game
+</Button>
 <Button variant="danger" onClick={reset}>Start over from scratch</Button>
 ```
+
+`buttonClasses(variant)` returns a variant's classes for an element that must look like a button but can't be one. The photo control is a `<label>` around a native file input and uses `buttonClasses("outline")` (REQ-0002-21).
 
 ## Accessibility
 
@@ -30,14 +35,16 @@ All `<button>` attributes except `type` (always `"button"`) and `className`, plu
 - **Keyboard:** `Tab` reaches it; `Enter`/`Space` activate it.
 - **Focus:** global `:focus-visible` ring in `--color-focus`.
 - **Contrast / motion:** variants use accent/surface token pairs; press scaling only without reduced motion.
+- **Unavailable actions:** prefer `aria-disabled` with `aria-describedby` pointing at the reason over `disabled`, so keyboard and screen-reader users can reach the button and learn why (REQ-0002-08). The handler must then do nothing harmful, for example move focus to the field to fix.
+- **Forced colors:** the primary variant has a transparent border rather than none, so forced-colors mode draws its edge (REQ-0002-09).
 
 ## Design tokens
 
-`--color-accent`, `--color-accent-ink`, `--color-surface`, `--color-border`, `--color-danger`, `--radius-xl`, `--border-control`.
+Every variant except `link` is a pill (`--radius-full`), at least 48 px tall (primary 56 px), so buttons never look like fields or notices (REQ-0002-31). Primary: `--color-accent`, `--color-accent-ink`, `--color-accent-hover`. Secondary: `--color-accent-soft` / `--color-accent-soft-hover` with `--color-text`, no border. Danger: `--color-danger-soft` / `--color-danger-soft-hover` with `--color-danger`, no border. Outline: `--color-accent` border and text on `--color-surface`, `--color-surface-hover`. All: `--border-control` (transparent where there is no border).
 
 ## States
 
-Default, focus-visible, active (scaled), disabled (primary at 45% opacity, still readable).
+Default, hover (`--color-accent-hover` or `--color-surface-hover`, only on devices that hover and only when available), focus-visible, active (scaled), and disabled or `aria-disabled` (`--color-disabled-bg` / `--color-disabled-ink`, at least 3:1; no opacity). See REQ-0002-17 and -18.
 
 ## Testing
 
