@@ -27,6 +27,8 @@ describe("StepsNav", () => {
       expect(screen.getByRole("button", { name })).toHaveTextContent(/^✓/);
     }
     expect(screen.getByRole("button", { name: "3 Cash out" })).not.toHaveTextContent("✓");
+    // The check mark replaces the number, so 15 px labels fit at 320 px (REQ-0002-16).
+    expect(screen.getByRole("button", { name: "1 Setup (done)" })).toHaveTextContent(/^✓Setup$/);
     expect(screen.getByRole("button", { name: "4 Settle" })).not.toHaveTextContent("done");
   });
 });

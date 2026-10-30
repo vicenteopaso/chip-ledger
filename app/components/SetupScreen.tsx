@@ -32,9 +32,12 @@ export type SetupScreenProps = {
 
 const FIELD_BASE =
   "block min-w-0 rounded-md border-control border-border-control bg-surface px-3.5 py-3 focus:border-accent";
-/** Round-cornered − and + beside the player count: 56 px wide, 44+ px tall. */
+/**
+ * Round-cornered − and + beside the player count: 56 px wide, 44+ px tall. Unavailable at a limit
+ * via `aria-disabled`, so keyboard focus stays put (REQ-0002-13, -17, -18).
+ */
 const PLAYERS_BUTTON =
-  "press w-14 flex-none rounded-lg border-2 border-border bg-surface py-3.5 text-3xl font-extrabold disabled:opacity-45";
+  "press w-14 flex-none rounded-lg border-2 border-border bg-surface py-3.5 text-3xl font-extrabold hover:not-aria-disabled:bg-surface-hover aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
 const FIELD = `${FIELD_BASE} w-full text-body`;
 /** Visible field label (REQ-0002-05). */
 const LABEL = "mb-1 block text-md font-semibold text-text-muted";
@@ -70,7 +73,7 @@ export function SetupScreen({
           type="button"
           className={PLAYERS_BUTTON}
           aria-label="Fewer players"
-          disabled={game.count <= MIN_PLAYERS}
+          aria-disabled={game.count <= MIN_PLAYERS}
           onClick={() => {
             dispatch({ type: "setPlayerCount", count: game.count - 1 });
           }}
@@ -85,7 +88,7 @@ export function SetupScreen({
           type="button"
           className={PLAYERS_BUTTON}
           aria-label="More players"
-          disabled={game.count >= MAX_PLAYERS}
+          aria-disabled={game.count >= MAX_PLAYERS}
           onClick={() => {
             dispatch({ type: "setPlayerCount", count: game.count + 1 });
           }}

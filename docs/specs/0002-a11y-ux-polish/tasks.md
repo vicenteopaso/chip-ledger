@@ -52,19 +52,19 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 ## Phase 2: experience (P2)
 
-- [ ] T-14 `ConfirmInline` and the new reset flow _(REQ-0002-11)_
+- [x] T-14 `ConfirmInline` and the new reset flow _(REQ-0002-11)_
   - Tests: component tests (focus, Esc, Cancel, confirm); e2e replacing AC-0001-10
   - Done when: AC-0002-11 passes; REQ-0001-24 points to REQ-0002-11.
-- [ ] T-15 Settle bar actions _(REQ-0002-12)_
+- [x] T-15 Settle bar actions _(REQ-0002-12)_
   - Tests: component test; e2e new-game flow
   - Done when: AC-0002-12 passes; REQ-0001-02 points to REQ-0002-12.
-- [ ] T-16 [P] Visible short/over text _(REQ-0002-14)_
+- [x] T-16 [P] Visible short/over text _(REQ-0002-14)_
   - Tests: unit `countCheckRows`; component
   - Done when: AC-0002-14 passes.
-- [ ] T-17 [P] Copy without "Tap" _(REQ-0002-15)_
+- [x] T-17 [P] Copy without "Tap" _(REQ-0002-15)_
   - Tests: unit search over copy
   - Done when: AC-0002-15 passes.
-- [ ] T-18 Type sizes, hover, disabled tokens applied _(REQ-0002-16, -17, -18)_
+- [x] T-18 Type sizes, hover, disabled tokens applied _(REQ-0002-16, -17, -18)_
   - Tests: visual; e2e hover in the desktop project
   - Done when: AC-0002-16, -17, -18 pass.
 
@@ -73,7 +73,7 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 ## Phase 3: consistency (P3)
 
-- [ ] T-19 `Stepper` used by Setup and Table; − disabled at 0 _(REQ-0002-19, -13)_
+- [ ] T-19 `Stepper` used by Setup and Table _(REQ-0002-19; the − at 0 part of REQ-0002-13 shipped in Phase 2)_
   - Tests: Stepper component tests; e2e AC-0001-04 and AC-0001-17 still pass
   - Done when: AC-0002-13 and AC-0002-19 pass.
 - [ ] T-20 [P] `Card` and `ListRow` _(REQ-0002-20)_

@@ -20,22 +20,25 @@ Tokens are defined once in `styles/tokens.css` as a Tailwind `@theme`, so each t
 
 Contrast is the lower of the ratios against `bg` and `surface`.
 
-| Role                                   | Light                 | Dark                  | Used for                           | Contrast (light / dark)    |
-| -------------------------------------- | --------------------- | --------------------- | ---------------------------------- | -------------------------- |
-| `--color-bg`                           | `#E9EFEA`             | `#0B261D`             | Page background                    | —                          |
-| `--color-surface`                      | `#FFFFFF`             | `#11342A`             | Cards, fields, outlined buttons    | —                          |
-| `--color-sunk`                         | `#F2F6F3`             | `#0E2D23`             | Count cells                        | —                          |
-| `--color-text`                         | `#13241C`             | `#ECF3EE`             | Body text                          | 13.9 / 12.0                |
-| `--color-text-muted`                   | `#56685E`             | `#9AB2A5`             | Secondary text, placeholders       | 5.1 / 6.0                  |
-| `--color-accent`                       | `#14573F`             | `#43B884`             | Primary actions, links, pot        | 7.3 / 5.4                  |
-| `--color-accent-ink`                   | `#FFFFFF`             | `#06231A`             | Text on accent                     | 8.5 / 6.7 on accent        |
-| `--color-border`                       | `#CFDAD2`             | `#22503F`             | Dividers, card and button outlines | decorative                 |
-| `--color-border-control`               | `#7A8B81`             | `#5A8A77`             | Text-field and select borders      | 3.1 / 3.5                  |
-| `--color-focus`                        | `#9A6E1C`             | `#E3B95A`             | Focus ring                         | 3.9 / 7.3                  |
-| `--color-step-done`                    | accent 65% + border   | same mix              | Done-step border (with a ✓)        | ≥ 3:1 on `bg`, both themes |
-| `--color-success`                      | `#1D7448`             | `#6CD49C`             | Gains, confirmations               | 4.9 / 7.5                  |
-| `--color-danger`                       | `#B0342B`             | `#F28274`             | Losses, mismatches, destructive    | 5.3 / 5.3                  |
-| `--color-warn-bg` / `--color-warn-ink` | `#FBF1DC` / `#6B4A0E` | `#3A2F12` / `#F2D58C` | Notes; busy photo status           | 7.2 / 9.2                  |
+| Role                                           | Light                 | Dark                  | Used for                           | Contrast (light / dark)    |
+| ---------------------------------------------- | --------------------- | --------------------- | ---------------------------------- | -------------------------- |
+| `--color-bg`                                   | `#E9EFEA`             | `#0B261D`             | Page background                    | —                          |
+| `--color-surface`                              | `#FFFFFF`             | `#11342A`             | Cards, fields, outlined buttons    | —                          |
+| `--color-sunk`                                 | `#F2F6F3`             | `#0E2D23`             | Count cells                        | —                          |
+| `--color-text`                                 | `#13241C`             | `#ECF3EE`             | Body text                          | 13.9 / 12.0                |
+| `--color-text-muted`                           | `#56685E`             | `#9AB2A5`             | Secondary text, placeholders       | 5.1 / 6.0                  |
+| `--color-accent`                               | `#14573F`             | `#43B884`             | Primary actions, links, pot        | 7.3 / 5.4                  |
+| `--color-accent-ink`                           | `#FFFFFF`             | `#06231A`             | Text on accent                     | 8.5 / 6.7 on accent        |
+| `--color-border`                               | `#CFDAD2`             | `#22503F`             | Dividers, card and button outlines | decorative                 |
+| `--color-border-control`                       | `#7A8B81`             | `#5A8A77`             | Text-field and select borders      | 3.1 / 3.5                  |
+| `--color-focus`                                | `#9A6E1C`             | `#E3B95A`             | Focus ring                         | 3.9 / 7.3                  |
+| `--color-step-done`                            | accent 65% + border   | same mix              | Done-step border (with a ✓)        | ≥ 3:1 on `bg`, both themes |
+| `--color-accent-hover`                         | accent 85% + text     | same mix              | Primary button hover               | accent-ink ≥ 4.5:1         |
+| `--color-surface-hover`                        | surface 95% + text    | same mix              | Outlined and stepper button hover  | text and danger ≥ 4.5:1    |
+| `--color-disabled-bg` / `--color-disabled-ink` | `#DCE3DE` / `#5F6E66` | `#1A3D31` / `#8FA89B` | Unavailable controls (no opacity)  | ≥ 3:1                      |
+| `--color-success`                              | `#1D7448`             | `#6CD49C`             | Gains, confirmations               | 4.9 / 7.5                  |
+| `--color-danger`                               | `#B0342B`             | `#F28274`             | Losses, mismatches, destructive    | 5.3 / 5.3                  |
+| `--color-warn-bg` / `--color-warn-ink`         | `#FBF1DC` / `#6B4A0E` | `#3A2F12` / `#F2D58C` | Notes; busy photo status           | 7.2 / 9.2                  |
 
 Pairs that carry meaning are checked against `styles/tokens.css` by `test/unit/styles/tokens.test.ts`, so a changed value cannot silently drop below its ratio. `--color-step-done` was raised from a 45% to a 65% accent mix (light was about 2.5:1) by SPEC-0002 (REQ-0002-04).
 
@@ -62,6 +65,8 @@ Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes,
 - **Bottom bar:** `--bar-clearance` (44 spacing steps) is both the space kept under the content and the page's `scroll-padding-bottom`, so a focused field never lands behind the bar. Under the `short:` variant (`max-height: 30rem`: landscape phones, 200% zoom) the bar is static and scrolls with the page (REQ-0002-10).
 - **Forced colors:** controls use transparent borders, never none, so forced-colors mode can draw them; the current step uses `Highlight`, and chip artwork keeps its colors next to its text label (REQ-0002-09).
 - **Motion:** buttons scale to 0.97 while pressed, only under `prefers-reduced-motion: no-preference`.
+- **Hover:** Tailwind's `hover:` applies only on devices that can hover, and only to available controls (`hover:not-disabled:not-aria-disabled:…`). The hover mixes step toward the text color, so one definition darkens in light and lightens in dark (REQ-0002-17).
+- **Text size:** controls and hints use at least `--text-md` (15 px), and the footer at least `--text-sm` (14 px) (REQ-0002-16).
 - **Touch targets:** 44 px minimum. Where the prototype drew smaller controls (step tabs, remove-chip button), the hit area is enlarged without changing the drawn size.
 
 ## 3. Core patterns

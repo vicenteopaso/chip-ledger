@@ -25,7 +25,8 @@ export function CountCheck({ game, money }: CountCheckProps) {
                 className={`py-1.75 text-right ${row.mismatch ? "font-semibold text-danger" : ""}`}
               >
                 {`${String(row.counted)} of ${String(row.issued)}`}
-                {row.mismatch && <span className="sr-only"> (does not match)</span>}
+                {/* In words too, not by color and weight alone (REQ-0002-14). */}
+                {row.note && <span className="text-md">{` · ${row.note}`}</span>}
               </td>
             </tr>
           ))}

@@ -25,6 +25,12 @@
   /* Done-step border: 3:1 against bg in both themes (REQ-0002-04). */
   --color-step-done: color-mix(in srgb, var(--color-accent) 65%, var(--color-border));
   --color-bar: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  /* Hover: a step toward the text color, so it darkens in light and lightens in dark (REQ-0002-17). */
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, var(--color-text));
+  --color-surface-hover: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
+  /* Disabled: readable (3:1) but clearly unavailable, instead of opacity (REQ-0002-18). */
+  --color-disabled-bg: #dce3de;
+  --color-disabled-ink: #5f6e66;
 
   /* Chip artwork: body and edge-spot colors, the same in every theme. */
   --color-chip-white: #ecebe4;
@@ -95,6 +101,8 @@
       --color-danger: #f28274;
       --color-warn-bg: #3a2f12;
       --color-warn-ink: #f2d58c;
+      --color-disabled-bg: #1a3d31;
+      --color-disabled-ink: #8fa89b;
     }
   }
 
@@ -113,5 +121,7 @@
     --color-danger: #f28274;
     --color-warn-bg: #3a2f12;
     --color-warn-ink: #f2d58c;
+    --color-disabled-bg: #1a3d31;
+    --color-disabled-ink: #8fa89b;
   }
 }

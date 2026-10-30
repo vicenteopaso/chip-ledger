@@ -48,7 +48,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 ### Navigation
 
 - REQ-0001-01: The app MUST present four steps — Setup, Table, Cash out, Settle — as a step navigation where any step can be opened at any time; the current step MUST be marked with `aria-current="step"` and earlier steps MUST be shown as done.
-- REQ-0001-02: Opening a step MUST scroll to the top of the page; each step MUST show its own bottom action bar with the prototype's buttons, except that Settle's second button MUST read "Back to Setup" and open Setup (the first step).
+- REQ-0001-02: Opening a step MUST scroll to the top of the page; each step MUST show its own bottom action bar with the prototype's buttons, except that Settle's second button MUST read "Back to Setup" and open Setup (the first step). _Amended by SPEC-0002 REQ-0002-12: Settle's bar offers "‹ Cash out" and the primary "New game, same players"; "Back to Setup" moves into the step's content._
 
 ### Setup
 
@@ -88,7 +88,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 - REQ-0001-21: Results MUST list each player's net (with a + sign for gains), money put in, and amount cashed out.
 - REQ-0001-22: "Copy results" MUST copy a plain-text summary (date, pot, each net, payments) to the clipboard and change to "Copied"; if the clipboard is unavailable it MUST show the text in a read-only field with "Select the text above and copy it."
 - REQ-0001-23: "New game with the same players" MUST reset buy-ins to 1, clear all counts, photos, and statuses, keep names and chip setup, and open Table.
-- REQ-0001-24: "Start over from scratch" MUST ask for a second tap ("Tap again to erase everything") before resetting everything to defaults and opening Setup. Leaving the step MUST disarm it.
+- REQ-0001-24: "Start over from scratch" MUST ask for a second tap ("Tap again to erase everything") before resetting everything to defaults and opening Setup. Leaving the step MUST disarm it. _Amended by SPEC-0002 REQ-0002-11: the second tap is replaced by an inline confirmation ("Erase everything?" with Cancel and "Erase everything")._
 
 ### Persistence
 

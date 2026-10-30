@@ -2,20 +2,20 @@
 
 Casino-chip artwork for one chip color. Decorative: always pair it with a text label.
 
-| Field    | Value                         |
-| -------- | ----------------------------- |
-| Location | `app/components/Chip.tsx`     |
-| Type     | Server-compatible component   |
-| Status   | stable                        |
-| Spec     | SPEC-0001 (REQ-0001-27)       |
+| Field    | Value                       |
+| -------- | --------------------------- |
+| Location | `app/components/Chip.tsx`   |
+| Type     | Server-compatible component |
+| Status   | stable                      |
+| Spec     | SPEC-0001 (REQ-0001-27)     |
 
 ## Props
 
-| Prop        | Type                           | Default | Required | Description                    |
-| ----------- | ------------------------------ | ------- | -------- | ------------------------------ |
+| Prop        | Type                           | Default | Required | Description                                                                                     |
+| ----------- | ------------------------------ | ------- | -------- | ----------------------------------------------------------------------------------------------- |
 | `color`     | `StackColor`                   | —       | Yes      | One of the ten palette colors, or `"mixed"` for the multi-color "All colors" chip (REQ-0001-28) |
-| `size`      | `"sm" \| "md" \| "lg" \| "xl"` | `"md"`  | No       | 26, 30, 46, or 64 px           |
-| `className` | `string`                       | `""`    | No       | Layout utilities (offsets)     |
+| `size`      | `"sm" \| "md" \| "lg" \| "xl"` | `"md"`  | No       | 26, 30, 46, or 64 px                                                                            |
+| `className` | `string`                       | `""`    | No       | Layout utilities (offsets)                                                                      |
 
 ## Usage
 

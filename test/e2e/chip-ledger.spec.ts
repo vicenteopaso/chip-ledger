@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { enterCounts, openFresh, playToSettle, startGame } from "./helpers";
+import { enterCounts, openFresh, playToSettle, SHORT_COUNTS, startGame } from "./helpers";
 
 test.describe("SPEC-0001 Chip Ledger", () => {
   test("REQ-0001-26: a first visit starts with 10 EUR and balanced chips", async ({ page }) => {
@@ -21,13 +21,19 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(players).toContainText("4");
     for (let i = 0; i < 6; i += 1) await page.getByRole("button", { name: "More players" }).click();
     await expect(players).toContainText("10");
-    await expect(page.getByRole("button", { name: "More players" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "More players" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     await expect(page.getByLabel(/^Player \d+ name$/)).toHaveCount(10);
     await page.getByLabel("Player 7 name").fill("Gus");
     for (let i = 0; i < 8; i += 1)
       await page.getByRole("button", { name: "Fewer players" }).click();
     await expect(players).toContainText("2");
-    await expect(page.getByRole("button", { name: "Fewer players" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Fewer players" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     await expect(page.getByLabel(/^Player \d+ name$/)).toHaveCount(2);
     for (let i = 0; i < 8; i += 1) await page.getByRole("button", { name: "More players" }).click();
     await expect(page.getByLabel("Player 7 name")).toHaveValue("Gus");
@@ -212,7 +218,9 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(response.status()).toBe(404);
   });
 
-  test("AC-0001-10, -12: copy falls back to text; start over needs two taps", async ({ page }) => {
+  test("AC-0001-12, AC-0002-11: copy falls back to text; start over asks in place", async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       Object.defineProperty(navigator, "clipboard", {
         value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) },
@@ -226,8 +234,11 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByRole("textbox", { name: "Results text" })).toHaveValue(/Pot: \$100\.00/);
 
     await page.getByRole("button", { name: "Start over from scratch" }).click();
-    await expect(page.getByRole("button", { name: "Tap again to erase everything" })).toBeVisible();
-    await page.getByRole("button", { name: "Tap again to erase everything" }).click();
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Start over from scratch" })).toBeFocused();
+    await page.getByRole("button", { name: "Start over from scratch" }).click();
+    await page.getByRole("button", { name: "Erase everything" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
     await expect(page.getByLabel("Player 1 name")).toHaveValue("");
   });
@@ -409,5 +420,57 @@ test.describe("SPEC-0002 phase 1 accessibility", () => {
     await expect(page.locator(".action-bar")).toHaveCSS("position", "static");
     await page.setViewportSize({ width: 375, height: 812 });
     await expect(page.locator(".action-bar")).toHaveCSS("position", "fixed");
+  });
+});
+
+test.describe("SPEC-0002 phase 2 experience", () => {
+  test("AC-0002-12: Settle's primary action starts the next game with the same players", async ({
+    page,
+  }) => {
+    await playToSettle(page);
+    await page.getByRole("button", { name: "New game, same players" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeFocused();
+    await expect(page.getByRole("main").getByText("Ana", { exact: true })).toBeVisible();
+    await expect(page.getByRole("status", { name: "Buy-ins for Ana" })).toHaveText("1");
+  });
+
+  test("AC-0002-13: Table − stops at 0 and keeps focus", async ({ page }) => {
+    await openFresh(page);
+    await startGame(page);
+    const remove = page.getByRole("button", { name: "Remove a buy-in for Ana" });
+    await remove.focus();
+    await page.keyboard.press("Enter");
+    await expect(remove).toHaveAttribute("aria-disabled", "true");
+    await expect(remove).toBeFocused();
+  });
+
+  test("AC-0002-14: a count mismatch is stated in words", async ({ page }) => {
+    await openFresh(page);
+    await startGame(page);
+    await page.getByRole("button", { name: "Cash out", exact: true }).click();
+    await enterCounts(page, SHORT_COUNTS);
+    await expect(page.getByRole("row", { name: /^Blue/ })).toContainText(
+      /\d+ of \d+ · \d+ (short|over)/,
+    );
+  });
+
+  test("AC-0002-16: controls and hints use at least 15 px, the footer at least 14 px", async ({
+    page,
+  }) => {
+    await openFresh(page);
+    const size = (locator: ReturnType<typeof page.locator>) =>
+      locator.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+    expect(await size(page.getByRole("button", { name: "2 Table" }))).toBeGreaterThanOrEqual(15);
+    expect(await size(page.getByText(/^20 chips worth/))).toBeGreaterThanOrEqual(15);
+    expect(await size(page.getByText(/^© /))).toBeGreaterThanOrEqual(14);
+  });
+
+  test("AC-0002-17: the primary button changes on hover", async ({ page }) => {
+    await openFresh(page);
+    const start = page.getByRole("button", { name: "Start the game" });
+    const background = () => start.evaluate((element) => getComputedStyle(element).backgroundColor);
+    const resting = await background();
+    await start.hover();
+    await expect.poll(background).not.toBe(resting);
   });
 });

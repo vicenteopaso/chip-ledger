@@ -70,11 +70,12 @@ describe("SetupScreen", () => {
     const fewer = screen.getByRole("button", { name: "Fewer players" });
     for (let i = 0; i < 6; i += 1) await userEvent.click(more);
     expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("10");
-    expect(more).toBeDisabled();
+    // REQ-0002-13: unavailable at the limit, but still focusable.
+    expect(more).toHaveAttribute("aria-disabled", "true");
     expect(screen.getAllByRole("textbox", { name: /^Player \d+ name$/ })).toHaveLength(10);
     for (let i = 0; i < 8; i += 1) await userEvent.click(fewer);
     expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("2");
-    expect(fewer).toBeDisabled();
+    expect(fewer).toHaveAttribute("aria-disabled", "true");
     expect(screen.getAllByRole("textbox", { name: /^Player \d+ name$/ })).toHaveLength(2);
   });
 

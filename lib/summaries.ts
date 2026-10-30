@@ -53,7 +53,14 @@ export type CountCheckRow = {
   counted: number;
   issued: number;
   mismatch: boolean;
+  /** "4 short" or "4 over" when the count does not match, so it is not shown by color alone (REQ-0002-14). */
+  note: string | null;
 };
+
+function mismatchNote(counted: number, issued: number): string | null {
+  if (counted === issued) return null;
+  return `${String(Math.abs(counted - issued))} ${counted < issued ? "short" : "over"}`;
+}
 
 /** Per-color "counted of issued" lines on Cash out (REQ-0001-12). */
 export function countCheckRows(game: GameState): CountCheckRow[] {
@@ -67,6 +74,7 @@ export function countCheckRows(game: GameState): CountCheckRow[] {
       counted,
       issued,
       mismatch: counted !== issued,
+      note: mismatchNote(counted, issued),
     };
   });
 }

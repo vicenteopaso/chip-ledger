@@ -23,7 +23,7 @@ export function CashOutScreen({ game, money, photos, dispatch, onPhoto }: CashOu
       <PageTitle>Cash out</PageTitle>
       <Lede>
         {photos
-          ? "Tap Take photo on each player's card to snap their chips or pick a picture from your library, then check the counts. You can also type the counts in."
+          ? "Use Take photo on each player's card to snap their chips or pick a picture from your library, then check the counts. You can also type the counts in."
           : game.uniformValue
             ? "Type how many chips each player has, then check the count below. Colors don't matter."
             : "Type each player's chip counts, then check the count below."}

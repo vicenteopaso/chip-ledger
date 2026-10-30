@@ -32,7 +32,7 @@ const FIELD =
 export function ChipRowHeader() {
   return (
     <div
-      className="chip-row grid items-end gap-2 border-b border-border pb-1.5 text-sm leading-tight font-semibold text-text-muted"
+      className="chip-row grid items-end gap-2 border-b border-border pb-1.5 text-md leading-tight font-semibold text-text-muted"
       aria-hidden="true"
     >
       <span className="col-start-2 pl-1">Color</span>
@@ -122,14 +122,14 @@ export function ChipRow({
       <button
         type="button"
         // 44px touch target in a 36px column; it overlaps only the gap beside it.
-        className="-mx-1 size-11 rounded-sm border-0 bg-transparent text-3xl leading-none text-text-muted disabled:opacity-45"
+        className="-mx-1 size-11 rounded-sm border-0 bg-transparent text-3xl leading-none text-text-muted hover:not-disabled:bg-surface-hover hover:not-disabled:text-text disabled:text-disabled-ink"
         aria-label={`Remove ${label}`}
         disabled={!canRemove}
         onClick={onRemove}
       >
         ×
       </button>
-      <div className="col-start-2 -col-end-1 -mt-1 text-sm text-text-muted">
+      <div className="col-start-2 -col-end-1 -mt-1 text-md text-text-muted">
         {`${String(chip.count)} chips worth ${money(chip.count * chip.value)}`}
       </div>
     </div>

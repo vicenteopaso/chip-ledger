@@ -61,7 +61,7 @@ export function PlayerCashCard({
         <>
           <div className="my-2.5 flex items-center gap-2.5">
             <label
-              className={`inline-flex items-center justify-center gap-2 rounded-md border-control border-accent px-4 py-3 text-base font-semibold text-accent focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus ${photo.busy ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-md border-control border-accent px-4 py-3 text-base font-semibold text-accent focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus ${photo.busy ? "pointer-events-none border-disabled-ink text-disabled-ink" : "cursor-pointer hover:bg-surface-hover"}`}
             >
               {photoLabel(photo)}
               <input
@@ -89,7 +89,7 @@ export function PlayerCashCard({
             )}
           </div>
           {/* Announced by the page's live region, not here (REQ-0002-07). */}
-          <p className={`mb-1.5 text-sm ${photo.status ? STATUS_TONE[photo.status.kind] : ""}`}>
+          <p className={`mb-1.5 text-md ${photo.status ? STATUS_TONE[photo.status.kind] : ""}`}>
             {photo.status?.text}
           </p>
         </>
@@ -101,7 +101,7 @@ export function PlayerCashCard({
             className="flex flex-col gap-0.5 rounded-md bg-sunk px-2 pt-1.5 pb-1 focus-within:ring-2 focus-within:ring-accent"
           >
             {/* The color in words, so the cell is not told apart by color alone (REQ-0002-01). */}
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-text-muted">
+            <span className="flex items-center gap-1.5 text-md font-semibold text-text-muted">
               <Chip color={chip.color} size="sm" />
               {chip.color === MIXED ? "Chips" : STACK_LABELS[chip.color]}
             </span>
