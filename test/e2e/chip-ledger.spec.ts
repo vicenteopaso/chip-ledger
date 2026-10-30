@@ -197,7 +197,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
       localStorage.setItem("chip-ledger.v1", '{"players":"oops"}');
     });
     await page.reload();
-    await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
     await expect(page.getByLabel("Buy-in amount")).toHaveValue("10");
   });
 
@@ -239,7 +239,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByRole("button", { name: "Start over from scratch" })).toBeFocused();
     await page.getByRole("button", { name: "Start over from scratch" }).click();
     await page.getByRole("button", { name: "Erase everything" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
     await expect(page.getByLabel("Player 1 name")).toHaveValue("");
   });
 
@@ -399,7 +399,7 @@ test.describe("SPEC-0002 phase 1 accessibility", () => {
     await expect(start).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(buyIn).toBeFocused();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Chip Ledger");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Setup");
   });
 
   test("AC-0002-10: the bottom bar never covers the focused field", async ({ page }) => {

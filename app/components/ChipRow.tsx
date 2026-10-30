@@ -2,6 +2,7 @@ import type { Ref } from "react";
 
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
+import { ListRow } from "@/app/components/Surfaces";
 import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
 import type { StackChip } from "@/lib/game";
 import { type Currency, type MoneyFormatter, parseCount, parseMoney } from "@/lib/money";
@@ -65,7 +66,7 @@ export function ChipRow({
     value: `chip-${chip.id}-value`,
   };
   return (
-    <div className="chip-row grid items-center gap-2 border-b border-border py-2.5">
+    <ListRow className="chip-row grid items-center gap-2">
       <Chip color={chip.color} />
       {chip.color === MIXED ? (
         <span className="pl-1 text-body whitespace-nowrap">{label}</span>
@@ -132,6 +133,6 @@ export function ChipRow({
       <div className="col-start-2 -col-end-1 -mt-1 text-md text-text-muted">
         {`${String(chip.count)} chips worth ${money(chip.count * chip.value)}`}
       </div>
-    </div>
+    </ListRow>
   );
 }

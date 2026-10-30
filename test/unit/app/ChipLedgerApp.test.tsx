@@ -39,7 +39,7 @@ describe("ChipLedgerApp", () => {
 
   it("REQ-0001-01, -02, -08, -09: walks Setup → Table and records rebuys", async () => {
     render(<ChipLedgerApp photoCountingEnabled={false} />);
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(heading()).toHaveTextContent("Setup");
     await userEvent.click(button("Start the game"));
     expect(heading()).toHaveTextContent("At the table");
     expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0);
@@ -91,7 +91,7 @@ describe("ChipLedgerApp", () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     localStorage.setItem(STORAGE_KEY, '{"players":"oops"}');
     render(<ChipLedgerApp photoCountingEnabled={false} />);
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(heading()).toHaveTextContent("Setup");
     expect(savedGame()).toMatchObject({ buyIn: 10, currency: "EUR" });
   });
 
@@ -248,7 +248,7 @@ describe("ChipLedgerApp", () => {
     expect((results as HTMLTextAreaElement).value).toContain("Payments:");
     expect(screen.getByText("Select the text above and copy it.")).toBeInTheDocument();
     await userEvent.click(button("Back to Setup"));
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(heading()).toHaveTextContent("Setup");
     await userEvent.click(button("4 Settle"));
     expect(screen.queryByRole("textbox", { name: "Results text" })).not.toBeInTheDocument();
   });
@@ -291,13 +291,13 @@ describe("ChipLedgerApp", () => {
     expect(savedGame().buyIn).toBe(50);
 
     await userEvent.click(button("Start over from scratch"));
-    await userEvent.click(button("Cash out"));
+    await userEvent.click(button("Back to Cash out"));
     await userEvent.click(button("Settle up"));
     expect(screen.queryByRole("group", { name: /Erase everything/ })).not.toBeInTheDocument();
 
     await userEvent.click(button("Start over from scratch"));
     await userEvent.click(button("Erase everything"));
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(heading()).toHaveTextContent("Setup");
     expect(savedGame().buyIn).toBe(10);
   });
 
@@ -326,13 +326,13 @@ describe("ChipLedgerApp", () => {
   it("REQ-0001-02: shows each step's bottom actions", async () => {
     render(<ChipLedgerApp photoCountingEnabled={false} />);
     await userEvent.click(button("2 Table"));
-    await userEvent.click(button("Setup"));
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    await userEvent.click(button("Back to Setup"));
+    expect(heading()).toHaveTextContent("Setup");
     await userEvent.click(button("3 Cash out"));
-    await userEvent.click(button("Table"));
+    await userEvent.click(button("Back to Table"));
     expect(heading()).toHaveTextContent("At the table");
     await userEvent.click(button("4 Settle"));
-    await userEvent.click(button("Cash out"));
+    await userEvent.click(button("Back to Cash out"));
     expect(heading()).toHaveTextContent("Cash out");
   });
 
@@ -341,10 +341,11 @@ describe("ChipLedgerApp", () => {
     render(<ChipLedgerApp photoCountingEnabled={false} />);
     await screen.findByRole("heading", { name: "Settle up" });
     expect(screen.queryByRole("button", { name: "New game with the same players" })).toBeNull();
-    expect(button("Cash out")).toHaveTextContent("‹ Cash out");
+    // AC-0002-22: visible "‹ Cash out", named "Back to Cash out".
+    expect(button("Back to Cash out")).toHaveTextContent("‹ Cash out");
     expect(button("New game, same players")).toBeInTheDocument();
     await userEvent.click(button("Back to Setup"));
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(heading()).toHaveTextContent("Setup");
   });
 
   it("AC-0002-13: Table − is unavailable at 0 buy-ins but keeps focus", async () => {
@@ -438,7 +439,7 @@ describe("ChipLedgerApp: SPEC-0002 phase 1 accessibility", () => {
     expect(start).toHaveAttribute("aria-disabled", "true");
     expect(start).toHaveAccessibleDescription("Enter a buy-in amount.");
     await userEvent.click(start);
-    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(heading()).toHaveTextContent("Setup");
     expect(buyIn).toHaveFocus();
 
     // With a buy-in but an empty stack, it leads to the first chip count.
@@ -469,5 +470,37 @@ describe("ChipLedgerApp: SPEC-0002 phase 1 accessibility", () => {
     expect(screen.getByRole("textbox", { name: "Results text" })).toHaveClass(
       "border-border-control",
     );
+  });
+});
+
+describe("ChipLedgerApp: SPEC-0002 phase 3 consistency", () => {
+  beforeEach(() => {
+    saved();
+  });
+
+  it("AC-0002-21: every step's heading is its name; Setup shows the app name as a brand line", async () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(heading()).toHaveTextContent(/^Setup$/);
+    const brand = screen.getByText("Chip Ledger");
+    expect(brand.tagName).toBe("P");
+    for (const [step, title] of [
+      ["2 Table", "At the table"],
+      ["3 Cash out", "Cash out"],
+      ["4 Settle", "Settle up"],
+    ] as const) {
+      await userEvent.click(button(step));
+      expect(heading()).toHaveTextContent(new RegExp(`^${title}$`));
+    }
+  });
+
+  it("AC-0002-22: bottom-bar back buttons show ‹ and are named Back to <step>", async () => {
+    saved({ screen: "table" });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    const back = await screen.findByRole("button", { name: "Back to Setup" });
+    expect(back).toHaveTextContent("‹ Setup");
+    expect(button("Cash out")).toBeInTheDocument();
+    await userEvent.click(button("3 Cash out"));
+    expect(button("Back to Table")).toHaveTextContent("‹ Table");
+    expect(button("Settle up")).toBeInTheDocument();
   });
 });

@@ -13,7 +13,16 @@ const VARIANTS = {
   secondary: `press rounded-xl border-control border-border bg-surface px-4.5 py-4 text-body font-semibold ${SURFACE_HOVER} ${UNAVAILABLE}`,
   danger: `press rounded-xl border-control border-border bg-surface px-4.5 py-4 text-body font-semibold text-danger ${SURFACE_HOVER} ${UNAVAILABLE}`,
   link: "border-0 bg-transparent py-3 font-semibold text-accent hover:underline",
+  outline: `press inline-flex items-center justify-center gap-2 rounded-xl border-control border-accent bg-surface px-4.5 py-3 text-body font-semibold text-accent ${SURFACE_HOVER} ${UNAVAILABLE}`,
 } as const;
+
+/**
+ * The classes of a variant, for an element that must look like a button but can't be one: the
+ * photo control is a `<label>` around a native file input (REQ-0002-21).
+ */
+export function buttonClasses(variant: keyof typeof VARIANTS): string {
+  return VARIANTS[variant];
+}
 
 export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "className"> & {
   variant: keyof typeof VARIANTS;

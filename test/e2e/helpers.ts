@@ -12,7 +12,7 @@ export async function openFresh(page: Page, currency: "USD" | "EUR" = "USD") {
     localStorage.clear();
   });
   await page.reload();
-  await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
   if (currency !== "EUR") await page.getByLabel("Currency").selectOption(currency);
 }
 

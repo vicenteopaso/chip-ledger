@@ -15,11 +15,26 @@ function sources(dir: string): string[] {
   });
 }
 
-describe("user-facing copy", () => {
+describe("source checks", () => {
   it("AC-0002-15: never assumes a touch screen", () => {
     const files = [...sources("app"), "lib/summaries.ts", "lib/photo-count.ts"];
     const offending = files.filter((file) =>
       /\bTap\b/.test(readFileSync(join(root, file), "utf8")),
+    );
+    expect(offending).toEqual([]);
+  });
+
+  it("AC-0002-20: no component-specific focus rings or removed outlines", () => {
+    const offending = sources("app").filter((file) =>
+      /\b(focus:)?outline-none\b|focus-within:ring/.test(readFileSync(join(root, file), "utf8")),
+    );
+    expect(offending).toEqual([]);
+  });
+
+  it("AC-0002-23: no one-off sizes or arbitrary values", () => {
+    const banned = /\b(w-23|h-42\.5|size-13|py-1\.75|w-9\.5)\b|-\[/;
+    const offending = sources("app").filter((file) =>
+      banned.test(readFileSync(join(root, file), "utf8")),
     );
     expect(offending).toEqual([]);
   });

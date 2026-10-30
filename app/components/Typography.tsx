@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, type ReactNode, type RefObject, useContext } from "react";
 
 type TextProps = { children: ReactNode };
@@ -27,7 +29,7 @@ export function SectionTitle({ children }: TextProps) {
 }
 
 export function Lede({ children }: TextProps) {
-  return <p className="mb-2.5 max-w-[40ch] text-text-muted">{children}</p>;
+  return <p className="mb-2.5 max-w-lede text-text-muted">{children}</p>;
 }
 
 export function Hint({ children, className = "" }: TextProps & { className?: string }) {

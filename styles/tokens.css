@@ -80,6 +80,8 @@
   --border-control: 1.5px;
   --blur-bar: 10px;
   --container-app: 35rem;
+  /* Comfortable line length for intro text (REQ-0002-26). */
+  --container-lede: 40ch;
   /* Room kept under the content for the fixed bottom bar; also its scroll padding (REQ-0002-10). */
   --bar-clearance: calc(var(--spacing) * 44);
 }

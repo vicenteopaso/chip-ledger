@@ -2,21 +2,21 @@
 
 The app's native button with its four variants. Use it for every action; use `next/link` for navigation.
 
-| Field    | Value                                             |
-| -------- | ------------------------------------------------- |
-| Location | `app/components/Button.tsx`                       |
-| Type     | Server-compatible component                       |
-| Status   | stable                                            |
-| Spec     | SPEC-0001, SPEC-0002 (REQ-0002-08, -09, -17, -18) |
+| Field    | Value                                                  |
+| -------- | ------------------------------------------------------ |
+| Location | `app/components/Button.tsx`                            |
+| Type     | Server-compatible component                            |
+| Status   | stable                                                 |
+| Spec     | SPEC-0001, SPEC-0002 (REQ-0002-08, -09, -17, -18, -21) |
 
 ## Props
 
 All `<button>` attributes except `type` (always `"button"`) and `className`, plus:
 
-| Prop      | Type                                             | Default | Required | Description                                    |
-| --------- | ------------------------------------------------ | ------- | -------- | ---------------------------------------------- |
-| `variant` | `"primary" \| "secondary" \| "danger" \| "link"` | —       | Yes      | Visual style                                   |
-| `ref`     | `Ref<HTMLButtonElement>`                         | —       | No       | For moving focus to it (used by ConfirmInline) |
+| Prop      | Type                                                          | Default | Required | Description                                    |
+| --------- | ------------------------------------------------------------- | ------- | -------- | ---------------------------------------------- |
+| `variant` | `"primary" \| "secondary" \| "danger" \| "link" \| "outline"` | —       | Yes      | Visual style                                   |
+| `ref`     | `Ref<HTMLButtonElement>`                                      | —       | No       | For moving focus to it (used by ConfirmInline) |
 
 ## Usage
 
@@ -26,6 +26,8 @@ All `<button>` attributes except `type` (always `"button"`) and `className`, plu
 </Button>
 <Button variant="danger" onClick={reset}>Start over from scratch</Button>
 ```
+
+`buttonClasses(variant)` returns a variant's classes for an element that must look like a button but can't be one. The photo control is a `<label>` around a native file input and uses `buttonClasses("outline")` (REQ-0002-21).
 
 ## Accessibility
 

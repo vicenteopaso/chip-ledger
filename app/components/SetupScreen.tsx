@@ -5,6 +5,7 @@ import { ChipRow, ChipRowHeader } from "@/app/components/ChipRow";
 import { ChipStackArt } from "@/app/components/ChipStackArt";
 import { DraftInput } from "@/app/components/DraftInput";
 import { Notice } from "@/app/components/Notice";
+import { Stepper } from "@/app/components/Stepper";
 import { Lede, PageTitle, SectionTitle, Hint } from "@/app/components/Typography";
 import { CHIP_COLORS, MIXED } from "@/lib/chips";
 import {
@@ -32,12 +33,6 @@ export type SetupScreenProps = {
 
 const FIELD_BASE =
   "block min-w-0 rounded-md border-control border-border-control bg-surface px-3.5 py-3 focus:border-accent";
-/**
- * Round-cornered − and + beside the player count: 56 px wide, 44+ px tall. Unavailable at a limit
- * via `aria-disabled`, so keyboard focus stays put (REQ-0002-13, -17, -18).
- */
-const PLAYERS_BUTTON =
-  "press w-14 flex-none rounded-lg border-2 border-border bg-surface py-3.5 text-3xl font-extrabold hover:not-aria-disabled:bg-surface-hover aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
 const FIELD = `${FIELD_BASE} w-full text-body`;
 /** Visible field label (REQ-0002-05). */
 const LABEL = "mb-1 block text-md font-semibold text-text-muted";
@@ -60,7 +55,9 @@ export function SetupScreen({
   return (
     <>
       <ChipStackArt />
-      <PageTitle>Chip Ledger</PageTitle>
+      {/* The app's name as a brand line; the heading names the step like every other step (REQ-0002-24). */}
+      <p className="mt-2 text-lg font-extrabold tracking-display text-accent">Chip Ledger</p>
+      <PageTitle>Setup</PageTitle>
       <Lede>
         {photoCountingEnabled
           ? "Track buy-ins during the game, count chips from a photo at the end, and see exactly who pays whom."
@@ -68,34 +65,18 @@ export function SetupScreen({
       </Lede>
 
       <SectionTitle>How many players?</SectionTitle>
-      <div className="flex items-center gap-2" role="group" aria-label="Number of players">
-        <button
-          type="button"
-          className={PLAYERS_BUTTON}
-          aria-label="Fewer players"
-          aria-disabled={game.count <= MIN_PLAYERS}
-          onClick={() => {
-            dispatch({ type: "setPlayerCount", count: game.count - 1 });
-          }}
-        >
-          −
-        </button>
-        {/* The new count is announced by the page's live region (REQ-0002-07). */}
-        <span className="flex-1 rounded-lg border-2 border-border bg-surface py-3.5 text-center text-3xl font-extrabold">
-          {game.count}
-        </span>
-        <button
-          type="button"
-          className={PLAYERS_BUTTON}
-          aria-label="More players"
-          aria-disabled={game.count >= MAX_PLAYERS}
-          onClick={() => {
-            dispatch({ type: "setPlayerCount", count: game.count + 1 });
-          }}
-        >
-          +
-        </button>
-      </div>
+      <Stepper
+        label="Number of players"
+        value={game.count}
+        min={MIN_PLAYERS}
+        max={MAX_PLAYERS}
+        decrementLabel="Fewer players"
+        incrementLabel="More players"
+        stretch
+        onStep={(delta) => {
+          dispatch({ type: "setPlayerCount", count: game.count + delta });
+        }}
+      />
       <div className="mt-3 grid grid-cols-2 gap-2">
         {activePlayers(game).map((player, index) => {
           const id = `player-${player.id}-name`;
@@ -123,7 +104,7 @@ export function SetupScreen({
 
       <SectionTitle>Buy-in per player</SectionTitle>
       <div className="flex gap-2">
-        <div className="flex w-23 flex-none flex-col">
+        <div className="flex w-24 flex-none flex-col">
           <label htmlFor="currency" className={LABEL}>
             Currency
           </label>

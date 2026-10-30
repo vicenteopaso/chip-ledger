@@ -59,6 +59,8 @@ Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes,
 ### Spacing, radius, borders, motion
 
 - **Spacing:** Tailwind's 4 px base (`--spacing: 0.25rem`); fractional steps (`p-3.5` = 14 px) express the prototype's values without arbitrary pixels.
+- **Surfaces:** `Card` (radius `xl`, border, surface, padding 4) for grouped content and `ListRow` (bottom rule, padding-block 3) for lists. These are the only two looks (REQ-0002-20).
+- **Sizes:** no one-off sizes or arbitrary values in components (REQ-0002-26); `--container-lede` (40ch) sets the intro text's line length. A source check in `test/unit/app/source-checks.test.ts` enforces this, along with the single focus style (REQ-0002-22).
 - **Radius:** `sm` 10, `md` 12, `lg` 14, `xl` 16, `2xl` 18 px, `full`.
 - **Borders:** `--border-control` (1.5 px) through the `border-control` utility for fields and outlined buttons.
 - **Effects:** `--blur-bar` (10 px) for the bottom bar; `--color-chip-shadow` for chip artwork.

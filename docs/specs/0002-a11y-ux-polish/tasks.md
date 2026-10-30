@@ -73,34 +73,34 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 ## Phase 3: consistency (P3)
 
-- [ ] T-19 `Stepper` used by Setup and Table _(REQ-0002-19; the − at 0 part of REQ-0002-13 shipped in Phase 2)_
+- [x] T-19 `Stepper` used by Setup and Table _(REQ-0002-19; the − at 0 part of REQ-0002-13 shipped in Phase 2)_
   - Tests: Stepper component tests; e2e AC-0001-04 and AC-0001-17 still pass
   - Done when: AC-0002-13 and AC-0002-19 pass.
-- [ ] T-20 [P] `Card` and `ListRow` _(REQ-0002-20)_
+- [x] T-20 [P] `Card` and `ListRow` _(REQ-0002-20)_
   - Tests: component tests; visual
   - Done when: Cash out cards and payments share `Card`; chip rows, Table rows, and results share `ListRow`.
-- [ ] T-21 [P] `outline` button and photo control _(REQ-0002-21)_
+- [x] T-21 [P] `outline` button and photo control _(REQ-0002-21)_
   - Tests: Button component test
   - Done when: the photo control uses the variant's classes.
-- [ ] T-22 [P] One focus style _(REQ-0002-22)_
+- [x] T-22 [P] One focus style _(REQ-0002-22)_
   - Tests: static check
   - Done when: AC-0002-20 passes.
-- [ ] T-23 [P] Notice icon and box for every kind _(REQ-0002-23)_
+- [x] T-23 [P] Notice icon and box for every kind _(REQ-0002-23)_
   - Tests: Notice component test; visual
   - Done when: AC-0002-19 covers Notice.
-- [ ] T-24 Headings, brand line, error and 404 pages _(REQ-0002-24)_
+- [x] T-24 Headings, brand line, error and 404 pages _(REQ-0002-24)_
   - Tests: component tests; e2e `openFresh` heading updated
   - Done when: AC-0002-21 passes.
-- [ ] T-25 Bottom-bar naming rule _(REQ-0002-25)_
+- [x] T-25 Bottom-bar naming rule _(REQ-0002-25)_
   - Tests: component test; e2e helpers
   - Done when: AC-0002-22 passes.
-- [ ] T-26 Remove one-off sizes _(REQ-0002-26)_
+- [x] T-26 Remove one-off sizes _(REQ-0002-26)_
   - Tests: static check
   - Done when: AC-0002-23 passes.
 
 ## Verification and close
 
-- [ ] T-27 Docs: component docs for the new components, updated `DESIGN_SYSTEM.md` (tokens, contrast table, patterns) and `ACCESSIBILITY.md` (remove the known hidden-label gap), and SPEC-0001 cross-references.
+- [x] T-27 Docs: component docs for the new components, updated `DESIGN_SYSTEM.md` (tokens, contrast table, patterns) and `ACCESSIBILITY.md` (remove the known hidden-label gap), and SPEC-0001 cross-references.
   - Done when: `node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs` pass.
 - [ ] T-28 Close Phase 3: refresh visual baselines (macOS and Linux), open the P3 PR, and run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
   - Done when: all pass; AC-0002-24 is demonstrated with a keyboard walkthrough and a screen-reader pass noted in the PR.

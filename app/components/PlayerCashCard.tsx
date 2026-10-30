@@ -1,7 +1,9 @@
 import Image from "next/image";
 
+import { buttonClasses } from "@/app/components/Button";
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
+import { Card } from "@/app/components/Surfaces";
 import { MIXED, STACK_LABELS } from "@/lib/chips";
 import type { Player, StackChip } from "@/lib/game";
 import { parseCount } from "@/lib/money";
@@ -47,10 +49,7 @@ export function PlayerCashCard({
 }: PlayerCashCardProps) {
   const headingId = `card-${player.id}-name`;
   return (
-    <section
-      className="my-3.5 rounded-2xl border border-border bg-surface p-3.5"
-      aria-labelledby={headingId}
-    >
+    <Card as="section" className="my-3.5" aria-labelledby={headingId}>
       <header className="flex items-baseline justify-between gap-2.5">
         <h2 id={headingId} className="text-2xl font-extrabold">
           {name}
@@ -61,7 +60,9 @@ export function PlayerCashCard({
         <>
           <div className="my-2.5 flex items-center gap-2.5">
             <label
-              className={`inline-flex items-center justify-center gap-2 rounded-md border-control border-accent px-4 py-3 text-base font-semibold text-accent focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus ${photo.busy ? "pointer-events-none border-disabled-ink text-disabled-ink" : "cursor-pointer hover:bg-surface-hover"}`}
+              // A label styled as the outline button, so the file input stays native (REQ-0002-21).
+              // The ring is the global focus token, shown on the label for its hidden input.
+              className={`${buttonClasses("outline")} focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus ${photo.busy ? "pointer-events-none border-disabled-ink bg-disabled-bg text-disabled-ink" : "cursor-pointer"}`}
             >
               {photoLabel(photo)}
               <input
@@ -79,11 +80,11 @@ export function PlayerCashCard({
             </label>
             {photo.thumbnailUrl && (
               <Image
-                className="size-13 rounded-sm border border-border object-cover"
+                className="size-12 rounded-sm border border-border object-cover"
                 src={photo.thumbnailUrl}
                 alt={`Photo of ${name}'s chips`}
-                width={52}
-                height={52}
+                width={48}
+                height={48}
                 unoptimized
               />
             )}
@@ -98,7 +99,7 @@ export function PlayerCashCard({
         {chips.map((chip) => (
           <label
             key={chip.id}
-            className="flex flex-col gap-0.5 rounded-md bg-sunk px-2 pt-1.5 pb-1 focus-within:ring-2 focus-within:ring-accent"
+            className="flex flex-col gap-0.5 rounded-md bg-sunk px-2 pt-1.5 pb-1"
           >
             {/* The color in words, so the cell is not told apart by color alone (REQ-0002-01). */}
             <span className="flex items-center gap-1.5 text-md font-semibold text-text-muted">
@@ -106,7 +107,8 @@ export function PlayerCashCard({
               {chip.color === MIXED ? "Chips" : STACK_LABELS[chip.color]}
             </span>
             <DraftInput
-              className="w-full min-w-0 border-0 bg-transparent py-1 text-right text-xl font-semibold focus:outline-none"
+              // The global focus ring, not a component-specific one (REQ-0002-22).
+              className="w-full min-w-0 rounded-sm border-0 bg-transparent py-1 text-right text-xl font-semibold"
               inputMode="numeric"
               placeholder="0"
               aria-label={
@@ -124,6 +126,6 @@ export function PlayerCashCard({
           </label>
         ))}
       </div>
-    </section>
+    </Card>
   );
 }
