@@ -37,6 +37,19 @@ Off unless `PHOTO_COUNT_ENABLED=true` ([SPEC-0001](./specs/0001-chip-ledger/spec
 
 All of them are read only in `lib/infra/env.ts`.
 
+### Shared games
+
+Off unless the store is configured ([SPEC-0003](./specs/0003-shared-live-games/spec.md), [ADR-0005](./adr/0005-shared-live-games-architecture.md)). Set both Redis variables or neither: with only one, the server fails fast naming the missing variable. Every key the app writes starts with the deployment environment (`VERCEL_ENV`, or `local` outside Vercel), so Preview and Production can share one database without sharing games.
+
+| Variable            | Scope  | Required | Secret | Description                                                                                                              |
+| ------------------- | ------ | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `KV_REST_API_URL`   | Server | No       | No     | Upstash Redis REST endpoint, from the Vercel Marketplace integration. `http(s)` URL                                      |
+| `KV_REST_API_TOKEN` | Server | No       | Yes    | Upstash Redis REST token. Read and write; never the read-only token                                                      |
+| `GAME_STORE_MEMORY` | Server | No       | No     | `true` keeps shared games in process memory for local development and end-to-end tests. Refused when `VERCEL_ENV` is set |
+| `VERCEL_ENV`        | Server | Auto     | No     | Set by Vercel (`production`, `preview`, or a custom slug). Used as the key prefix; not set by hand                       |
+
+The integration also adds `KV_REST_API_READ_ONLY_TOKEN`, `KV_URL` and `REDIS_URL`; the app does not read them. All of the variables above are read only in `lib/infra/env.ts`. The Preview variables are scoped to the feature branches that need them (ADR-0005).
+
 No error tracker is configured yet; errors go to platform logs through `lib/error-logging.ts`.
 
 ## 3. Configuration files

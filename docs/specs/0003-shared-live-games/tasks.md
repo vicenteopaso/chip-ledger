@@ -16,25 +16,25 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 ## 1. Domain and store (PR 1, no UI)
 
-- [ ] T-04 Store configuration: `getGameStoreConfig` in `lib/infra/env.ts` (reads `KV_REST_API_URL`, `KV_REST_API_TOKEN` and `VERCEL_ENV` for the key prefix), `.env.example`, `docs/CONFIGURATION.md` _(REQ-0003-01, -27)_
+- [x] T-04 Store configuration: `getGameStoreConfig` in `lib/infra/env.ts` (reads `KV_REST_API_URL`, `KV_REST_API_TOKEN` and `VERCEL_ENV` for the key prefix), `.env.example`, `docs/CONFIGURATION.md` _(REQ-0003-01, -27)_
   - Tests: unit for present, partial and absent variables; partial fails naming the variable; the environment prefix is applied to every key and defaults to a safe value outside Vercel
   - Done when: sharing reports "off" with no variables and a clear error with half of them.
-- [ ] T-05 Split `screen` from the game; add `started` and `startGame` _(REQ-0003-15)_
-  - Tests: unit for the reducer, the saved-game schema (old `chip-ledger.v1` fixture still loads), and per-device step
-  - Done when: solo play is unchanged and all existing tests pass.
-- [ ] T-06 `lib/shared-game.ts`: schemas, allowed actions, apply-and-validate, idempotency, size caps, lifecycle _(REQ-0003-10, -11, -19 to -21, -23)_
+- [x] T-05 Shared games leave out `screen`; add `started` and `startGame` _(REQ-0003-15)_
+  - Tests: unit for the shared body, `startGame`, and the saved-game rules reused for shared games
+  - Done when: solo play is unchanged and all existing tests pass. Solo `GameState` keeps its `screen` until the UI PRs (PR 3 and 4) hold the step per device; the shared body is already `GameState` minus `screen`.
+- [x] T-06 `lib/shared-game.ts`: schemas, allowed actions, apply-and-validate, idempotency, size caps, lifecycle _(REQ-0003-10, -11, -19 to -21, -23)_
   - Tests: unit including `replace`, `go` and unknown kinds rejected; buy-in deltas add; replay of a known `actionId` is a no-op; lifecycle with a fake clock
   - Done when: coverage for the module meets the threshold.
-- [ ] T-07 `lib/infra/secrets.ts`: key and code generation, hashing, constant-time compare _(REQ-0003-04, -08, -24)_
+- [x] T-07 `lib/infra/secrets.ts`: key and code generation, hashing, constant-time compare _(REQ-0003-04, -08, -24)_
   - Tests: unit for entropy length, alphabet, expiry, replacement, lockout counter
   - Done when: no function returns or logs a stored hash's input.
-- [ ] T-08 `lib/infra/game-store.ts`: interface, in-memory adapter, Upstash REST adapter with compare-and-set, heartbeat, presence and TTL _(REQ-0003-10, -19, -21)_
+- [x] T-08 `lib/infra/game-store.ts`: interface, in-memory adapter, Upstash REST adapter with compare-and-set, heartbeat, presence and TTL _(REQ-0003-10, -19, -21)_
   - Tests: one contract test run against the in-memory adapter in CI and against Upstash by a manual script
   - Done when: both adapters pass the contract test.
-- [ ] T-09 `lib/infra/store-rate-limit.ts` _(REQ-0003-09, -25)_
+- [x] T-09 `lib/infra/store-rate-limit.ts` _(REQ-0003-09, -25)_
   - Tests: unit with the in-memory store: windows, lockout, per-game and per-client keys
   - Done when: limits hold across two simulated instances sharing one store.
-- [ ] T-10 Close PR 1: `pnpm verify` green; ADR-0004 status line updated.
+- [x] T-10 Close PR 1: `pnpm verify` green; ADR-0004 status line updated.
 
 ## 2. API routes (PR 2)
 
