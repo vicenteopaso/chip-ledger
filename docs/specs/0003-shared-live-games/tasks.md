@@ -10,9 +10,11 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
   - Done when: both are merged to `main`. (Approved by the owner on 2026-10-30; merge with PR #9.)
 - [x] T-02 Owner provisions the Upstash database and connects it to the Vercel project (plan §6), and tells the agent the variable names (never the values).
   - Done when: the variables exist in Production and, scoped to the feature branch, in Preview, and the names are written into `docs/CONFIGURATION.md` by T-04. (Done 2026-10-30: one database, because the free plan allows one; names `KV_REST_API_URL` and `KV_REST_API_TOKEN`.)
-- [ ] T-03 Spike: a throwaway route holds an SSE connection that reads a Redis key every 1–3 s, with 10 simulated clients for 10 minutes, on a Vercel preview.
+- [ ] T-03 Spike: a throwaway route measures SSE against polling on a Vercel preview, within a hard command budget, and also runs the store contract once against the real database.
+  - Scope, small on purpose (free Upstash plan): 5 simulated clients for 3 minutes with a 2 s check, then the same with 5 s polling requests, then one run of the store contract (about 40 commands). Expected total: under 2,500 commands.
+  - Guards: the route counts every command it sends and stops at 3,000; it writes only under the throwaway key prefix `spike-t03:` and deletes it afterwards; it is removed in the same PR that records the result, and runs on a preview that is behind Vercel's deployment protection.
   - Tests: none (measurement); results go into ADR-0005 under Validation
-  - Done when: function duration, CPU time and Redis command counts per client-hour are recorded, and the decision "SSE or polling only" is written into the plan. The spike code is not merged.
+  - Done when: function duration, CPU time and Redis commands per client-hour are recorded for both modes; the owner has compared them with the Upstash dashboard; the decision "SSE or polling only" and the measured game-night command estimate are written into the plan. The spike code is not merged.
 
 ## 1. Domain and store (PR 1, no UI)
 
