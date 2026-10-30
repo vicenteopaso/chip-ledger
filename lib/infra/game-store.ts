@@ -26,8 +26,11 @@ export type GameStore = {
   hasFlag(name: string): Promise<boolean>;
 };
 
-/** A device counts as online for this long after its last heartbeat. */
-export const PRESENCE_WINDOW_MS = 45_000;
+/** What a failed store request throws; routes turn it into a generic 503 (REQ-0003-25). */
+export const GAME_STORE_ERROR = "Game store request failed.";
+
+/** A device counts as online for this long after its last heartbeat (two heartbeats, ADR-0005). */
+export const PRESENCE_WINDOW_MS = 90_000;
 
 export function parseStoredGame(text: string | null): StoredGame | null {
   if (text === null) return null;

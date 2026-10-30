@@ -41,10 +41,12 @@ export function safeEqualHex(a: string, b: string): boolean {
 /** The access a presented key grants on a stored game, or `null` for a wrong key. */
 export function roleForKey(
   key: string,
-  doc: Pick<StoredGame, "watchKeyHash" | "editKeyHash">,
+  doc: Pick<StoredGame, "watchKeyHash" | "editKeyHashes">,
 ): Role | null {
   const hash = hashKey(key);
-  if (safeEqualHex(hash, doc.editKeyHash)) return "edit";
+  // Every hash is compared, so the time taken does not reveal which one matched.
+  const isEditor = doc.editKeyHashes.map((known) => safeEqualHex(hash, known)).includes(true);
+  if (isEditor) return "edit";
   if (safeEqualHex(hash, doc.watchKeyHash)) return "watch";
   return null;
 }

@@ -115,7 +115,7 @@ standards:
         must-not-import: [ui, api, routes]
         rules: "Adapters for browser storage, clipboard, and external services. Only layer allowed to read environment variables and secrets."
     prohibited:
-      - shared mutable state across requests or routes
+      - shared mutable state across requests or routes # shared games live in the external store; handlers keep no state of their own (ADR-0005)
       - cross-layer imports that violate the layer contract
       - bypassing centralized error logging, validation, or sanitization helpers
 
@@ -146,6 +146,10 @@ security:
       purpose: "Count chips in a photo (SPEC-0001 REQ-0001-15). Disabled unless PHOTO_COUNT_ENABLED=true."
       receives: "One player's chip photo and the list of chip colors with issued totals. No names, no identifiers."
       credentials: "PHOTO_COUNT_API_KEY, server-only, read in lib/infra/env.ts"
+    - name: Upstash Redis (REST), through the Vercel Marketplace
+      purpose: "Keep shared games so several devices can follow one game (SPEC-0003, ADR-0005). Off unless KV_REST_API_URL and KV_REST_API_TOKEN are both set."
+      receives: "A shared game: player names (free text), chip counts, buy-ins, amounts. Hashes of the watch and edit keys, never the keys. No accounts or contact details. Kept 24 h after last use, read-only for 30 days, then deleted by TTL."
+      credentials: "KV_REST_API_URL and KV_REST_API_TOKEN, server-only, read in lib/infra/env.ts. One free-plan database shared by Production and Preview; every key is prefixed with VERCEL_ENV."
 
 # ---------------------------------------------------------------------------
 # Developer experience and CI

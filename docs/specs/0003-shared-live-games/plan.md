@@ -44,7 +44,7 @@ One existing rule needs a note, not an exception: `sdd.yaml` prohibits "shared m
 
 ### Data model
 
-- **SharedGame** (Zod, in `lib/shared-game.ts`): `{ id, rev, createdAt, updatedAt, started, game }`, where `game` is the existing game state without `screen`. Stored together with `{ watchKeyHash, editKeyHash, code?: { hash, salt, expiresAt }, recentActionIds }` which never leave the server.
+- **SharedGame** (Zod, in `lib/shared-game.ts`): `{ id, rev, createdAt, updatedAt, started, game }`, where `game` is the existing game state without `screen`. Stored together with `{ watchKeyHash, editKeyHashes (one per editing device, at most 20), code?: { hash, salt, expiresAt }, recentActionIds }` which never leave the server.
 - **Roles:** `watch` or `edit`, decided by which key hash the bearer token matches. The comparison is constant-time.
 - **Keys:** 128 random bits from `crypto.getRandomValues`, base64url. Hashed with SHA-256 (no salt needed at this entropy).
 - **Edit code:** 6 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789`. Stored as a salted SHA-256 with an expiry 10 minutes out. Showing a new code replaces the old.
@@ -60,7 +60,7 @@ One existing rule needs a note, not an exception: `sdd.yaml` prohibits "shared m
 | `GET /api/games/{id}/events`   | key   | SSE stream: sends the snapshot when `rev` changes, a keep-alive comment every 15 s, closes at 55 s (the Hobby plan stops a function run at 60 s). The client opens the next stream about 5 s before the old one ends, so nothing is missed in between, and de-duplicates by revision. |
 | `POST /api/games/{id}/actions` | edit  | `{ actionId, baseRev, action }`. Applies and saves; answers the new snapshot.                                                                                                                                                                                                         |
 | `POST /api/games/{id}/code`    | edit  | Creates a new edit code and returns it with its expiry.                                                                                                                                                                                                                               |
-| `POST /api/games/{id}/upgrade` | watch | `{ code }`. On a match returns the edit key. Wrong tries are counted per game.                                                                                                                                                                                                        |
+| `POST /api/games/{id}/upgrade` | watch | `{ code }`. On a match returns a new edit key for that device; existing editors keep theirs. Wrong tries are counted per game.                                                                                                                                                        |
 | `DELETE /api/games/{id}`       | edit  | Deletes the game for everyone.                                                                                                                                                                                                                                                        |
 
 Every handler follows [API Patterns](../../API_PATTERNS.md): request ID, same-origin check, store-backed rate limit, key check, Zod parse, domain call, generic error, server-side log. An unknown id, a deleted game and a wrong key all give the same 404 (REQ-0003-26).
