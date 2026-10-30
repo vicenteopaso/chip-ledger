@@ -1,14 +1,14 @@
 # SPEC-0003: Shared live games
 
-| Field   | Value                                                                                                                                                                                                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status  | draft                                                                                                                                                                                                                                                                    |
-| Tier    | 2                                                                                                                                                                                                                                                                        |
-| Owner   | @vicenteopaso                                                                                                                                                                                                                                                            |
-| Created | 2026-10-30                                                                                                                                                                                                                                                               |
-| Related | ADR-0005 (to be written; supersedes the "game data never leaves the device" part of [ADR-0004](../../adr/0004-chip-ledger-client-architecture.md)) · amends [SPEC-0001](../0001-chip-ledger/spec.md) REQ-0001-24 and -25 · touches SPEC-0002 (PR #4) REQ-0002-11 and -12 |
+| Field   | Value                                                                                                                                                                                                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status  | draft                                                                                                                                                                                                                                                                                              |
+| Tier    | 2                                                                                                                                                                                                                                                                                                  |
+| Owner   | @vicenteopaso                                                                                                                                                                                                                                                                                      |
+| Created | 2026-10-30                                                                                                                                                                                                                                                                                         |
+| Related | ADR-0005 (to be written; supersedes the "game data never leaves the device" part of [ADR-0004](../../adr/0004-chip-ledger-client-architecture.md)) · amends [SPEC-0001](../0001-chip-ledger/spec.md) REQ-0001-24 and -25 · touches [SPEC-0002](../0002-a11y-ux-polish/spec.md) REQ-0002-11 and -12 |
 
-Numbering: SPEC-0002 is reserved by the open accessibility pass (PR #4), so this spec takes 0003.
+Numbering: [SPEC-0002](../0002-a11y-ux-polish/spec.md) is the accessibility pass, so this spec takes 0003. Its shared components (`Stepper`, `ConfirmInline`, `LiveAnnouncer`, `Surfaces`) are already in the app.
 
 ## 1. Problem
 
@@ -169,4 +169,4 @@ Planning is blocked until every item is resolved or explicitly deferred with a r
 
 - Request from the owner, 2026-10-30: shared live games with a QR code, watch-only and edit links, an edit code for upgrades, several games at once, and archiving after inactivity.
 - [ADR-0004](../../adr/0004-chip-ledger-client-architecture.md), which rejected a server-backed app as a product change; this spec is that product change.
-- [SPEC-0001](../0001-chip-ledger/spec.md) · SPEC-0002 (PR #4) · [Security Policy](../../SECURITY_POLICY.md) · [API Patterns](../../API_PATTERNS.md)
+- [SPEC-0001](../0001-chip-ledger/spec.md) · [SPEC-0002](../0002-a11y-ux-polish/spec.md) · [Security Policy](../../SECURITY_POLICY.md) · [API Patterns](../../API_PATTERNS.md)
