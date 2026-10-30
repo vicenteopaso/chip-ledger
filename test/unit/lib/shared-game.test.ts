@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createGame } from "@/lib/game";
 import { sequentialIds } from "@/lib/ids";
 import {
+  applyAction,
   applyEdit,
   ARCHIVE_AFTER_MS,
   CodeSchema,
@@ -382,5 +383,28 @@ describe("join links and replies (REQ-0003-04, -05)", () => {
       GameReplySchema.safeParse({ rev: 1, unchanged: false, archived: false, online: 2 }).success,
     ).toBe(false);
     expect(GameReplySchema.safeParse({ ...snapshot, role: "admin" }).success).toBe(false);
+  });
+});
+
+describe("applyAction (REQ-0003-10, -11, -23)", () => {
+  const state = { started: false, game: SharedGameBodySchema.parse(defaultGame()) };
+
+  it("applies a setting and leaves the original alone", () => {
+    const next = applyAction(state, { type: "setName", playerId: "p1", name: "Ana" });
+    expect(next?.game.players[0]?.name).toBe("Ana");
+    expect(state.game.players[0]?.name).toBe("");
+  });
+
+  it("starts the game once, and refuses to start one with no buy-in", () => {
+    const started = applyAction(state, { type: "startGame" });
+    expect(started?.started).toBe(true);
+    expect(applyAction(started ?? state, { type: "startGame" })?.started).toBe(true);
+    const empty = applyAction(state, { type: "setBuyIn", buyIn: 0 });
+    expect(applyAction(empty ?? state, { type: "startGame" })).toBeNull();
+  });
+
+  it("answers null for an action that would make the game invalid", () => {
+    const broken = { started: true, game: { ...state.game, chips: [] } };
+    expect(applyAction(broken, { type: "setScale", scale: false })).toBeNull();
   });
 });

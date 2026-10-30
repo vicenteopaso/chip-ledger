@@ -34,9 +34,18 @@ export function statusAnnouncement(from: ConnectionStatus, to: ConnectionStatus)
   return "You're offline. The game will update when the connection returns.";
 }
 
-/** The visible text of the status row (REQ-0003-13). */
-export function statusText(status: ConnectionStatus, online: number | null): string {
-  if (status === "reconnecting") return "Reconnecting…";
-  if (status === "offline") return "Offline. Showing the last version.";
+/**
+ * The visible text of the status row (REQ-0003-13, -14). While changes wait to be sent it says
+ * so, so nobody thinks they were lost.
+ */
+export function statusText(status: ConnectionStatus, online: number | null, pending = 0): string {
+  if (status === "reconnecting") {
+    return pending > 0 ? "Reconnecting… your changes will sync." : "Reconnecting…";
+  }
+  if (status === "offline") {
+    return pending > 0
+      ? "Offline. Your changes will sync when the connection returns."
+      : "Offline. Showing the last version.";
+  }
   return online === null ? "Live" : `Live · ${String(online)} here`;
 }

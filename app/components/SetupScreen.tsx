@@ -36,6 +36,8 @@ export type SetupScreenProps = {
 /** Visible field label (REQ-0002-05). */
 const LABEL = "mb-1 block text-md font-semibold text-text-muted";
 
+const identity = (text: string) => text;
+
 /** The single "All colors" row has no color to change and cannot be removed. */
 const ignore = () => undefined;
 
@@ -83,18 +85,18 @@ export function SetupScreen({
               <label htmlFor={id} className={LABEL}>
                 {`Player ${String(index + 1)} name`}
               </label>
-              <input
+              <DraftInput
                 id={id}
                 className={`${FIELD} w-full px-3 text-body`}
                 value={player.name}
-                readOnly={readOnly}
-                aria-readonly={readOnly ? true : undefined}
+                format={identity}
+                parse={identity}
                 placeholder={`Player ${String(index + 1)}`}
                 autoComplete="off"
                 autoCapitalize="words"
                 maxLength={200}
-                onChange={(event) => {
-                  dispatch({ type: "setName", playerId: player.id, name: event.target.value });
+                onValueChange={(name) => {
+                  dispatch({ type: "setName", playerId: player.id, name });
                 }}
               />
             </div>

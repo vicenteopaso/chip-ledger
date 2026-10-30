@@ -25,6 +25,8 @@ export type SettleScreenProps = {
   onBackToSetup: () => void;
   onResetConfirmingChange: (open: boolean) => void;
   onReset: () => void;
+  /** False where starting over is not offered, such as a shared game (SPEC-0003 PR 6). */
+  allowReset?: boolean;
 };
 
 function signedMoney(money: MoneyFormatter, minor: number, currency: Currency): string {
@@ -50,6 +52,7 @@ export function SettleScreen({
   onBackToSetup,
   onResetConfirmingChange,
   onReset,
+  allowReset = true,
 }: SettleScreenProps) {
   const readOnly = useReadOnly();
   const difference = Math.abs(settlement.difference);
@@ -189,7 +192,7 @@ export function SettleScreen({
         <Button variant="secondary" onClick={onBackToSetup}>
           Back to Setup
         </Button>
-        {!readOnly && (
+        {!readOnly && allowReset && (
           <ConfirmInline
             triggerLabel="Start over from scratch"
             message="Erase everything? Names, chips, and buy-ins will be cleared."
