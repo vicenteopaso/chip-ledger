@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,5 +37,14 @@ describe("source checks", () => {
       banned.test(readFileSync(join(root, file), "utf8")),
     );
     expect(offending).toEqual([]);
+  });
+
+  it("AC-0002-29: ships a favicon and a home-screen icon drawn from the brand mark", () => {
+    const icon = readFileSync(join(root, "app/icon.svg"), "utf8");
+    expect(icon).toContain('viewBox="0 0 32 32"');
+    // The light theme's accent and page colors (styles/tokens.css).
+    expect(icon).toContain("#14573f");
+    expect(icon).toContain("#e9efea");
+    expect(existsSync(join(root, "app/apple-icon.png"))).toBe(true);
   });
 });

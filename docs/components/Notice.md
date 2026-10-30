@@ -32,7 +32,7 @@ A confirmation (`ok`) or a note (`warn`): the same box for every kind, with an i
 
 ## Design tokens
 
-`ok`: `--color-surface`, `--color-border`, `--color-success`. `warn`: `--color-warn-bg`, `--color-warn-ink`. Both: `--radius-md`, `--text-md`.
+A tinted panel with a 4 px rule on the left and no full border, so it never looks like a field or a button (REQ-0002-31). `ok`: `--color-success-bg` panel, `--color-success` rule and icon, `--color-text` text. `warn`: `--color-warn-bg` panel, `--color-warn-ink` rule, icon, and text. Both: `--radius-md` on the right corners, `--text-md`.
 
 ## Testing
 

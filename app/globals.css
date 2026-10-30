@@ -120,10 +120,24 @@
   }
 
   /* Setup chip row: swatch, color, count, ×, value, remove. */
+  /* Swatch, color, count, ×, value, remove. The color takes what is left. */
   .chip-row {
     grid-template-columns:
-      calc(var(--spacing) * 7.5) 1fr calc(var(--spacing) * 15.5) calc(var(--spacing) * 3.5)
-      calc(var(--spacing) * 19) calc(var(--spacing) * 9);
+      calc(var(--spacing) * 7.5) 1fr calc(var(--spacing) * 12) calc(var(--spacing) * 3)
+      calc(var(--spacing) * 17) calc(var(--spacing) * 9);
+  }
+
+  /* At 320 px the swatch gives its room to the color name, which says the same thing. The
+     swatch stays in its (now empty) cell, hidden, so the other cells keep their places. */
+  @media (max-width: 22rem) {
+    .chip-row {
+      grid-template-columns:
+        0 1fr calc(var(--spacing) * 12) calc(var(--spacing) * 3)
+        calc(var(--spacing) * 17) calc(var(--spacing) * 9);
+    }
+    .chip-row > .chip {
+      visibility: hidden;
+    }
   }
 
   .count-grid {
@@ -135,11 +149,25 @@
    theme, so state shown by border color needs system colors too, and chip artwork keeps its own
    colors because it is identified by them next to its text label. */
 @media (forced-colors: active) {
-  nav[aria-label="Steps"] button {
-    border-top-color: GrayText;
+  /* Step circles: outlined when upcoming, filled when done, Highlight when current. Opted out
+     of forcing, which would put a Canvas backplate behind the number; these are system colors. */
+  .step-dot {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
   }
-  nav[aria-label="Steps"] button[aria-current="step"] {
-    border-top-color: Highlight;
+  .step-dot[data-state="done"] {
+    background: CanvasText;
+    color: Canvas;
+  }
+  .step-dot[data-state="current"] {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .step-line {
+    background: CanvasText;
   }
   .chip {
     forced-color-adjust: none;

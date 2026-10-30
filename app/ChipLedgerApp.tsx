@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { ActionBar } from "@/app/components/ActionBar";
+import { AppHeader } from "@/app/components/AppHeader";
 import { Button } from "@/app/components/Button";
 import { CashOutScreen } from "@/app/components/CashOutScreen";
 import { LiveAnnouncer } from "@/app/components/LiveAnnouncer";
@@ -238,8 +239,10 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   return (
     <StepTitleContext value={titleRef}>
       <LiveAnnouncer message={message} />
-      <main id="main" className="mx-auto max-w-app px-4 pt-3.5 pb-(--bar-clearance) short:pb-4">
+      <AppHeader>
         <StepsNav current={game.screen} onSelect={go} />
+      </AppHeader>
+      <main id="main" className="mx-auto max-w-app px-4 pt-2 pb-(--bar-clearance) short:pb-4">
         {game.screen === "setup" && (
           <SetupScreen
             game={game}

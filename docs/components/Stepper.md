@@ -1,6 +1,6 @@
 # Stepper
 
-A − value + control in one bordered group: the Setup player count and each Table buy-in counter.
+A − value + control in the shared field box, with round − and + keys: the Setup player count and each Table buy-in counter.
 
 | Field    | Value                        |
 | -------- | ---------------------------- |
@@ -44,7 +44,7 @@ A − value + control in one bordered group: the Setup player count and each Tab
 
 ## Design tokens
 
-`--color-surface`, `--color-border`, `--border-control`, `--radius-lg`, `--color-surface-hover` (hover), `--color-disabled-ink` (at a limit).
+The field box (`FIELD_BOX`: 48 px, `--radius-md`, `--color-border-control`, `--color-surface`) so it reads as a field (REQ-0002-31). Keys: 40 px circles in `--color-accent-soft` (`--color-accent-soft-hover` on hover), `--color-disabled-bg` / `--color-disabled-ink` at a limit.
 
 ## Testing
 

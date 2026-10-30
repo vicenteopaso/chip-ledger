@@ -2,9 +2,10 @@ import { Button } from "@/app/components/Button";
 import type { Ref } from "react";
 
 import { ChipRow, ChipRowHeader } from "@/app/components/ChipRow";
-import { ChipStackArt } from "@/app/components/ChipStackArt";
 import { DraftInput } from "@/app/components/DraftInput";
+import { FIELD } from "@/app/components/Field";
 import { Notice } from "@/app/components/Notice";
+import { Select } from "@/app/components/Select";
 import { Stepper } from "@/app/components/Stepper";
 import { Lede, PageTitle, SectionTitle, Hint } from "@/app/components/Typography";
 import { CHIP_COLORS, MIXED } from "@/lib/chips";
@@ -31,9 +32,6 @@ export type SetupScreenProps = {
   firstChipRef?: Ref<HTMLInputElement>;
 };
 
-const FIELD_BASE =
-  "block min-w-0 rounded-md border-control border-border-control bg-surface px-3.5 py-3 focus:border-accent";
-const FIELD = `${FIELD_BASE} w-full text-body`;
 /** Visible field label (REQ-0002-05). */
 const LABEL = "mb-1 block text-md font-semibold text-text-muted";
 
@@ -54,9 +52,7 @@ export function SetupScreen({
   const usedColors = game.chips.map((chip) => chip.color);
   return (
     <>
-      <ChipStackArt />
-      {/* The app's name as a brand line; the heading names the step like every other step (REQ-0002-24). */}
-      <p className="mt-2 text-lg font-extrabold tracking-display text-accent">Chip Ledger</p>
+      {/* The app's name is in the header on every step; the heading names the step (REQ-0002-24). */}
       <PageTitle>Setup</PageTitle>
       <Lede>
         {photoCountingEnabled
@@ -87,7 +83,7 @@ export function SetupScreen({
               </label>
               <input
                 id={id}
-                className={FIELD}
+                className={`${FIELD} w-full px-3 text-body`}
                 value={player.name}
                 placeholder={`Player ${String(index + 1)}`}
                 autoComplete="off"
@@ -104,13 +100,13 @@ export function SetupScreen({
 
       <SectionTitle>Buy-in per player</SectionTitle>
       <div className="flex gap-2">
-        <div className="flex w-24 flex-none flex-col">
+        <div className="w-24 flex-none">
           <label htmlFor="currency" className={LABEL}>
             Currency
           </label>
-          <select
+          <Select
             id="currency"
-            className={`${FIELD_BASE} w-full flex-1 text-body`}
+            className="pl-3 text-body"
             value={game.currency}
             onChange={(event) => {
               dispatch({ type: "setCurrency", currency: CurrencySchema.parse(event.target.value) });
@@ -119,7 +115,7 @@ export function SetupScreen({
             {CURRENCIES.map((currency) => (
               <option key={currency}>{currency}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="min-w-0 flex-1">
           <label htmlFor="buy-in" className={LABEL}>
@@ -128,7 +124,7 @@ export function SetupScreen({
           <DraftInput
             id="buy-in"
             ref={buyInRef}
-            className={`${FIELD_BASE} w-full text-4xl font-semibold`}
+            className={`${FIELD} w-full px-3 text-4xl font-semibold`}
             inputMode="decimal"
             aria-invalid={game.buyIn <= 0}
             aria-describedby="setup-summary"

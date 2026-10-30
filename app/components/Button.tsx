@@ -6,14 +6,16 @@ import type { ButtonHTMLAttributes, Ref } from "react";
 // to available ones, and Tailwind's `hover:` already requires a device that can hover (REQ-0002-17).
 const UNAVAILABLE =
   "disabled:bg-disabled-bg disabled:text-disabled-ink aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
-const SURFACE_HOVER = "hover:not-disabled:not-aria-disabled:bg-surface-hover";
+// Every button is a pill, so a button never looks like a field (squared box) or a notice
+// (tinted panel with a left rule) (REQ-0002-31).
+const PILL = "press min-h-12 rounded-full border-control px-5 text-body font-semibold";
 
 const VARIANTS = {
-  primary: `press flex-1 rounded-xl border-control border-transparent bg-accent p-4 text-lg font-extrabold text-accent-ink hover:not-disabled:not-aria-disabled:bg-accent-hover ${UNAVAILABLE}`,
-  secondary: `press rounded-xl border-control border-border bg-surface px-4.5 py-4 text-body font-semibold ${SURFACE_HOVER} ${UNAVAILABLE}`,
-  danger: `press rounded-xl border-control border-border bg-surface px-4.5 py-4 text-body font-semibold text-danger ${SURFACE_HOVER} ${UNAVAILABLE}`,
+  primary: `press min-h-14 flex-1 rounded-full border-control border-transparent bg-accent px-5 text-lg font-extrabold text-accent-ink hover:not-disabled:not-aria-disabled:bg-accent-hover ${UNAVAILABLE}`,
+  secondary: `${PILL} border-transparent bg-accent-soft text-text hover:not-disabled:not-aria-disabled:bg-accent-soft-hover ${UNAVAILABLE}`,
+  danger: `${PILL} border-transparent bg-danger-soft text-danger hover:not-disabled:not-aria-disabled:bg-danger-soft-hover ${UNAVAILABLE}`,
   link: "border-0 bg-transparent py-3 font-semibold text-accent hover:underline",
-  outline: `press inline-flex items-center justify-center gap-2 rounded-xl border-control border-accent bg-surface px-4.5 py-3 text-body font-semibold text-accent ${SURFACE_HOVER} ${UNAVAILABLE}`,
+  outline: `${PILL} inline-flex items-center justify-center gap-2 border-accent bg-surface text-accent hover:not-disabled:not-aria-disabled:bg-surface-hover ${UNAVAILABLE}`,
 } as const;
 
 /**

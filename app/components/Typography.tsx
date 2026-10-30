@@ -17,7 +17,7 @@ export function PageTitle({ children }: TextProps) {
     <h1
       ref={ref}
       tabIndex={-1}
-      className="mt-2.5 mb-1.5 text-5xl leading-display font-extrabold tracking-display"
+      className="mt-7 mb-2 text-5xl leading-display font-extrabold tracking-display"
     >
       {children}
     </h1>
@@ -25,11 +25,11 @@ export function PageTitle({ children }: TextProps) {
 }
 
 export function SectionTitle({ children }: TextProps) {
-  return <h2 className="mt-7 mb-2.5 text-2xl font-semibold">{children}</h2>;
+  return <h2 className="mt-9 mb-3 text-2xl font-semibold">{children}</h2>;
 }
 
 export function Lede({ children }: TextProps) {
-  return <p className="mb-2.5 max-w-lede text-text-muted">{children}</p>;
+  return <p className="mb-6 max-w-lede text-text-muted">{children}</p>;
 }
 
 export function Hint({ children, className = "" }: TextProps & { className?: string }) {

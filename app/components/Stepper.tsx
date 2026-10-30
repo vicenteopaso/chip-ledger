@@ -1,3 +1,5 @@
+import { FIELD_BOX } from "@/app/components/Field";
+
 export type StepperProps = {
   /** Names the group and the value, for example "Number of players" or "Buy-ins for Ana". */
   label: string;
@@ -11,11 +13,12 @@ export type StepperProps = {
   stretch?: boolean;
 };
 
+// Round keys in the soft button tint, inset in the field box (REQ-0002-31).
 const STEP_BUTTON =
-  "press size-11.5 flex-none rounded-lg border-0 bg-transparent text-3xl font-extrabold hover:not-aria-disabled:bg-surface-hover aria-disabled:text-disabled-ink";
+  "press size-10 flex-none rounded-full border-0 bg-accent-soft text-2xl leading-none font-extrabold text-text hover:not-aria-disabled:bg-accent-soft-hover aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
 
 /**
- * − value + in one bordered group (REQ-0002-19). A limit is marked with `aria-disabled`, not
+ * − value + in one box that looks like the other fields (REQ-0002-19, REQ-0002-31). A limit is marked with `aria-disabled`, not
  * `disabled`, so keyboard focus stays on the button that reached it (REQ-0002-13). The value is
  * not a live region: the page's announcer says what changed (REQ-0002-07).
  */
@@ -33,7 +36,7 @@ export function Stepper({
     <div
       role="group"
       aria-label={label}
-      className={`flex items-center rounded-lg border-control border-border bg-surface ${stretch ? "w-full" : ""}`}
+      className={`flex items-center gap-1 px-0.5 ${FIELD_BOX} ${stretch ? "w-full" : "w-fit"}`}
     >
       <button
         type="button"

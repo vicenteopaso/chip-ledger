@@ -98,6 +98,18 @@ Legend: `[P]` can run in parallel with its neighbours.
   - Tests: static check
   - Done when: AC-0002-23 passes.
 
+## Visual polish (owner review of the P3 preview)
+
+- [x] T-26a Brand mark, page header, favicon and home-screen icon _(REQ-0002-24, -28, -29)_
+  - Tests: ChipLedgerApp header test; e2e banner and icon tests; source check for the icon files
+  - Done when: AC-0002-21, AC-0002-28, and AC-0002-29 pass.
+- [x] T-26b Progress-stepper navigation and top spacing _(REQ-0002-27, -30)_
+  - Tests: StepsNav tests; token contrast; visual (including forced colors)
+  - Done when: AC-0002-04, AC-0002-27, and AC-0002-30 pass.
+- [x] T-26c One look each for fields, buttons, and notices; select chevron _(REQ-0002-31, -32)_
+  - Tests: control-language and Select component tests; token contrast; visual
+  - Done when: AC-0002-31 and AC-0002-32 pass.
+
 ## Verification and close
 
 - [x] T-27 Docs: component docs for the new components, updated `DESIGN_SYSTEM.md` (tokens, contrast table, patterns) and `ACCESSIBILITY.md` (remove the known hidden-label gap), and SPEC-0001 cross-references.

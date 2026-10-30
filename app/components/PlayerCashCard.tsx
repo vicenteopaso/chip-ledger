@@ -3,6 +3,7 @@ import Image from "next/image";
 import { buttonClasses } from "@/app/components/Button";
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
+import { FIELD } from "@/app/components/Field";
 import { Card } from "@/app/components/Surfaces";
 import { MIXED, STACK_LABELS } from "@/lib/chips";
 import type { Player, StackChip } from "@/lib/game";
@@ -97,18 +98,15 @@ export function PlayerCashCard({
       )}
       <div className="count-grid grid gap-2">
         {chips.map((chip) => (
-          <label
-            key={chip.id}
-            className="flex flex-col gap-0.5 rounded-md bg-sunk px-2 pt-1.5 pb-1"
-          >
+          <label key={chip.id} className="flex flex-col gap-1">
             {/* The color in words, so the cell is not told apart by color alone (REQ-0002-01). */}
             <span className="flex items-center gap-1.5 text-md font-semibold text-text-muted">
               <Chip color={chip.color} size="sm" />
               {chip.color === MIXED ? "Chips" : STACK_LABELS[chip.color]}
             </span>
             <DraftInput
-              // The global focus ring, not a component-specific one (REQ-0002-22).
-              className="w-full min-w-0 rounded-sm border-0 bg-transparent py-1 text-right text-xl font-semibold"
+              // The shared field look (REQ-0002-31), with the global focus ring (REQ-0002-22).
+              className={`${FIELD} w-full px-2.5 text-right text-xl font-semibold`}
               inputMode="numeric"
               placeholder="0"
               aria-label={

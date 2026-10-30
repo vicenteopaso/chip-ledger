@@ -40,7 +40,7 @@ All `<button>` attributes except `type` (always `"button"`) and `className`, plu
 
 ## Design tokens
 
-`--color-accent`, `--color-accent-ink`, `--color-surface`, `--color-border`, `--color-danger`, `--radius-xl`, `--border-control`.
+Every variant except `link` is a pill (`--radius-full`), at least 48 px tall (primary 56 px), so buttons never look like fields or notices (REQ-0002-31). Primary: `--color-accent`, `--color-accent-ink`, `--color-accent-hover`. Secondary: `--color-accent-soft` / `--color-accent-soft-hover` with `--color-text`, no border. Danger: `--color-danger-soft` / `--color-danger-soft-hover` with `--color-danger`, no border. Outline: `--color-accent` border and text on `--color-surface`, `--color-surface-hover`. All: `--border-control` (transparent where there is no border).
 
 ## States
 

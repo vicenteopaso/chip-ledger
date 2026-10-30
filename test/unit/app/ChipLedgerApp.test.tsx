@@ -229,7 +229,10 @@ describe("ChipLedgerApp", () => {
     expect(
       screen.getByText("The counted chips are $10.00 short of the $80.00 pot."),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("Dee pays Ana$20.00");
+    // Scoped to the page: the step navigation is also a list.
+    expect(within(screen.getByRole("main")).getAllByRole("listitem")[0]).toHaveTextContent(
+      "Dee pays Ana$20.00",
+    );
     await userEvent.click(screen.getByRole("checkbox"));
     expect(screen.getByText(/leave \$10\.00 unaccounted for/)).toBeInTheDocument();
     expect(screen.getByText("+$15.00")).toBeInTheDocument();
@@ -478,18 +481,26 @@ describe("ChipLedgerApp: SPEC-0002 phase 3 consistency", () => {
     saved();
   });
 
-  it("AC-0002-21: every step's heading is its name; Setup shows the app name as a brand line", async () => {
+  it("AC-0002-21, AC-0002-28: every step's heading is its name, under the same branded header", async () => {
     render(<ChipLedgerApp photoCountingEnabled={false} />);
     expect(heading()).toHaveTextContent(/^Setup$/);
-    const brand = screen.getByText("Chip Ledger");
-    expect(brand.tagName).toBe("P");
     for (const [step, title] of [
+      [null, "Setup"],
       ["2 Table", "At the table"],
       ["3 Cash out", "Cash out"],
       ["4 Settle", "Settle up"],
     ] as const) {
-      await userEvent.click(button(step));
+      if (step) await userEvent.click(button(step));
       expect(heading()).toHaveTextContent(new RegExp(`^${title}$`));
+      // The app name and the steps share the page header, outside main, on every step. (jsdom
+      // also counts the Cash out cards' headers as banners; Playwright checks the landmark.)
+      const banner = screen.getByRole("navigation", { name: "Steps" }).closest("header");
+      if (!banner) throw new Error("The steps are not in the page header");
+      expect(banner.parentElement).toBe(screen.getByRole("main").parentElement);
+      const brand = within(banner).getByText("Chip Ledger");
+      expect(brand.tagName).toBe("P");
+      expect(brand.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+      expect(within(screen.getByRole("main")).queryByText("Chip Ledger")).toBeNull();
     }
   });
 
