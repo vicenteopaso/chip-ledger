@@ -1,5 +1,7 @@
 import { Button } from "@/app/components/Button";
-import { ChipRow } from "@/app/components/ChipRow";
+import type { Ref } from "react";
+
+import { ChipRow, ChipRowHeader } from "@/app/components/ChipRow";
 import { ChipStackArt } from "@/app/components/ChipStackArt";
 import { DraftInput } from "@/app/components/DraftInput";
 import { Notice } from "@/app/components/Notice";
@@ -23,6 +25,9 @@ export type SetupScreenProps = {
   dispatch: (action: GameAction) => void;
   onAddChip: () => void;
   onAutoFill: () => void;
+  /** Focus targets for an invalid "Start the game" (REQ-0002-08). */
+  buyInRef?: Ref<HTMLInputElement>;
+  firstChipRef?: Ref<HTMLInputElement>;
 };
 
 const FIELD_BASE =
@@ -31,6 +36,8 @@ const FIELD_BASE =
 const PLAYERS_BUTTON =
   "press w-14 flex-none rounded-lg border-2 border-border bg-surface py-3.5 text-3xl font-extrabold disabled:opacity-45";
 const FIELD = `${FIELD_BASE} w-full text-body`;
+/** Visible field label (REQ-0002-05). */
+const LABEL = "mb-1 block text-md font-semibold text-text-muted";
 
 /** The single "All colors" row has no color to change and cannot be removed. */
 const ignore = () => undefined;
@@ -43,6 +50,8 @@ export function SetupScreen({
   dispatch,
   onAddChip,
   onAutoFill,
+  buyInRef,
+  firstChipRef,
 }: SetupScreenProps) {
   const usedColors = game.chips.map((chip) => chip.color);
   return (
@@ -68,10 +77,8 @@ export function SetupScreen({
         >
           −
         </button>
-        <span
-          className="flex-1 rounded-lg border-2 border-border bg-surface py-3.5 text-center text-3xl font-extrabold"
-          aria-live="polite"
-        >
+        {/* The new count is announced by the page's live region (REQ-0002-07). */}
+        <span className="flex-1 rounded-lg border-2 border-border bg-surface py-3.5 text-center text-3xl font-extrabold">
           {game.count}
         </span>
         <button
@@ -91,8 +98,8 @@ export function SetupScreen({
           const id = `player-${player.id}-name`;
           return (
             <div key={player.id}>
-              <label htmlFor={id} className="sr-only">
-                {`Name of player ${String(index + 1)}`}
+              <label htmlFor={id} className={LABEL}>
+                {`Player ${String(index + 1)} name`}
               </label>
               <input
                 id={id}
@@ -113,35 +120,42 @@ export function SetupScreen({
 
       <SectionTitle>Buy-in per player</SectionTitle>
       <div className="flex gap-2">
-        <label htmlFor="currency" className="sr-only">
-          Currency
-        </label>
-        <select
-          id="currency"
-          className={`${FIELD_BASE} w-23 flex-none text-body`}
-          value={game.currency}
-          onChange={(event) => {
-            dispatch({ type: "setCurrency", currency: CurrencySchema.parse(event.target.value) });
-          }}
-        >
-          {CURRENCIES.map((currency) => (
-            <option key={currency}>{currency}</option>
-          ))}
-        </select>
-        <label htmlFor="buy-in" className="sr-only">
-          Buy-in amount
-        </label>
-        <DraftInput
-          id="buy-in"
-          className={`${FIELD_BASE} w-full text-4xl font-semibold`}
-          inputMode="decimal"
-          value={game.buyIn}
-          format={String}
-          parse={(text) => parseMoney(text, game.currency)}
-          onValueChange={(buyIn) => {
-            dispatch({ type: "setBuyIn", buyIn });
-          }}
-        />
+        <div className="flex w-23 flex-none flex-col">
+          <label htmlFor="currency" className={LABEL}>
+            Currency
+          </label>
+          <select
+            id="currency"
+            className={`${FIELD_BASE} w-full flex-1 text-body`}
+            value={game.currency}
+            onChange={(event) => {
+              dispatch({ type: "setCurrency", currency: CurrencySchema.parse(event.target.value) });
+            }}
+          >
+            {CURRENCIES.map((currency) => (
+              <option key={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
+        <div className="min-w-0 flex-1">
+          <label htmlFor="buy-in" className={LABEL}>
+            Buy-in<span className="sr-only"> amount</span>
+          </label>
+          <DraftInput
+            id="buy-in"
+            ref={buyInRef}
+            className={`${FIELD_BASE} w-full text-4xl font-semibold`}
+            inputMode="decimal"
+            aria-invalid={game.buyIn <= 0}
+            aria-describedby="setup-summary"
+            value={game.buyIn}
+            format={String}
+            parse={(text) => parseMoney(text, game.currency)}
+            onValueChange={(buyIn) => {
+              dispatch({ type: "setBuyIn", buyIn });
+            }}
+          />
+        </div>
       </div>
 
       <SectionTitle>Chips in each starting stack</SectionTitle>
@@ -168,8 +182,10 @@ export function SetupScreen({
           Fill the chips to match the buy-in
         </Button>
       )}
+      <ChipRowHeader />
       {game.uniformValue ? (
         <ChipRow
+          countRef={firstChipRef}
           chip={{ id: UNIFORM_CHIP_ID, color: MIXED, ...game.uniformChip }}
           usedColors={usedColors}
           canRemove={false}
@@ -186,9 +202,10 @@ export function SetupScreen({
         />
       ) : (
         <>
-          {game.chips.map((chip) => (
+          {game.chips.map((chip, index) => (
             <ChipRow
               key={chip.id}
+              countRef={index === 0 ? firstChipRef : undefined}
               chip={chip}
               usedColors={usedColors}
               canRemove={game.chips.length > 1}
@@ -215,7 +232,8 @@ export function SetupScreen({
           )}
         </>
       )}
-      <div role="status">
+      {/* Describes "Start the game"; announced by the page's live region on change (REQ-0002-07). */}
+      <div id="setup-summary">
         <Notice notice={setupSummary(game, money)} />
       </div>
     </>

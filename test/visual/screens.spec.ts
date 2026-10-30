@@ -33,3 +33,18 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
   }
 }
+
+// AC-0002-09: in forced colors (Windows High Contrast) the current and done steps, button edges,
+// and chip colors stay distinguishable.
+test.describe("forced colors mobile", () => {
+  test.use({ forcedColors: "active", viewport: VIEWPORTS.mobile });
+
+  test("cash out", async ({ page }) => {
+    await openFresh(page);
+    await startGame(page);
+    await page.getByRole("button", { name: "Cash out", exact: true }).click();
+    await enterCounts(page, SHORT_COUNTS);
+    await page.getByRole("heading", { level: 1 }).click();
+    await snap(page, "cashout-forced-colors-mobile");
+  });
+});

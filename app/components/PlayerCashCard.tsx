@@ -26,6 +26,12 @@ const STATUS_TONE: Record<PhotoStatus["kind"], string> = {
   error: "text-danger",
 };
 
+/** Visible text of the photo control; its accessible name starts with it (REQ-0002-03). */
+function photoLabel(photo: PhotoState): string {
+  if (photo.busy) return "Counting…";
+  return photo.thumbnailUrl ? "Retake photo" : "Take photo";
+}
+
 const formatCount = (count: number | null) => (count === null ? "" : String(count));
 const parseOptionalCount = (text: string) => (text.trim() === "" ? null : parseCount(text));
 
@@ -57,13 +63,13 @@ export function PlayerCashCard({
             <label
               className={`inline-flex items-center justify-center gap-2 rounded-md border-control border-accent px-4 py-3 text-base font-semibold text-accent focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus ${photo.busy ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
             >
-              {photo.busy ? "Counting…" : photo.thumbnailUrl ? "Retake photo" : "Take photo"}
+              {photoLabel(photo)}
               <input
                 type="file"
                 accept="image/*"
                 className="sr-only"
                 disabled={photo.busy}
-                aria-label={`Take a photo of ${name}'s chips`}
+                aria-label={`${photoLabel(photo)}${photo.busy ? "" : " of"} ${name}'s chips`}
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   event.target.value = "";
@@ -82,10 +88,8 @@ export function PlayerCashCard({
               />
             )}
           </div>
-          <p
-            role="status"
-            className={`mb-1.5 text-sm ${photo.status ? STATUS_TONE[photo.status.kind] : ""}`}
-          >
+          {/* Announced by the page's live region, not here (REQ-0002-07). */}
+          <p className={`mb-1.5 text-sm ${photo.status ? STATUS_TONE[photo.status.kind] : ""}`}>
             {photo.status?.text}
           </p>
         </>
@@ -94,11 +98,15 @@ export function PlayerCashCard({
         {chips.map((chip) => (
           <label
             key={chip.id}
-            className="flex items-center gap-2 rounded-md bg-sunk px-2 py-1.5 focus-within:ring-2 focus-within:ring-accent"
+            className="flex flex-col gap-0.5 rounded-md bg-sunk px-2 pt-1.5 pb-1 focus-within:ring-2 focus-within:ring-accent"
           >
-            <Chip color={chip.color} size="sm" />
+            {/* The color in words, so the cell is not told apart by color alone (REQ-0002-01). */}
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-text-muted">
+              <Chip color={chip.color} size="sm" />
+              {chip.color === MIXED ? "Chips" : STACK_LABELS[chip.color]}
+            </span>
             <DraftInput
-              className="w-full min-w-0 border-0 bg-transparent py-1.5 text-right text-xl font-semibold focus:outline-none"
+              className="w-full min-w-0 border-0 bg-transparent py-1 text-right text-xl font-semibold focus:outline-none"
               inputMode="numeric"
               placeholder="0"
               aria-label={

@@ -12,12 +12,13 @@ One-off page-private components do not need a doc.
 
 ## Index
 
-| Component    | Purpose                                         | Doc                              |
-| ------------ | ----------------------------------------------- | -------------------------------- |
-| `Button`     | Native button with primary/secondary/danger/link variants | [Button](./Button.md)  |
-| `Chip`       | Decorative chip artwork per color               | [Chip](./Chip.md)                |
-| `DraftInput` | Text input bound to a parsed value              | [DraftInput](./DraftInput.md)    |
-| `StepsNav`   | Four-step navigation                            | [StepsNav](./StepsNav.md)        |
+| Component       | Purpose                                                   | Doc                                 |
+| --------------- | --------------------------------------------------------- | ----------------------------------- |
+| `Button`        | Native button with primary/secondary/danger/link variants | [Button](./Button.md)               |
+| `Chip`          | Decorative chip artwork per color                         | [Chip](./Chip.md)                   |
+| `DraftInput`    | Text input bound to a parsed value                        | [DraftInput](./DraftInput.md)       |
+| `LiveAnnouncer` | The page's single polite live region                      | [LiveAnnouncer](./LiveAnnouncer.md) |
+| `StepsNav`      | Four-step navigation                                      | [StepsNav](./StepsNav.md)           |
 
 Screens (`SetupScreen`, `TableScreen`, `CashOutScreen`, `SettleScreen`) and their one-off parts are page-private and documented by [SPEC-0001](../specs/0001-chip-ledger/spec.md).
 

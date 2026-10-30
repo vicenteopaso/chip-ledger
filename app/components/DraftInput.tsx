@@ -1,12 +1,13 @@
 "use client";
 
-import { type InputHTMLAttributes, useState } from "react";
+import { type InputHTMLAttributes, type Ref, useState } from "react";
 
 export type DraftInputProps<T> = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "value" | "defaultValue" | "onChange"
 > & {
   value: T;
+  ref?: Ref<HTMLInputElement>;
   format: (value: T) => string;
   parse: (text: string) => T;
   onValueChange: (value: T) => void;

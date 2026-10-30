@@ -14,12 +14,16 @@ describe("setupSummary", () => {
   it("AC-0001-02: confirms a stack that matches the buy-in", () => {
     expect(setupSummary(defaultGame(), usd)).toEqual({
       kind: "ok",
+      code: "balanced",
       text: "Each starting stack is worth $20.00, matching the buy-in.",
     });
   });
 
   it("AC-0001-02: asks for a buy-in first", () => {
-    expect(setupSummary(gameWith({ buyIn: 0 }), usd).text).toBe("Enter a buy-in amount.");
+    expect(setupSummary(gameWith({ buyIn: 0 }), usd)).toMatchObject({
+      code: "no-buy-in",
+      text: "Enter a buy-in amount.",
+    });
   });
 
   it("REQ-0001-06: asks for chips when the stack is worth nothing", () => {
@@ -33,6 +37,7 @@ describe("setupSummary", () => {
     const game = gameWith({ chips: [{ id: "blue", color: "blue", count: 10, value: 1 }] });
     expect(setupSummary(game, usd)).toEqual({
       kind: "warn",
+      code: "unbalanced",
       text: "The stack adds up to $10.00 but the buy-in is $20.00. Chips will cash out at 200% of the values above so the money always balances. Adjust the counts or values if that isn't what you want.",
     });
   });
@@ -51,6 +56,7 @@ describe("count check", () => {
     });
     expect(countCheckSummary(counted, usd)).toEqual({
       kind: "warn",
+      code: "under",
       text: "Counted chips are worth $10.00, which is $70.00 less than the $80.00 pot. Recount the colors marked in red, or settle anyway and the difference is spread across everyone.",
     });
   });
@@ -59,9 +65,11 @@ describe("count check", () => {
     const game = defaultGame();
     const over = { ...game, players: game.players.map((p) => ({ ...p, counts: { blue: 30 } })) };
     expect(countCheckSummary(over, usd).text).toContain("$40.00 more than the $80.00 pot");
+    expect(countCheckSummary(over, usd).code).toBe("over");
     const exact = { ...game, players: game.players.map((p) => ({ ...p, counts: { blue: 20 } })) };
     expect(countCheckSummary(exact, usd)).toEqual({
       kind: "ok",
+      code: "match",
       text: "Counted chips match the pot exactly.",
     });
   });

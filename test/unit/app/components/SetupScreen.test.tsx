@@ -24,6 +24,13 @@ function renderSetup(game = defaultGame(), photoCountingEnabled = false) {
   return { dispatch, onAddChip };
 }
 
+/** The Setup summary, which also describes the buy-in field and "Start the game". */
+function summary(): HTMLElement {
+  const element = document.getElementById("setup-summary");
+  if (!element) throw new Error("No Setup summary");
+  return element;
+}
+
 /** Real reducer behind the screen, so props follow dispatches as they do in the app. */
 function StatefulSetup({ onAction }: { onAction: (action: GameAction) => void }) {
   const [game, dispatch] = useReducer(gameReducer, undefined, defaultGame);
@@ -52,8 +59,8 @@ describe("SetupScreen", () => {
     expect(dispatch).toHaveBeenCalledWith({ type: "setPlayerCount", count: 5 });
     await userEvent.click(screen.getByRole("button", { name: "Fewer players" }));
     expect(dispatch).toHaveBeenLastCalledWith({ type: "setPlayerCount", count: 3 });
-    expect(screen.getAllByRole("textbox", { name: /Name of player/ })).toHaveLength(4);
-    await userEvent.type(screen.getByLabelText("Name of player 2"), "B");
+    expect(screen.getAllByRole("textbox", { name: /^Player \d+ name$/ })).toHaveLength(4);
+    await userEvent.type(screen.getByLabelText("Player 2 name"), "B");
     expect(dispatch).toHaveBeenCalledWith({ type: "setName", playerId: "p2", name: "B" });
   });
 
@@ -64,11 +71,11 @@ describe("SetupScreen", () => {
     for (let i = 0; i < 6; i += 1) await userEvent.click(more);
     expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("10");
     expect(more).toBeDisabled();
-    expect(screen.getAllByRole("textbox", { name: /Name of player/ })).toHaveLength(10);
+    expect(screen.getAllByRole("textbox", { name: /^Player \d+ name$/ })).toHaveLength(10);
     for (let i = 0; i < 8; i += 1) await userEvent.click(fewer);
     expect(screen.getByRole("group", { name: "Number of players" })).toHaveTextContent("2");
     expect(fewer).toBeDisabled();
-    expect(screen.getAllByRole("textbox", { name: /Name of player/ })).toHaveLength(2);
+    expect(screen.getAllByRole("textbox", { name: /^Player \d+ name$/ })).toHaveLength(2);
   });
 
   it("REQ-0001-04: keeps in-progress decimal text while sending the parsed buy-in", async () => {
@@ -83,9 +90,7 @@ describe("SetupScreen", () => {
     expect(buyIn).toHaveValue("2,5");
     expect(dispatch).toHaveBeenLastCalledWith({ type: "setBuyIn", buyIn: 2.5 });
     // The chips are balanced automatically, so the stack follows the buy-in (REQ-0001-29).
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Each starting stack is worth $2.50, matching the buy-in.",
-    );
+    expect(summary()).toHaveTextContent("Each starting stack is worth $2.50, matching the buy-in.");
     await userEvent.selectOptions(screen.getByLabelText("Currency"), "EUR");
     expect(dispatch).toHaveBeenCalledWith({ type: "setCurrency", currency: "EUR" });
   });
@@ -94,7 +99,7 @@ describe("SetupScreen", () => {
     const { dispatch, onAddChip } = renderSetup();
     expect(screen.getByText("20 chips worth $5.00")).toBeInTheDocument();
     await userEvent.selectOptions(
-      screen.getAllByLabelText("Chip color")[0] as HTMLElement,
+      screen.getAllByLabelText(/chip color$/)[0] as HTMLElement,
       "black",
     );
     expect(dispatch).toHaveBeenCalledWith({
@@ -125,7 +130,7 @@ describe("SetupScreen", () => {
 
   it("REQ-0001-06, -13: shows the stack summary and the intro without photo wording when off", () => {
     renderSetup();
-    expect(screen.getByRole("status")).toHaveTextContent(
+    expect(summary()).toHaveTextContent(
       "Each starting stack is worth $20.00, matching the buy-in.",
     );
     expect(screen.getByText(/count chips at the end/)).toBeInTheDocument();
@@ -146,14 +151,14 @@ describe("SetupScreen: one value for all chips", () => {
     await userEvent.click(toggle);
     expect(dispatch).toHaveBeenCalledWith({ type: "setUniformValue", enabled: true });
     expect(screen.queryByLabelText("Red chip value")).not.toBeInTheDocument();
-    expect(screen.queryAllByLabelText("Chip color")).toHaveLength(0);
+    expect(screen.queryAllByLabelText(/chip color$/)).toHaveLength(0);
     expect(screen.queryByRole("button", { name: "Add a chip color" })).not.toBeInTheDocument();
     expect(screen.getByText("All colors")).toBeInTheDocument();
     expect(screen.getByLabelText("Chips per player")).toHaveValue("40");
     expect(screen.getByLabelText("Value of every chip")).toHaveValue("0.5");
     expect(screen.getByRole("button", { name: "Remove All colors" })).toBeDisabled();
     expect(screen.getByText("40 chips worth $20.00")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(
+    expect(summary()).toHaveTextContent(
       "Each starting stack is worth $20.00, matching the buy-in.",
     );
 
@@ -163,7 +168,7 @@ describe("SetupScreen: one value for all chips", () => {
     expect(dispatch).toHaveBeenLastCalledWith({ type: "setUniformChipValue", value: 1 });
     await userEvent.type(screen.getByLabelText("Chips per player"), "0");
     expect(dispatch).toHaveBeenLastCalledWith({ type: "setUniformChipCount", count: 400 });
-    expect(screen.getByRole("status")).toHaveTextContent("The stack adds up to $400.00");
+    expect(summary()).toHaveTextContent("The stack adds up to $400.00");
 
     await userEvent.click(toggle);
     expect(screen.queryByText("All colors")).not.toBeInTheDocument();
@@ -191,7 +196,7 @@ describe("SetupScreen: balanced chips and currencies", () => {
     expect(
       screen.getByRole("button", { name: "Fill the chips to match the buy-in" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("The stack adds up to");
+    expect(summary()).toHaveTextContent("The stack adds up to");
     await userEvent.clear(buyIn);
     await userEvent.type(buyIn, "20");
     expect(screen.getByLabelText("White chip value")).toHaveValue("0.5");
@@ -200,7 +205,7 @@ describe("SetupScreen: balanced chips and currencies", () => {
       screen.getByRole("button", { name: "Fill the chips to match the buy-in" }),
     );
     expect(screen.getByLabelText("White chip value")).toHaveValue("0.25");
-    expect(screen.getByRole("status")).toHaveTextContent("matching the buy-in");
+    expect(summary()).toHaveTextContent("matching the buy-in");
     expect(screen.getByText(/The chips adjust to the buy-in/)).toBeInTheDocument();
   });
 
@@ -213,7 +218,7 @@ describe("SetupScreen: balanced chips and currencies", () => {
     expect(screen.getByLabelText("White chips per player")).toHaveValue("22");
     expect(screen.getByLabelText("White chip value")).toHaveValue("100");
     expect(screen.getByLabelText("Blue chip value")).toHaveValue("400");
-    expect(screen.getByRole("status")).toHaveTextContent(/worth \$?CLP|matching the buy-in/);
+    expect(summary()).toHaveTextContent(/worth \$?CLP|matching the buy-in/);
 
     const buyIn = screen.getByLabelText("Buy-in amount");
     await userEvent.clear(buyIn);

@@ -103,7 +103,7 @@ describe("ChipLedgerApp", () => {
     expect(screen.getByLabelText("White chips per player")).toHaveValue("22");
     expect(screen.getByLabelText("White chip value")).toHaveValue("0.1");
     expect(screen.getByLabelText("Blue chip value")).toHaveValue("0.4");
-    expect(screen.getByRole("status")).toHaveTextContent("matching the buy-in");
+    expect(screen.getByText(/matching the buy-in/)).toBeInTheDocument();
   });
 
   it("AC-0001-05, AC-0001-08: types counts with no photo controls when photo counting is off", async () => {
@@ -153,7 +153,7 @@ describe("ChipLedgerApp", () => {
     await screen.findByRole("heading", { name: "Cash out" });
 
     const photo = new File(["x"], "chips.png", { type: "image/png" });
-    await userEvent.upload(screen.getByLabelText("Take a photo of Player 1's chips"), photo);
+    await userEvent.upload(screen.getByLabelText("Take photo of Player 1's chips"), photo);
     expect(photoCount).toHaveBeenCalledWith(photo, [
       { color: "white", issued: 80 },
       { color: "red", issued: 40 },
@@ -168,8 +168,15 @@ describe("ChipLedgerApp", () => {
     expect(screen.getByRole("img", { name: "Photo of Player 1's chips" })).toBeInTheDocument();
     expect(screen.getByText("Retake photo")).toBeInTheDocument();
 
+    // AC-0002-03: the name starts with the visible text.
+    expect(screen.getByLabelText("Retake photo of Player 1's chips")).toBeInTheDocument();
+    // REQ-0002-07: the result is announced by the page's live region, with the player's name.
+    expect(screen.getByRole("status", { name: "" })).toHaveTextContent(
+      "Player 1: Counted from the photo with medium confidence.",
+    );
+
     photoCount.mockResolvedValue({ ok: false, code: "rate_limited" });
-    await userEvent.upload(screen.getByLabelText("Take a photo of Player 1's chips"), photo);
+    await userEvent.upload(screen.getByLabelText("Retake photo of Player 1's chips"), photo);
     expect(
       await screen.findByText(
         "Too many requests right now. Wait a minute and try again, or type the counts.",
@@ -188,9 +195,10 @@ describe("ChipLedgerApp", () => {
     );
     render(<ChipLedgerApp photoCountingEnabled />);
     await screen.findByRole("heading", { name: "Cash out" });
-    const input = screen.getByLabelText("Take a photo of Player 2's chips");
+    const input = screen.getByLabelText("Take photo of Player 2's chips");
     await userEvent.upload(input, new File(["x"], "a.png", { type: "image/png" }));
     expect(screen.getByText("Counting…")).toBeInTheDocument();
+    expect(input).toHaveAccessibleName("Counting… Player 2's chips");
     expect(screen.getByText("Counting chips. This can take up to a minute.")).toBeInTheDocument();
     expect(input).toBeDisabled();
     await act(async () => {
@@ -312,5 +320,117 @@ describe("ChipLedgerApp", () => {
     await userEvent.click(button("4 Settle"));
     await userEvent.click(button("Cash out"));
     expect(heading()).toHaveTextContent("Cash out");
+  });
+});
+
+describe("ChipLedgerApp: SPEC-0002 phase 1 accessibility", () => {
+  const announcer = () => screen.getByRole("status", { name: "" });
+
+  beforeEach(() => {
+    saved();
+  });
+
+  afterEach(() => {
+    copy.mockReset();
+  });
+
+  it("AC-0002-02: a step change moves focus to its title and names it in the document title", async () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    // Not on load: restoring a game must not steal focus or rename the served page.
+    document.title = "Chip Ledger";
+    expect(heading()).not.toHaveFocus();
+    expect(document.title).toBe("Chip Ledger");
+
+    await userEvent.click(button("Start the game"));
+    expect(heading()).toHaveTextContent("At the table");
+    expect(heading()).toHaveFocus();
+    expect(document.title).toBe("At the table · Chip Ledger");
+
+    await userEvent.click(button("3 Cash out"));
+    expect(heading()).toHaveFocus();
+    expect(document.title).toBe("Cash out · Chip Ledger");
+
+    // Reopening the current step also lands on its title.
+    await userEvent.click(button("3 Cash out"));
+    expect(heading()).toHaveFocus();
+  });
+
+  it("AC-0002-07: announces the player count and rebuys in words, not the bare number", async () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(announcer()).toHaveTextContent(/^$/);
+    await userEvent.click(button("More players"));
+    expect(announcer()).toHaveTextContent("5 players");
+
+    await userEvent.click(button("Start the game"));
+    await userEvent.click(button("Add a buy-in for Player 1"));
+    expect(announcer()).toHaveTextContent("Player 1: 2 buy-ins, pot $120.00");
+  });
+
+  it("AC-0002-07: announces the Setup summary only when its message changes", async () => {
+    // A hand-edited stack, so changing the buy-in does not rebalance the chips.
+    saved({ autoChips: false });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    const buyIn = screen.getByLabelText("Buy-in amount");
+    await userEvent.clear(buyIn);
+    expect(announcer()).toHaveTextContent("Enter a buy-in amount.");
+    await userEvent.type(buyIn, "2");
+    expect(announcer()).toHaveTextContent(
+      /^The stack adds up to \$20\.00 but the buy-in is \$2\.00/,
+    );
+    // More digits change only the amounts, so nothing new is announced.
+    await userEvent.type(buyIn, "5");
+    expect(announcer()).toHaveTextContent("the buy-in is $2.00");
+  });
+
+  it("AC-0002-07: announces copying the results", async () => {
+    saved({ screen: "settle" });
+    copy.mockResolvedValue(true);
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Copy results" }));
+    expect(announcer()).toHaveTextContent("Results copied.");
+  });
+
+  it("AC-0002-08: an unusable Start the game stays focusable, says why, and leads to the field", async () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    const buyIn = screen.getByLabelText("Buy-in amount");
+    await userEvent.clear(buyIn);
+    expect(buyIn).toHaveAttribute("aria-invalid", "true");
+
+    const start = button("Start the game");
+    expect(start).toBeEnabled();
+    expect(start).toHaveAttribute("aria-disabled", "true");
+    expect(start).toHaveAccessibleDescription("Enter a buy-in amount.");
+    await userEvent.click(start);
+    expect(heading()).toHaveTextContent("Chip Ledger");
+    expect(buyIn).toHaveFocus();
+
+    // With a buy-in but an empty stack, it leads to the first chip count.
+    await userEvent.type(buyIn, "20");
+    expect(buyIn).toHaveAttribute("aria-invalid", "false");
+    for (const color of ["White", "Red", "Blue"]) {
+      await userEvent.clear(screen.getByLabelText(`${color} chips per player`));
+    }
+    await userEvent.click(start);
+    expect(screen.getByLabelText("White chips per player")).toHaveFocus();
+  });
+
+  it("AC-0002-01: every count cell on Cash out names its color in visible text", async () => {
+    saved({ screen: "cashout" });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    const card = await screen.findByRole("region", { name: "Player 1" });
+    for (const color of ["White", "Red", "Blue"]) {
+      const input = within(card).getByLabelText(`${color} chips for Player 1`);
+      expect(input.closest("label")).toHaveTextContent(color);
+    }
+  });
+
+  it("AC-0002-06: the copy-fallback field has a 3:1 control border", async () => {
+    saved({ screen: "settle" });
+    copy.mockResolvedValue(false);
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Copy results" }));
+    expect(screen.getByRole("textbox", { name: "Results text" })).toHaveClass(
+      "border-border-control",
+    );
   });
 });

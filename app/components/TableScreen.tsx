@@ -36,9 +36,11 @@ export function TableScreen({ game, money, dispatch }: TableScreenProps) {
               >
                 −
               </button>
+              {/* Not live: the page's live region announces the change with the pot (REQ-0002-07). */}
               <output
                 className="min-w-7 text-center text-2xl font-extrabold"
                 aria-label={`Buy-ins for ${name}`}
+                aria-live="off"
               >
                 {player.buyins}
               </output>

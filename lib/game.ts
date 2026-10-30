@@ -7,6 +7,14 @@ import { CurrencySchema, MAX_AMOUNT, MAX_COUNT, typicalBuyIn } from "@/lib/money
 export const SCREENS = ["setup", "table", "cashout", "settle"] as const;
 export type Screen = (typeof SCREENS)[number];
 
+/** Each step's page title, used for the document title (REQ-0002-02). */
+export const STEP_TITLES: Record<Screen, string> = {
+  setup: "Setup",
+  table: "At the table",
+  cashout: "Cash out",
+  settle: "Settle up",
+};
+
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 10;
 export const DEFAULT_PLAYERS = 4;

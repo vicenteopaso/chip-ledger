@@ -2,23 +2,24 @@
 
 A text input bound to a parsed value (a number, or `null` for "not entered") that keeps what the person is typing — `2.`, `0,` — instead of reformatting on every keystroke.
 
-| Field    | Value                              |
-| -------- | ---------------------------------- |
-| Location | `app/components/DraftInput.tsx`    |
-| Type     | Client component                   |
-| Status   | stable                             |
-| Spec     | SPEC-0001 (REQ-0001-04, -05, -10)  |
+| Field    | Value                             |
+| -------- | --------------------------------- |
+| Location | `app/components/DraftInput.tsx`   |
+| Type     | Client component                  |
+| Status   | stable                            |
+| Spec     | SPEC-0001 (REQ-0001-04, -05, -10) |
 
 ## Props
 
 All `<input>` attributes except `value`, `defaultValue`, `onChange`, plus:
 
-| Prop            | Type                  | Required | Description                               |
-| --------------- | --------------------- | -------- | ----------------------------------------- |
-| `value`         | `T`                   | Yes      | Current parsed value from state           |
-| `format`        | `(value: T) => string` | Yes     | Text shown when the value changes from outside |
-| `parse`         | `(text: string) => T` | Yes      | Turns typed text into a value             |
-| `onValueChange` | `(value: T) => void`  | Yes      | Called on every edit with the parsed value |
+| Prop            | Type                    | Required | Description                                                   |
+| --------------- | ----------------------- | -------- | ------------------------------------------------------------- |
+| `value`         | `T`                     | Yes      | Current parsed value from state                               |
+| `format`        | `(value: T) => string`  | Yes      | Text shown when the value changes from outside                |
+| `parse`         | `(text: string) => T`   | Yes      | Turns typed text into a value                                 |
+| `onValueChange` | `(value: T) => void`    | Yes      | Called on every edit with the parsed value                    |
+| `ref`           | `Ref<HTMLInputElement>` | No       | Passed to the `<input>`, for moving focus to it (REQ-0002-08) |
 
 ## Usage
 

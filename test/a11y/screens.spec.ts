@@ -20,10 +20,20 @@ for (const colorScheme of ["light", "dark"] as const) {
       await openFresh(page);
       await expectNoViolations(page);
       await page.getByLabel("White chips per player").fill("21");
-      await expect(page.getByText(/The stack adds up to/)).toBeVisible();
+      await expect(page.getByRole("main").getByText(/The stack adds up to/)).toBeVisible();
       await expectNoViolations(page);
       await page.getByRole("checkbox", { name: "Use one value for all chips" }).check();
       await expect(page.getByLabel("Value of every chip")).toBeVisible();
+      await expectNoViolations(page);
+    });
+
+    test("setup with an unusable Start the game (REQ-0002-08)", async ({ page }) => {
+      await openFresh(page);
+      await page.getByLabel("Buy-in amount").fill("");
+      await expect(page.getByRole("button", { name: "Start the game" })).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
       await expectNoViolations(page);
     });
 
@@ -31,7 +41,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       await openFresh(page);
       for (let i = 0; i < 6; i += 1)
         await page.getByRole("button", { name: "More players" }).click();
-      await expect(page.getByLabel("Name of player 10")).toBeVisible();
+      await expect(page.getByLabel("Player 10 name")).toBeVisible();
       await expectNoViolations(page);
     });
 

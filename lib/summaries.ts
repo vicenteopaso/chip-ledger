@@ -13,25 +13,35 @@ import {
 import { fromMinor, type MoneyFormatter } from "@/lib/money";
 import type { Settlement } from "@/lib/settlement";
 
-/** `ok` renders as a confirmation line, `warn` as a highlighted note. */
-export type Notice = { kind: "ok" | "warn"; text: string };
+/**
+ * `ok` renders as a confirmation line, `warn` as a highlighted note. `code` names the message
+ * without its amounts, so a change of message can be announced once rather than on every
+ * keystroke (REQ-0002-07).
+ */
+export type Notice = { kind: "ok" | "warn"; code: string; text: string };
 
 /** The note under the chip rows on Setup (REQ-0001-06). */
 export function setupSummary(game: GameState, money: MoneyFormatter): Notice {
   const face = stackValue(game);
-  if (game.buyIn <= 0) return { kind: "warn", text: "Enter a buy-in amount." };
+  if (game.buyIn <= 0) return { kind: "warn", code: "no-buy-in", text: "Enter a buy-in amount." };
   if (face <= 0) {
-    return { kind: "warn", text: "Add at least one chip color with a count and a value." };
+    return {
+      kind: "warn",
+      code: "no-stack",
+      text: "Add at least one chip color with a count and a value.",
+    };
   }
   if (Math.abs(face - game.buyIn) < MONEY_EPSILON) {
     return {
       kind: "ok",
+      code: "balanced",
       text: `Each starting stack is worth ${money(face)}, matching the buy-in.`,
     };
   }
   const percent = Math.round(cashOutRate(game) * 1000) / 10;
   return {
     kind: "warn",
+    code: "unbalanced",
     text: `The stack adds up to ${money(face)} but the buy-in is ${money(game.buyIn)}. Chips will cash out at ${percent}% of the values above so the money always balances. Adjust the counts or values if that isn't what you want.`,
   };
 }
@@ -67,10 +77,11 @@ export function countCheckSummary(game: GameState, money: MoneyFormatter): Notic
   const potTotal = pot(game);
   const difference = counted - potTotal;
   if (Math.abs(difference) < MONEY_EPSILON) {
-    return { kind: "ok", text: "Counted chips match the pot exactly." };
+    return { kind: "ok", code: "match", text: "Counted chips match the pot exactly." };
   }
   return {
     kind: "warn",
+    code: difference > 0 ? "over" : "under",
     text: `Counted chips are worth ${money(counted)}, which is ${money(Math.abs(difference))} ${difference > 0 ? "more" : "less"} than the ${money(potTotal)} pot. Recount the colors marked in red, or settle anyway and the difference is spread across everyone.`,
   };
 }

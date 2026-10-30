@@ -1,11 +1,22 @@
-import type { ReactNode } from "react";
+import { createContext, type ReactNode, type RefObject, useContext } from "react";
 
 type TextProps = { children: ReactNode };
 
-/** Step title. One per step. */
+/**
+ * The container provides a ref here so it can move focus to the step title after a step
+ * change (REQ-0002-02) without reaching into the DOM.
+ */
+export const StepTitleContext = createContext<RefObject<HTMLHeadingElement | null> | null>(null);
+
+/** Step title. One per step. Focusable by script only, so focus can land here. */
 export function PageTitle({ children }: TextProps) {
+  const ref = useContext(StepTitleContext);
   return (
-    <h1 className="mt-2.5 mb-1.5 text-5xl leading-display font-extrabold tracking-display">
+    <h1
+      ref={ref}
+      tabIndex={-1}
+      className="mt-2.5 mb-1.5 text-5xl leading-display font-extrabold tracking-display"
+    >
       {children}
     </h1>
   );

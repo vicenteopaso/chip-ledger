@@ -48,7 +48,7 @@ Hosts use this app on a phone, often one-handed, in low light, with others readi
 
 ### Accessibility (P1)
 
-- REQ-0002-01: Every count input on Cash out MUST show the chip's color name as visible text next to the chip artwork ("All colors" in one-value mode). The input's accessible name MUST stay "<Color> chips for <name>".
+- REQ-0002-01: Every count input on Cash out MUST show the chip's color name as visible text next to the chip artwork ("Chips" in one-value mode, so the visible text stays inside the name "Chips for <name>" from AC-0001-14). The input's accessible name MUST stay "<Color> chips for <name>".
 - REQ-0002-02: When the step changes, focus MUST move to that step's `h1`, which MUST be focusable by script only (`tabIndex=-1`) and show no focus ring for this programmatic focus. The document title MUST become "<Step title> · Chip Ledger".
 - REQ-0002-03: The photo control's accessible name MUST start with its visible text: "Take photo of <name>'s chips", "Retake photo of <name>'s chips", or "Counting… <name>'s chips".
 - REQ-0002-04: Steps before the current one MUST show a visible check mark in addition to their border, and MUST carry the visually hidden text "(done)". Every step-indicator border that conveys state MUST reach 3:1 against `--color-bg` in both themes.
@@ -84,7 +84,7 @@ Hosts use this app on a phone, often one-handed, in low light, with others readi
 ## 5. Acceptance criteria
 
 - AC-0002-01 (REQ-0002-01): Given 20 USD and its default chips, when the host opens Cash out, then each card shows the visible text "White", "Red", and "Blue" beside the matching inputs, and `getByLabel("Red chips for Ana")` still finds the red input.
-- AC-0002-02 (REQ-0002-02): Given Setup with a valid buy-in, when the host presses Enter on "Start the game", then `document.activeElement` is the `h1` "At the table" and `document.title` is "At the table · Chip Ledger". Pressing Tab next reaches the first step button, not the skip link.
+- AC-0002-02 (REQ-0002-02): Given Setup with a valid buy-in, when the host presses Enter on "Start the game", then `document.activeElement` is the `h1` "At the table" and `document.title` is "At the table · Chip Ledger". Pressing Tab next reaches the step's first control (the step navigation comes before the title in reading order), not the skip link.
 - AC-0002-03 (REQ-0002-03): Given photo counting on, after one photo for Ana, the control's accessible name is "Retake photo of Ana's chips".
 - AC-0002-04 (REQ-0002-04): Given the host is on Cash out, then "1 Setup" and "2 Table" show a check mark and their accessible names end in "(done)"; "4 Settle" does not. A contrast check of the done border against `--color-bg` reports ≥ 3:1 in light and dark.
 - AC-0002-05 (REQ-0002-05): Given Setup, then the visible texts "Player 1 name", "Buy-in", "Currency", "Color", "Per player", and "Value" are shown, and the first chip row's select is named "White chip color".
