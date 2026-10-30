@@ -136,6 +136,19 @@ Route tests run the real handlers against the in-memory store. A shared contract
 | Splitting `screen` out of the game breaks saved games                                                                   | Low        | Medium | The saved-game schema still reads old data (a missing or extra `screen` is accepted); a unit test loads a `chip-ledger.v1` fixture. Solo storage keeps its key and shape.                                             |
 | Merge friction with other work on `ChipLedgerApp.tsx`                                                                   | Medium     | Low    | The shared-game logic lives in a hook and new files; `ChipLedgerApp.tsx` changes stay small. Rebase before each push.                                                                                                 |
 
+### Redis command budget
+
+The database is on a free Upstash plan limited to 500,000 commands a month (confirmed by the owner on 2026-10-30), with no budget alert set yet. Every step follows these rules:
+
+- **Tests and CI never touch Redis.** Unit and end-to-end tests use the in-memory store (`GAME_STORE_MEMORY`); CI has no credentials. The only real-Redis runs are the manual store contract test (about 40 commands) and the T-03 spike, both bounded below.
+- **Preview deployments** hold credentials only for the feature branch, and nothing calls Redis until a person opens a shared game.
+- **Polling is the main cost, so it adapts:** the server checks a small revision key every 2 s for 60 s after a change, then every 5 s while the game is quiet. Clients stop when the tab is hidden and make one request when it is visible again. A game accepts at most 12 connections.
+- **Heartbeats** go out every 20 s, not on every check, and each is one script call.
+- **Edits** cost about 4 commands each (read, compare-and-set, revision key, and the answer).
+- **Rough size of a game night** (estimate, replaced by the measured numbers from T-03): 10 devices for 4 hours, mostly quiet, is about 30,000 to 70,000 commands. Against 500,000 a month that is roughly 7 to 16 nights, so the budget is real but workable. The spike (about 2,500 commands, 0.5% of a month) must stay a small fraction of it.
+- **When the limit is hit,** the store answers with an error; routes turn it into a generic 503 and the client keeps its local game running. A host never loses a game because Redis is out of quota. Sharing comes back by itself when the quota resets.
+- **Alerts:** a budget alert in the Upstash console at 50% and 80% of the monthly limit, set by the owner.
+
 ## 6. Rollout and rollback
 
 **Provisioning (owner, once).** See the numbered steps in the hand-off message and in `docs/CONFIGURATION.md` once written: create one Upstash Redis database through the Vercel Marketplace (the free plan allows one), connect it to Production, add its two REST variables to Preview by hand scoped to the feature branch, and confirm the variable names. Done on 2026-10-30; the names are `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
