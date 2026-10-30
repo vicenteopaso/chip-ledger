@@ -197,6 +197,36 @@
 
 @layer components {
   .action-bar {
-    padding-bottom: calc(var(--spacing) * 3 + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--spacing) * 1 + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Unlayered so these beat the button utilities: once the page is scrolled the bar gets smaller
+   (compact buttons, tighter footer row) and the content keeps more of the screen. */
+.action-bar,
+.action-bar-buttons > button,
+.action-bar-footer {
+  transition-property: padding, min-height, font-size;
+  transition-duration: 150ms;
+}
+.action-bar > .action-bar-buttons > button {
+  min-height: calc(var(--spacing) * 12);
+}
+.action-bar[data-compact="true"] {
+  padding-top: calc(var(--spacing) * 1);
+}
+.action-bar[data-compact="true"] > .action-bar-buttons > button {
+  min-height: calc(var(--spacing) * 10);
+  font-size: var(--text-body);
+}
+.action-bar[data-compact="true"] .action-bar-footer {
+  min-height: calc(var(--spacing) * 6);
+  font-size: var(--text-sm);
+}
+@media (prefers-reduced-motion: reduce) {
+  .action-bar,
+  .action-bar-buttons > button,
+  .action-bar-footer {
+    transition: none;
   }
 }

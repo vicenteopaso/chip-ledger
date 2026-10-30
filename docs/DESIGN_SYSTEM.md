@@ -69,7 +69,7 @@ Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes,
 - **Radius:** `sm` 10, `md` 12, `lg` 14, `xl` 16, `2xl` 18 px, `full`.
 - **Borders:** `--border-control` (1.5 px) through the `border-control` utility for fields and outlined buttons.
 - **Effects:** `--blur-bar` (10 px) for the bottom bar; `--color-chip-shadow` for chip artwork.
-- **Bottom bar:** `--bar-clearance` (44 spacing steps) is both the space kept under the content and the page's `scroll-padding-bottom`, so a focused field never lands behind the bar. Under the `short:` variant (`max-height: 30rem`: landscape phones, 200% zoom) the bar is static and scrolls with the page (REQ-0002-10).
+- **Bottom bar:** `--bar-clearance` (36 spacing steps) is both the space kept under the content and the page's `scroll-padding-bottom`, so a focused field never lands behind the bar. Under the `short:` variant (`max-height: 30rem`: landscape phones, 200% zoom) the bar is static and scrolls with the page (REQ-0002-10). The bar is compact (48px buttons, 28px footer row) and shrinks further once the page is scrolled.
 - **Forced colors:** controls use transparent borders, never none, so forced-colors mode can draw them; step circles are outlined (upcoming), filled with `CanvasText` (done), or `Highlight` (current), and chip artwork keeps its colors next to its text label (REQ-0002-09, REQ-0002-27).
 - **Motion:** buttons scale to 0.97 while pressed, only under `prefers-reduced-motion: no-preference`.
 - **Hover:** Tailwind's `hover:` applies only on devices that can hover, and only to available controls (`hover:not-disabled:not-aria-disabled:…`). The hover mixes step toward the text color, so one definition darkens in light and lightens in dark (REQ-0002-17).

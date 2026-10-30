@@ -47,7 +47,7 @@ export function ThemeToggle({ theme, onChange }: ThemeToggleProps) {
   return (
     <button
       type="button"
-      className="press -mr-2.5 flex size-11 items-center justify-center rounded-md border-0 bg-transparent text-accent"
+      className="press -my-2 -mr-2.5 flex size-11 items-center justify-center rounded-md border-0 bg-transparent text-accent"
       aria-label={label}
       title={label}
       onClick={() => {

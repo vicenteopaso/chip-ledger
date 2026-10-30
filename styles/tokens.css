@@ -88,7 +88,7 @@
   /* Comfortable line length for intro text (REQ-0002-26). */
   --container-lede: 40ch;
   /* Room kept under the content for the fixed bottom bar; also its scroll padding (REQ-0002-10). */
-  --bar-clearance: calc(var(--spacing) * 44);
+  --bar-clearance: calc(var(--spacing) * 36);
 }
 
 @layer theme {
