@@ -4,7 +4,7 @@
 | ------ | -------------------- |
 | Spec   | [spec.md](./spec.md) |
 | ADR    | none (Tier 1)        |
-| Status | draft                |
+| Status | approved             |
 
 ## 1. Approach
 
@@ -98,8 +98,8 @@ Test helpers in `test/e2e/helpers.ts` that match on `getByLabel` keep working be
 
 | Risk                                                    | Likelihood | Impact | Mitigation                                                                                                                                                                                                  |
 | ------------------------------------------------------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Every visual baseline changes, which makes review noisy | High       | Medium | One phase per PR; before/after screenshots in each PR; macOS and Linux baselines refreshed together                                                                                                         |
+| Every visual baseline changes, which makes review noisy | High       | Medium | One phase per PR (owner decision), each refreshing its own baselines; before/after screenshots in each PR; macOS and Linux baselines refreshed together                                                     |
 | Focus moving to `h1` surprises mouse users with a ring  | Medium     | Low    | The ring shows only for `:focus-visible`, and programmatic focus on a `tabIndex=-1` heading does not show it in modern browsers; `outline: none` is scoped to `h1[tabindex="-1"]:focus:not(:focus-visible)` |
-| Visible labels make Setup taller on 320 px              | Medium     | Low    | A header row instead of per-field labels (spec §7 question); check at 320 px and 200% zoom                                                                                                                  |
+| Visible labels make Setup taller on 320 px              | Medium     | Low    | One header row instead of per-field labels (spec §7); check at 320 px and 200% zoom, and fall back to per-field labels if the columns misalign                                                              |
 | `aria-disabled` lets the button be activated            | Low        | Medium | The handler no-ops apart from moving focus; unit test                                                                                                                                                       |
 | Changing the Settle primary surprises existing users    | Low        | Low    | The old action stays one press away in the content ("Back to Setup")                                                                                                                                        |

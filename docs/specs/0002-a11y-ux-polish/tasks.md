@@ -6,7 +6,7 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 ## Setup
 
-- [ ] T-01 Resolve the open questions in spec §7 and set the spec to `approved`.
+- [x] T-01 Resolve the open questions in spec §7 and set the spec to `approved`.
   - Done when: no `[NEEDS CLARIFICATION]` markers remain.
 - [ ] T-02 Capture "before" evidence: screenshots of findings 1, 2, 4, 9, and 10 (plan §1) in light and dark at 375 px and 1280 px.
   - Done when: the screenshots are attached to the first implementation PR.
@@ -47,6 +47,9 @@ Legend: `[P]` can run in parallel with its neighbours.
   - Tests: e2e at 375 × 812 and 375 × 400
   - Done when: AC-0002-10 passes.
 
+- [ ] T-13a Close Phase 1: refresh visual baselines (macOS and Linux), run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`, and open the P1 PR.
+  - Done when: all pass and the PR has before/after screenshots in both themes at mobile and desktop widths.
+
 ## Phase 2: experience (P2)
 
 - [ ] T-14 `ConfirmInline` and the new reset flow _(REQ-0002-11)_
@@ -64,6 +67,9 @@ Legend: `[P]` can run in parallel with its neighbours.
 - [ ] T-18 Type sizes, hover, disabled tokens applied _(REQ-0002-16, -17, -18)_
   - Tests: visual; e2e hover in the desktop project
   - Done when: AC-0002-16, -17, -18 pass.
+
+- [ ] T-18a Close Phase 2: refresh visual baselines and open the P2 PR, with the same checks as T-13a.
+  - Done when: as T-13a.
 
 ## Phase 3: consistency (P3)
 
@@ -96,6 +102,6 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 - [ ] T-27 Docs: component docs for the new components, updated `DESIGN_SYSTEM.md` (tokens, contrast table, patterns) and `ACCESSIBILITY.md` (remove the known hidden-label gap), and SPEC-0001 cross-references.
   - Done when: `node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs` pass.
-- [ ] T-28 Refresh visual baselines (macOS and Linux) and run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
+- [ ] T-28 Close Phase 3: refresh visual baselines (macOS and Linux), open the P3 PR, and run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
   - Done when: all pass; AC-0002-24 is demonstrated with a keyboard walkthrough and a screen-reader pass noted in the PR.
 - [ ] T-29 Set the spec to `implemented`, update the index, and remove Roadmap item 1.

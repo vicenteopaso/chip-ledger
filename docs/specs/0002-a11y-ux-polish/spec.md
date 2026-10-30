@@ -2,7 +2,7 @@
 
 | Field   | Value                                                                                                                          |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Status  | draft                                                                                                                          |
+| Status  | approved                                                                                                                       |
 | Tier    | 1                                                                                                                              |
 | Owner   | @vicenteopaso                                                                                                                  |
 | Created | 2026-10-30                                                                                                                     |
@@ -52,7 +52,7 @@ Hosts use this app on a phone, often one-handed, in low light, with others readi
 - REQ-0002-02: When the step changes, focus MUST move to that step's `h1`, which MUST be focusable by script only (`tabIndex=-1`) and show no focus ring for this programmatic focus. The document title MUST become "<Step title> · Chip Ledger".
 - REQ-0002-03: The photo control's accessible name MUST start with its visible text: "Take photo of <name>'s chips", "Retake photo of <name>'s chips", or "Counting… <name>'s chips".
 - REQ-0002-04: Steps before the current one MUST show a visible check mark in addition to their border, and MUST carry the visually hidden text "(done)". Every step-indicator border that conveys state MUST reach 3:1 against `--color-bg` in both themes.
-- REQ-0002-05: Player names, buy-in, and currency MUST have visible labels. Chip rows MUST show visible column headers (Color, Per player, Value) once above the rows, and each row's fields MUST be named per row: "<Color> chip color", "<Color> chips per player", "<Color> chip value". Placeholders MUST NOT be the only visible label.
+- REQ-0002-05: Player names, buy-in, and currency MUST have visible labels. Chip rows MUST show visible column headers (Color, Per player, Value) once above the rows (hidden from assistive technology, because each field's name already contains its header text), and each row's fields MUST be named per row: "<Color> chip color", "<Color> chips per player", "<Color> chip value". Placeholders MUST NOT be the only visible label.
 - REQ-0002-06: Every text field and read-only text area MUST use the `border-control` color (3:1). This includes the copy-fallback field on Settle.
 - REQ-0002-07: Each screen MUST have exactly one polite live region that announces state changes in words: "<n> players", "<name>: <n> buy-ins, pot <amount>", "Results copied", and the reset confirmation opening. The Setup and Cash out summaries MUST be announced only when their message kind changes (ok ↔ warning, or a different warning), not on every keystroke.
 - REQ-0002-08: "Start the game" MUST stay focusable when it cannot be used. It MUST be marked `aria-disabled="true"`, MUST be described by the Setup summary (`aria-describedby`), and activating it MUST move focus to the first invalid field. The buy-in field MUST have `aria-invalid="true"` while the buy-in is ≤ 0.
@@ -120,12 +120,12 @@ Hosts use this app on a phone, often one-handed, in low light, with others readi
 
 ## 7. Open questions
 
-Defaults are proposed. Planning may start once the owner confirms or changes each one.
+All resolved by the owner on 2026-10-30.
 
-- [NEEDS CLARIFICATION: Settle primary action. Proposed: "New game, same players" (REQ-0002-12). Alternative: keep "Back to Setup" per REQ-0001-02.]
-- [NEEDS CLARIFICATION: Reset confirmation. Proposed: inline confirm (REQ-0002-11). Alternative: native `<dialog>` with `showModal()`, which adds a modal pattern and its own focus-trap tests.]
-- [NEEDS CLARIFICATION: Chip-row labels. Proposed: one visible header row (REQ-0002-05). Alternative: a label above each field, which makes every row about 20 px taller.]
-- [NEEDS CLARIFICATION: Visual baselines. Every visual snapshot (macOS and Linux) will change. Refresh them in the implementation PR (proposed), or split one PR per phase?]
+- Resolved: Settle's primary action is "New game, same players" (REQ-0002-12).
+- Resolved: the reset confirmation stays inline in the page, not a modal dialog (REQ-0002-11).
+- Resolved (delegated to the author and decided on best practice): chip rows get one visible header row rather than a label above each field (REQ-0002-05). Reasons: the rows are a repeated grid of the same three fields, which is the case column headers are made for. The header text is contained in each field's accessible name ("Value" ⊂ "White chip value"), so WCAG 2.5.3 holds. Rows stay about 20 px shorter, which keeps the starting stack in view at 320 px. The header row is hidden from assistive technology (`aria-hidden`), so names are not read twice. Fallback: if the 320 px or 200% zoom check in T-08 shows the columns no longer line up under the headers, switch to per-field labels.
+- Resolved: visual baselines are refreshed in each phase's PR (P1, P2, P3), not once at the end.
 
 ## 8. References
 
