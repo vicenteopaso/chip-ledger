@@ -13,8 +13,8 @@ The process is defined in [`../SDD_GUIDE.md`](../SDD_GUIDE.md). Start a new spec
 
 ## Statuses
 
-| Status        | Meaning                                              |
-| ------------- | ---------------------------------------------------- |
+| Status        | Meaning                                             |
+| ------------- | --------------------------------------------------- |
 | `draft`       | Being written; open questions allowed               |
 | `approved`    | Clarified and reviewed; ready to plan or implement  |
 | `implemented` | Shipped; acceptance criteria demonstrated           |
@@ -22,6 +22,7 @@ The process is defined in [`../SDD_GUIDE.md`](../SDD_GUIDE.md). Start a new spec
 
 ## Index
 
-| #    | Title                                          | Status   | Tier | Links |
-| ---- | ---------------------------------------------- | -------- | ---- | ----- |
+| #    | Title                                           | Status      | Tier | Links                                                                                                                                                                       |
+| ---- | ----------------------------------------------- | ----------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0001 | Chip Ledger — poker buy-in and cash-out tracker | implemented | 2    | [spec](./0001-chip-ledger/spec.md) · [plan](./0001-chip-ledger/plan.md) · [tasks](./0001-chip-ledger/tasks.md) · [ADR-0004](../adr/0004-chip-ledger-client-architecture.md) |
+| 0002 | Accessibility, UX, and consistency pass         | approved    | 1    | [spec](./0002-a11y-ux-polish/spec.md) · [plan](./0002-a11y-ux-polish/plan.md) · [tasks](./0002-a11y-ux-polish/tasks.md)                                                     |
