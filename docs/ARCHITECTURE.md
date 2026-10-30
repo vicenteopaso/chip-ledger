@@ -75,6 +75,7 @@ sequenceDiagram
 - Every boundary has a schema (request, response, config, content frontmatter). Types are inferred from schemas.
 - Schemas live next to the domain logic they describe and are shared with tests.
 - Breaking contract changes need a spec, a migration plan, and an ADR if the contract is public.
+- A player's money in is `buyins × buyIn + moved`, where `moved` is the net money chip sales have moved to them (default 0, so older saves and shared games open unchanged). The sum of `moved` over the players is always zero, so the pot does not change when chips are sold ([SPEC-0004](./specs/0004-chip-sales-between-players/spec.md), [ADR-0006](./adr/0006-chip-sales-as-a-per-player-net-amount.md)).
 
 ## 6. Cross-cutting concerns
 

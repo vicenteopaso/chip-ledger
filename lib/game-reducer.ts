@@ -10,7 +10,7 @@ import {
   stackValue,
   UNIFORM_CHIP_ID,
 } from "@/lib/game";
-import { type Currency, currencyDigits, typicalBuyIn } from "@/lib/money";
+import { type Currency, currencyDigits, fromMinor, toMinor, typicalBuyIn } from "@/lib/money";
 
 /** Count and value given to a newly added chip color (REQ-0001-05). */
 export const NEW_CHIP_COUNT = 5;
@@ -35,6 +35,7 @@ export type GameAction =
   | { type: "setUniformChipCount"; count: number }
   | { type: "setUniformChipValue"; value: number }
   | { type: "adjustBuyins"; playerId: string; delta: 1 | -1 }
+  | { type: "sellChips"; sellerId: string; buyerId: string; amount: number }
   | { type: "setPlayerChipCount"; playerId: string; chipId: string; count: number | null }
   | { type: "applyPhotoCounts"; playerId: string; counts: Partial<Record<ChipColor, number>> }
   | { type: "autoFillChips"; chipIds: readonly [string, string, string] }
@@ -87,12 +88,48 @@ function balanced(game: GameState): GameState {
   };
 }
 
+/**
+ * Fewer players are allowed only when nobody dropped holds money moved by a chip sale; otherwise
+ * that money would leave the pot unnoticed (REQ-0004-13).
+ */
+export function canSetPlayerCount(game: GameState, count: number): boolean {
+  return game.players.slice(count, game.count).every((player) => player.moved === 0);
+}
+
+/**
+ * A sale of chips from one player to another for an amount: the seller's money in goes down and
+ * the buyer's goes up by the same amount, so the pot does not change (REQ-0004-03, -04). Returns
+ * the same game when the sale does not apply: unknown or inactive players, the same player twice,
+ * or an amount of zero or less in the currency's smallest unit.
+ */
+function sellChips(game: GameState, sellerId: string, buyerId: string, amount: number): GameState {
+  const minor = toMinor(amount, game.currency);
+  const active = game.players.slice(0, game.count);
+  if (sellerId === buyerId || !(minor > 0)) return game;
+  if (!active.some((p) => p.id === sellerId) || !active.some((p) => p.id === buyerId)) return game;
+  const delta = fromMinor(minor, game.currency);
+  const shift = (player: Player, by: number): Player => ({
+    ...player,
+    moved: fromMinor(toMinor(player.moved + by, game.currency), game.currency),
+  });
+  return {
+    ...game,
+    players: game.players.map((player) => {
+      if (player.id === sellerId) return shift(player, -delta);
+      if (player.id === buyerId) return shift(player, delta);
+      return player;
+    }),
+  };
+}
+
 export function gameReducer(game: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "go":
       return { ...game, screen: action.screen };
-    case "setPlayerCount":
-      return { ...game, count: Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, action.count)) };
+    case "setPlayerCount": {
+      const count = Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, action.count));
+      return canSetPlayerCount(game, count) ? { ...game, count } : game;
+    }
     case "setName":
       return updatePlayer(game, action.playerId, (player) => ({ ...player, name: action.name }));
     case "setBuyIn":
@@ -152,6 +189,8 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
       return { ...edited(game), uniformChip: { ...game.uniformChip, count: action.count } };
     case "setUniformChipValue":
       return { ...edited(game), uniformChip: { ...game.uniformChip, value: action.value } };
+    case "sellChips":
+      return sellChips(game, action.sellerId, action.buyerId, action.amount);
     case "adjustBuyins":
       return updatePlayer(game, action.playerId, (player) => ({
         ...player,
@@ -186,7 +225,7 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
       return {
         ...game,
         screen: "table",
-        players: game.players.map((player) => ({ ...player, buyins: 1, counts: {} })),
+        players: game.players.map((player) => ({ ...player, buyins: 1, moved: 0, counts: {} })),
       };
     case "replace":
       return action.game;

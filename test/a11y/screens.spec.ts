@@ -45,6 +45,28 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expectNoViolations(page);
     });
 
+    test("table with the Sell chips form open, then with a recorded sale (SPEC-0004)", async ({
+      page,
+    }) => {
+      await openFresh(page);
+      await startGame(page);
+      await page.getByRole("button", { name: "Sell chips" }).click();
+      await expect(page.getByRole("combobox", { name: "Seller" })).toBeFocused();
+      await page.getByRole("button", { name: "Record sale" }).click();
+      await expect(page.getByRole("main").getByRole("alert")).toBeVisible();
+      await expectNoViolations(page);
+      await page.getByRole("combobox", { name: "Buyer" }).selectOption({ label: "Ben" });
+      await page.getByRole("textbox", { name: "Amount" }).fill("5");
+      await page.getByRole("button", { name: "Record sale" }).click();
+      await expect(
+        page
+          .getByRole("main")
+          .getByText(/from chip sales/)
+          .first(),
+      ).toBeVisible();
+      await expectNoViolations(page);
+    });
+
     test("table", async ({ page }) => {
       await openFresh(page);
       await startGame(page);

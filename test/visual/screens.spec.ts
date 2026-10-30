@@ -31,6 +31,24 @@ for (const colorScheme of ["light", "dark"] as const) {
         await page.getByRole("button", { name: "Settle up" }).click();
         await snap(page, `settle-${tag}`);
       });
+
+      test("table with a chip sale", async ({ page }) => {
+        const tag = `${colorScheme}-${size}`;
+        await openFresh(page);
+        await startGame(page);
+        await page.getByRole("button", { name: "Sell chips" }).click();
+        await page.getByRole("combobox", { name: "Buyer" }).selectOption({ label: "Ben" });
+        await page.getByRole("textbox", { name: "Amount" }).fill("5");
+        await page.getByRole("button", { name: "Record sale" }).click();
+        await expect(
+          page
+            .getByRole("main")
+            .getByText(/from chip sales/)
+            .first(),
+        ).toBeVisible();
+        await page.getByRole("heading", { level: 1 }).click();
+        await snap(page, `table-sale-${tag}`);
+      });
     });
   }
 }

@@ -1,4 +1,12 @@
-import { activePlayers, cashOutValue, type GameState, playerName, type SpreadBy } from "@/lib/game";
+import {
+  activePlayers,
+  cashOutValue,
+  type GameState,
+  hasChipSales,
+  moneyIn,
+  playerName,
+  type SpreadBy,
+} from "@/lib/game";
 import { type Currency, minorPerUnit } from "@/lib/money";
 
 export type SettlementRow = {
@@ -24,6 +32,8 @@ export type Settlement = {
   /** How the difference was shared, or null when it was not (REQ-0002-33). */
   spreadBy: SpreadBy | null;
   payments: Payment[];
+  /** Some money in came from chip sales between players (REQ-0004-05). */
+  includesChipSales: boolean;
   /** Debts left after payments minus credits left, in smallest units (non-zero only without scaling). */
   unaccountedMinor: number;
 };
@@ -59,7 +69,7 @@ export function settle(game: GameState): Settlement {
   const raw = players.map((player) => ({
     playerId: player.id,
     name: playerName(game, player),
-    putIn: player.buyins * game.buyIn,
+    putIn: moneyIn(game, player),
     value: cashOutValue(game, player),
   }));
   const potTotal = raw.reduce((sum, row) => sum + row.putIn, 0);
@@ -105,6 +115,7 @@ export function settle(game: GameState): Settlement {
     difference: counted - potTotal,
     spreadBy,
     payments,
+    includesChipSales: hasChipSales(game),
     unaccountedMinor: sumMinor(debtors) - sumMinor(creditors),
   };
 }

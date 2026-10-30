@@ -15,9 +15,10 @@ import {
   type GameState,
   MAX_PLAYERS,
   MIN_PLAYERS,
+  playerName,
   UNIFORM_CHIP_ID,
 } from "@/lib/game";
-import type { GameAction } from "@/lib/game-reducer";
+import { canSetPlayerCount, type GameAction } from "@/lib/game-reducer";
 import { CURRENCIES, CurrencySchema, type MoneyFormatter, parseMoney } from "@/lib/money";
 import { setupSummary } from "@/lib/summaries";
 
@@ -54,6 +55,10 @@ export function SetupScreen({
 }: SetupScreenProps) {
   const readOnly = useReadOnly();
   const usedColors = game.chips.map((chip) => chip.color);
+  /** The player who would be dropped by "Fewer players", when a chip sale ties them to the pot. */
+  const last = activePlayers(game).at(-1);
+  const blockedBy =
+    last && game.count > MIN_PLAYERS && !canSetPlayerCount(game, game.count - 1) ? last : null;
   return (
     <>
       {/* The app's name is in the header on every step; the heading names the step (REQ-0002-24). */}
@@ -77,6 +82,11 @@ export function SetupScreen({
           dispatch({ type: "setPlayerCount", count: game.count + delta });
         }}
       />
+      {blockedBy && (
+        <Hint>
+          {`Fewer players isn't available while ${playerName(game, blockedBy)} has money from a chip sale. Sell the chips back first.`}
+        </Hint>
+      )}
       <div className="mt-3 grid grid-cols-2 gap-2">
         {activePlayers(game).map((player, index) => {
           const id = `player-${player.id}-name`;

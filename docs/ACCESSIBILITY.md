@@ -65,6 +65,11 @@ If a brand color cannot meet contrast in one theme, WCAG allows a **conforming a
 - Connection changes ("Reconnecting.", "You're offline…", "Live again.") and "The game has started." go through the page's one polite live region, in words.
 - The page for a game that cannot be opened is the same for every cause and has a title, a way on, and no color-only meaning.
 
+### Chip sales (SPEC-0004)
+
+- The "Sell chips" form has visible labels, moves focus to its first field on open and back to its button on close, closes with `Esc`, and explains a refusal in text ([SellChips](./components/SellChips.md)).
+- Amounts and the "incl. +5.00 from chip sales" lines are text, never color alone; a sale is announced in the live region, on the device that made it and on the others.
+
 ## 3. Implementation
 
 - Shared components bake in accessibility (labels, focus management) so feature code inherits it.

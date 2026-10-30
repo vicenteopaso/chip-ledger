@@ -1,4 +1,4 @@
-import { activePlayers, type GameState, playerName, pot } from "@/lib/game";
+import { activePlayers, type GameState, moneyIn, playerName, pot } from "@/lib/game";
 import type { MoneyFormatter } from "@/lib/money";
 
 /**
@@ -17,9 +17,19 @@ export function changeAnnouncement(
   const changed = activePlayers(next).find(
     (player, index) => player.buyins !== previous.players[index]?.buyins,
   );
-  if (!changed) return null;
+  if (!changed) return chipSale(previous, next, money);
   const buyins = `${String(changed.buyins)} ${changed.buyins === 1 ? "buy-in" : "buy-ins"}`;
   return `${playerName(next, changed)}: ${buyins}, pot ${money(pot(next))}`;
+}
+
+/** "Chip sale: Ana now $15.00 in, Ben now $25.00 in", or `null` when no sale changed an amount. */
+function chipSale(previous: GameState, next: GameState, money: MoneyFormatter): string | null {
+  const sales = activePlayers(next).flatMap((player, index) => {
+    const before = previous.players[index]?.moved;
+    if (before === undefined || player.moved === before) return [];
+    return [`${playerName(next, player)} now ${money(moneyIn(next, player))} in`];
+  });
+  return sales.length > 0 ? `Chip sale: ${sales.join(", ")}` : null;
 }
 
 /**
@@ -42,5 +52,7 @@ export function remoteChanges(
   });
   parts.push(...rebuys);
   if (rebuys.length > 0) parts.push(`pot ${money(pot(next))}`);
+  const sale = chipSale(previous, next, money);
+  if (sale) parts.push(sale);
   return parts.length > 0 ? parts.join(", ") : null;
 }

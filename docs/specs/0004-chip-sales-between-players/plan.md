@@ -4,7 +4,7 @@
 | ------ | ------------------------------------------------------------------- |
 | Spec   | [spec.md](./spec.md)                                                |
 | ADR    | [ADR-0006](../../adr/0006-chip-sales-as-a-per-player-net-amount.md) |
-| Status | draft                                                               |
+| Status | approved                                                            |
 
 ## 1. Approach
 
