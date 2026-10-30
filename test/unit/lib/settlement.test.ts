@@ -85,6 +85,14 @@ describe("settle", () => {
     expect(result.rows.reduce((sum, r) => sum + r.netMinor, 0)).toBe(0);
   });
 
+  it("REQ-0002-33: equally means equally, even below zero", () => {
+    // $120 counted for an $80 pot: $10 less for each cash-out, so Dee's goes to −$10.
+    const result = settle(withBlueCounts([60, 40, 20, 0], { spreadBy: "equal" }));
+    const dee = result.rows[3];
+    expect(dee).toMatchObject({ name: "Dee", cashedOut: -10, netMinor: -3000 });
+    expect(result.rows.reduce((sum, r) => sum + r.netMinor, 0)).toBe(0);
+  });
+
   it("AC-0002-33: equal shares that don't divide evenly still sum to zero", () => {
     // $58 short across 3 players: $19.333… each, so the nets round to one cent too many.
     const result = settle(withBlueCounts([1, 1, 0], { count: 3, spreadBy: "equal" }));
