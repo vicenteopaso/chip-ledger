@@ -110,6 +110,10 @@ Legend: `[P]` can run in parallel with its neighbours.
   - Tests: control-language and Select component tests; token contrast; visual
   - Done when: AC-0002-31 and AC-0002-32 pass.
 
+- [x] T-26d Choose how to share a pot difference _(REQ-0002-33; amends REQ-0001-18, -20)_
+  - Tests: settlement (both modes, short and over, residue), schema default for older saves, reducer, results text, Settle container test
+  - Done when: AC-0002-33 passes.
+
 ## Verification and close
 
 - [x] T-27 Docs: component docs for the new components, updated `DESIGN_SYSTEM.md` (tokens, contrast table, patterns) and `ACCESSIBILITY.md` (remove the known hidden-label gap), and SPEC-0001 cross-references.

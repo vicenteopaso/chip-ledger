@@ -21,7 +21,7 @@ A confirmation (`ok`) or a note (`warn`): the same box for every kind, with an i
 ```tsx
 <Notice notice={setupSummary(game, money)} />
 <Notice notice={{ kind: "warn", text }}>
-  <label>…spread the difference…</label>
+  <label>…share the difference…</label>
 </Notice>
 ```
 

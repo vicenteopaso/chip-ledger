@@ -3,7 +3,7 @@ import { ConfirmInline } from "@/app/components/ConfirmInline";
 import { Notice } from "@/app/components/Notice";
 import { Card, ListRow } from "@/app/components/Surfaces";
 import { Hint, PageTitle, SectionTitle } from "@/app/components/Typography";
-import type { GameState } from "@/lib/game";
+import type { GameState, SpreadBy } from "@/lib/game";
 import { type Currency, fromMinor, type MoneyFormatter } from "@/lib/money";
 import type { Settlement } from "@/lib/settlement";
 import { hasPotMismatch } from "@/lib/summaries";
@@ -19,6 +19,7 @@ export type SettleScreenProps = {
   /** Whether the "Start over" confirmation is open (REQ-0002-11). */
   resetConfirming: boolean;
   onScaleChange: (scale: boolean) => void;
+  onSpreadByChange: (spreadBy: SpreadBy) => void;
   onCopy: () => void;
   onBackToSetup: () => void;
   onResetConfirmingChange: (open: boolean) => void;
@@ -43,12 +44,28 @@ export function SettleScreen({
   copy,
   resetConfirming,
   onScaleChange,
+  onSpreadByChange,
   onCopy,
   onBackToSetup,
   onResetConfirmingChange,
   onReset,
 }: SettleScreenProps) {
   const difference = Math.abs(settlement.difference);
+  // Short: the shared money is added to cash-outs; over: it is taken from them.
+  const short = settlement.difference < 0;
+  const perPlayer = difference / settlement.rows.length;
+  const spreadOptions: { value: SpreadBy; label: string; effect: string }[] = [
+    {
+      value: "chips",
+      label: "In proportion to chips",
+      effect: short ? "Bigger stacks get more of it." : "Bigger stacks give up more of it.",
+    },
+    {
+      value: "equal",
+      label: "Equally",
+      effect: `${money(perPlayer)} ${short ? "more" : "less"} for each player.`,
+    },
+  ];
   return (
     <>
       <PageTitle>Settle up</PageTitle>
@@ -68,11 +85,32 @@ export function SettleScreen({
                 onScaleChange(event.target.checked);
               }}
             />
-            <span>
-              Spread the difference across everyone in proportion to their chips, so the payments
-              balance.
-            </span>
+            <span>{`Share the ${money(difference)} difference so the payments balance.`}</span>
           </label>
+          {game.scale && (
+            // Indented to line up with the checkbox's text: a 22 px box and a 12 px gap.
+            <fieldset className="mt-3 ml-8.5 flex flex-col gap-2.5">
+              <legend className="mb-2 font-semibold">Share it</legend>
+              {spreadOptions.map((option) => (
+                <label key={option.value} className="flex items-start gap-3 text-md">
+                  <input
+                    type="radio"
+                    name="spread-by"
+                    className="mt-px size-5 flex-none accent-accent"
+                    value={option.value}
+                    checked={game.spreadBy === option.value}
+                    onChange={() => {
+                      onSpreadByChange(option.value);
+                    }}
+                  />
+                  <span>
+                    <span className="block font-semibold">{option.label}</span>
+                    {option.effect}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
         </Notice>
       )}
 

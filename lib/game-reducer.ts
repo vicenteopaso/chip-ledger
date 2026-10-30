@@ -2,6 +2,7 @@ import { planChips, planUniformChip } from "@/lib/chip-plan";
 import { availableColors, type ChipColor } from "@/lib/chips";
 import {
   type GameState,
+  type SpreadBy,
   MAX_PLAYERS,
   MIN_PLAYERS,
   type Player,
@@ -38,6 +39,7 @@ export type GameAction =
   | { type: "applyPhotoCounts"; playerId: string; counts: Partial<Record<ChipColor, number>> }
   | { type: "autoFillChips"; chipIds: readonly [string, string, string] }
   | { type: "setScale"; scale: boolean }
+  | { type: "setSpreadBy"; spreadBy: SpreadBy }
   | { type: "newGameSamePlayers" }
   | { type: "replace"; game: GameState };
 
@@ -178,6 +180,8 @@ export function gameReducer(game: GameState, action: GameAction): GameState {
       });
     case "setScale":
       return { ...game, scale: action.scale };
+    case "setSpreadBy":
+      return { ...game, spreadBy: action.spreadBy };
     case "newGameSamePlayers":
       return {
         ...game,

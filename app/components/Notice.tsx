@@ -4,7 +4,7 @@ import type { Notice as NoticeData } from "@/lib/summaries";
 
 export type NoticeProps = {
   notice: Pick<NoticeData, "kind" | "text">;
-  /** Extra content under the text, such as Settle's "spread the difference" checkbox. */
+  /** Extra content under the text, such as Settle's "share the difference" controls. */
   children?: ReactNode;
 };
 

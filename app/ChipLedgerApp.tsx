@@ -281,6 +281,9 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
             onScaleChange={(scale) => {
               dispatch({ type: "setScale", scale });
             }}
+            onSpreadByChange={(spreadBy) => {
+              dispatch({ type: "setSpreadBy", spreadBy });
+            }}
             onCopy={() => {
               void copyResults();
             }}

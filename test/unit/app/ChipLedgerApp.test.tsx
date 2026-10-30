@@ -233,7 +233,18 @@ describe("ChipLedgerApp", () => {
     expect(within(screen.getByRole("main")).getAllByRole("listitem")[0]).toHaveTextContent(
       "Dee pays Ana$20.00",
     );
-    await userEvent.click(screen.getByRole("checkbox"));
+    // AC-0002-33: sharing is on by default, by chips; Equally changes the payments.
+    const sharing = screen.getByRole("group", { name: "Share it" });
+    expect(within(sharing).getByRole("radio", { name: /In proportion to chips/ })).toBeChecked();
+    await userEvent.click(within(sharing).getByRole("radio", { name: /Equally/ }));
+    expect(
+      within(sharing).getByRole("radio", { name: /\$2\.50 more for each player/ }),
+    ).toBeChecked();
+    expect(within(screen.getByRole("main")).getAllByRole("listitem")[0]).toHaveTextContent(
+      "Dee pays Ana$17.50",
+    );
+    await userEvent.click(screen.getByRole("checkbox", { name: /Share the \$10\.00 difference/ }));
+    expect(screen.queryByRole("group", { name: "Share it" })).toBeNull();
     expect(screen.getByText(/leave \$10\.00 unaccounted for/)).toBeInTheDocument();
     expect(screen.getByText("+$15.00")).toBeInTheDocument();
 

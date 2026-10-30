@@ -58,7 +58,7 @@ describe("count check", () => {
     expect(countCheckSummary(counted, usd)).toEqual({
       kind: "warn",
       code: "under",
-      text: "Counted chips are worth $10.00, which is $70.00 less than the $80.00 pot. Recount the colors marked in red, or settle anyway and the difference is spread across everyone.",
+      text: "Counted chips are worth $10.00, which is $70.00 less than the $80.00 pot. Recount the colors marked in red, or settle anyway and choose how to share the difference.",
     });
   });
 
@@ -116,6 +116,22 @@ describe("resultsText", () => {
 
   it("REQ-0001-22: says nobody pays when everyone broke even", () => {
     expect(resultsText(settle(defaultGame()), usd, "d")).toContain("None, everyone broke even");
+  });
+
+  it("REQ-0002-33: says how a pot difference was shared", () => {
+    const game = defaultGame();
+    const short = {
+      ...game,
+      spreadBy: "equal" as const,
+      players: game.players.map((p, i) => ({ ...p, counts: { blue: [35, 25, 10, 0][i] ?? 0 } })),
+    };
+    expect(resultsText(settle(short), usd, "d")).toContain(
+      "Counted chips: $70.00, the $10.00 difference shared equally",
+    );
+    expect(resultsText(settle({ ...short, spreadBy: "chips" }), usd, "d")).toContain(
+      "shared in proportion to chips",
+    );
+    expect(resultsText(settle({ ...short, scale: false }), usd, "d")).not.toContain("shared");
   });
 
   it("REQ-0001-20: detects a pot mismatch", () => {

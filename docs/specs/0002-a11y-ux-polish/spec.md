@@ -92,6 +92,12 @@ Added after the owner's review of the Phase 3 preview.
 - REQ-0002-31: Fields, buttons, and notices MUST each have one look that the other two never share. Text fields, selects, and the stepper share one field box (48 px, `--radius-md`, `--color-border-control` border, surface). Buttons are pills (`--radius-full`) filled with accent (primary), a soft accent tint (secondary), or a soft danger tint (danger); only the outline variant has a border. Notices are tinted panels with a 4 px colored rule on the left and no full border. Text on every tint MUST stay at least 4.5:1 in both themes.
 - REQ-0002-32: Selects MUST draw their own chevron inside the field box, at a fixed inset from its right edge, instead of the browser's arrow.
 
+### Sharing a pot difference (owner review)
+
+Added after the owner found that spreading a shortfall "across everyone" paid the biggest stacks the most, which the old label did not make clear.
+
+- REQ-0002-33: When the counted chips differ from the pot, Settle's checkbox MUST read "Share the <amount> difference so the payments balance." While it is on, a radio group labelled "Share it" MUST offer "In proportion to chips" (the SPEC-0001 scaling, and the default) and "Equally" (the same amount added to every cash-out when chips are short, or taken from every cash-out when they are over). Each option MUST state its effect for this game: bigger stacks get more (short) or give up more (over); "<amount> more/less for each player". Rounding residue follows REQ-0001-18 in both modes. The choice MUST be saved with the game; games saved without it MUST load with "In proportion to chips". The copied results MUST say how a difference was shared.
+
 ## 5. Acceptance criteria
 
 - AC-0002-01 (REQ-0002-01): Given 20 USD and its default chips, when the host opens Cash out, then each card shows the visible text "White", "Red", and "Blue" beside the matching inputs, and `getByLabel("Red chips for Ana")` still finds the red input.
@@ -123,6 +129,7 @@ Added after the owner's review of the Phase 3 preview.
 - AC-0002-30 (REQ-0002-30): The visual snapshots of every step show the same header and title spacing.
 - AC-0002-31 (REQ-0002-31): Component tests find `rounded-full` on every filled and outline button variant and never the field border; the field box and the stepper share `h-12`, `rounded-md`, and `border-border-control`; notices have `border-l-4` and no full border. A contrast check of text on the accent-soft, danger-soft, and success tints reports ≥ 4.5:1 in both themes.
 - AC-0002-32 (REQ-0002-32): The currency and chip-color selects have `appearance-none` and a decorative chevron positioned inside the box, and are still named list boxes.
+- AC-0002-33 (REQ-0002-33): Given 4 players at $20 and $70 counted (35, 25, 10, 0), then by chips the cash-outs are scaled by 80 ÷ 70, and equally each cash-out is $2.50 higher, so the nets are +17.50, +7.50, −7.50, −17.50 and Dee pays Ana $17.50. Given $100 counted for an $80 pot, equally each cash-out is $5 lower. In every case the nets sum to exactly 0 cents. A saved game without the choice loads with "In proportion to chips", and the copied results include "the $10.00 difference shared equally".
 - AC-0002-24 (all): axe reports no WCAG 2.1 A/AA violations on every step and new state (confirmation open, aria-disabled start) in light and dark, and a keyboard-only walkthrough Setup → Settle → New game passes.
 
 ## 6. Cross-cutting concerns

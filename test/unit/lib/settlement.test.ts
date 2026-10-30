@@ -61,6 +61,41 @@ describe("settle", () => {
     expect(result.unaccountedMinor).toBe(2000);
   });
 
+  it("AC-0002-33: by chips, bigger stacks take a bigger share of a shortfall", () => {
+    // Counted $70 for an $80 pot: every cash-out is scaled by 80 / 70.
+    const result = settle(withBlueCounts([35, 25, 10, 0]));
+    expect(result.spreadBy).toBe("chips");
+    expect(result.rows.map((r) => r.cashedOut)).toEqual([40, 25 * (80 / 70), 10 * (80 / 70), 0]);
+    expect(result.rows.reduce((sum, r) => sum + r.netMinor, 0)).toBe(0);
+  });
+
+  it("AC-0002-33: equally, every player gets the same share of a shortfall", () => {
+    // $10 short across 4 players: $2.50 more for each cash-out.
+    const result = settle(withBlueCounts([35, 25, 10, 0], { spreadBy: "equal" }));
+    expect(result.spreadBy).toBe("equal");
+    expect(result.rows.map((r) => r.cashedOut)).toEqual([37.5, 27.5, 12.5, 2.5]);
+    expect(result.rows.map((r) => r.netMinor)).toEqual([1750, 750, -750, -1750]);
+    expect(result.unaccountedMinor).toBe(0);
+  });
+
+  it("AC-0002-33: equally, every player gives up the same share of an excess", () => {
+    // $20 over across 4 players: $5 less for each cash-out.
+    const result = settle(withBlueCounts([40, 30, 20, 10], { spreadBy: "equal" }));
+    expect(result.rows.map((r) => r.netMinor)).toEqual([1500, 500, -500, -1500]);
+    expect(result.rows.reduce((sum, r) => sum + r.netMinor, 0)).toBe(0);
+  });
+
+  it("AC-0002-33: equal shares that don't divide evenly still sum to zero", () => {
+    // $58 short across 3 players: $19.333… each, so the nets round to one cent too many.
+    const result = settle(withBlueCounts([1, 1, 0], { count: 3, spreadBy: "equal" }));
+    expect(result.rows.map((r) => r.cashedOut)).toEqual([1 + 58 / 3, 1 + 58 / 3, 58 / 3]);
+    expect(result.rows.reduce((sum, r) => sum + r.netMinor, 0)).toBe(0);
+  });
+
+  it("REQ-0002-33: nothing is shared when spreading is off", () => {
+    expect(settle(withBlueCounts([35, 25, 10, 0], { scale: false })).spreadBy).toBeNull();
+  });
+
   it("REQ-0001-18: does not scale when nothing was counted", () => {
     const result = settle(withBlueCounts([]));
     expect(result.counted).toBe(0);
