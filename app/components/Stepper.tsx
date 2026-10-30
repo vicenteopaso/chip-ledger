@@ -1,4 +1,5 @@
 import { FIELD_BOX } from "@/app/components/Field";
+import { useReadOnly } from "@/app/components/ReadOnly";
 
 export type StepperProps = {
   /** Names the group and the value, for example "Number of players" or "Buy-ins for Ana". */
@@ -32,6 +33,25 @@ export function Stepper({
   onStep,
   stretch = false,
 }: StepperProps) {
+  const readOnly = useReadOnly();
+  // A watcher sees the number alone: no buttons that do nothing (REQ-0003-06).
+  if (readOnly) {
+    return (
+      <div
+        role="group"
+        aria-label={label}
+        className={`flex items-center px-3 ${FIELD_BOX} ${stretch ? "w-full" : "w-fit"}`}
+      >
+        <output
+          className={`min-w-7 text-center text-2xl font-extrabold ${stretch ? "flex-1" : ""}`}
+          aria-label={label}
+          aria-live="off"
+        >
+          {value}
+        </output>
+      </div>
+    );
+  }
   return (
     <div
       role="group"

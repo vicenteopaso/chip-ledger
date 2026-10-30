@@ -93,7 +93,7 @@ describe("seo", () => {
     expect(meta.title).toBe("Chip Ledger");
     expect(sitemapEntries("https://chips.example")).toEqual([{ url: "https://chips.example/" }]);
     expect(robotsRules("https://chips.example")).toEqual({
-      rules: [{ userAgent: "*", allow: "/", disallow: "/api/" }],
+      rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/g/"] }],
       sitemap: "https://chips.example/sitemap.xml",
     });
   });

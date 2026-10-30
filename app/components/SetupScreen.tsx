@@ -5,6 +5,7 @@ import { ChipRow, ChipRowHeader } from "@/app/components/ChipRow";
 import { DraftInput } from "@/app/components/DraftInput";
 import { FIELD } from "@/app/components/Field";
 import { Notice } from "@/app/components/Notice";
+import { useReadOnly } from "@/app/components/ReadOnly";
 import { Select } from "@/app/components/Select";
 import { Stepper } from "@/app/components/Stepper";
 import { Lede, PageTitle, SectionTitle, Hint } from "@/app/components/Typography";
@@ -49,6 +50,7 @@ export function SetupScreen({
   buyInRef,
   firstChipRef,
 }: SetupScreenProps) {
+  const readOnly = useReadOnly();
   const usedColors = game.chips.map((chip) => chip.color);
   return (
     <>
@@ -85,6 +87,8 @@ export function SetupScreen({
                 id={id}
                 className={`${FIELD} w-full px-3 text-body`}
                 value={player.name}
+                readOnly={readOnly}
+                aria-readonly={readOnly ? true : undefined}
                 placeholder={`Player ${String(index + 1)}`}
                 autoComplete="off"
                 autoCapitalize="words"
@@ -144,6 +148,7 @@ export function SetupScreen({
           type="checkbox"
           className="mt-px size-5.5 flex-none accent-accent"
           checked={game.uniformValue}
+          disabled={readOnly}
           onChange={(event) => {
             dispatch({ type: "setUniformValue", enabled: event.target.checked });
           }}
@@ -155,7 +160,7 @@ export function SetupScreen({
           ? "How many chips each player gets, and what one chip is worth."
           : "Color, how many each player gets, and what one chip is worth."}
       </Hint>
-      {game.autoChips ? (
+      {readOnly ? null : game.autoChips ? (
         <Hint>The chips adjust to the buy-in. Edit any chip to set them yourself.</Hint>
       ) : (
         <Button variant="link" onClick={onAutoFill}>
@@ -205,7 +210,7 @@ export function SetupScreen({
               }}
             />
           ))}
-          {usedColors.length < CHIP_COLORS.length && (
+          {!readOnly && usedColors.length < CHIP_COLORS.length && (
             <Button variant="link" onClick={onAddChip}>
               Add a chip color
             </Button>

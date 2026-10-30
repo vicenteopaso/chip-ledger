@@ -40,3 +40,7 @@ When `value` changes from outside (reset, photo count, load) and differs from th
 ## Testing
 
 `test/unit/app/components/SetupScreen.test.tsx` (draft text kept while typing), `test/unit/app/ChipLedgerApp.test.tsx` (external updates).
+
+## Read-only
+
+In a [read-only](./ReadOnly.md) subtree the input is `readOnly` with `aria-readonly="true"`.

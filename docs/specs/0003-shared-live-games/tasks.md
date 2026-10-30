@@ -59,19 +59,19 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 ## 3. Join and watch (PR 3)
 
-- [ ] T-16 `app/g/[id]/page.tsx`: `noindex`, no referrer, `robots.ts` disallow, generic unavailable page _(REQ-0003-04, -05, -26, SEO)_
+- [x] T-16 `app/g/[id]/page.tsx`: `noindex`, no referrer, `robots.ts` disallow, generic unavailable page _(REQ-0003-04, -05, -26, SEO)_
   - Tests: component and e2e; AC-0003-03, -04 and -21
   - Done when: the key never appears in a request URL and wrong key and deleted game look identical.
-- [ ] T-17 `useSharedGame` hook (snapshot, polling first, then SSE on top, status) and `ConnectionStatus` _(REQ-0003-10, -13, -14)_
+- [x] T-17 `useSharedGame` hook (snapshot, polling first, then SSE on top, status) and `ConnectionStatus` _(REQ-0003-10, -13, -14)_
   - Tests: hook tests with a fake server; component states; axe
   - Done when: AC-0003-09 passes in e2e and the status is announced.
-- [ ] T-18 [P] `WatchOnlyNotice`, disabled editing controls for watchers _(REQ-0003-06)_
+- [x] T-18 [P] `WatchNotice` and a `ReadOnlyContext` that the shared controls read, so watchers see read-only fields, no steppers, and no edit buttons _(REQ-0003-06)_
   - Tests: component and e2e; AC-0003-05
   - Done when: controls are inoperable and the role is stated in text.
-- [ ] T-19 [P] Waiting-for-host state _(REQ-0003-15)_
+- [x] T-19 [P] Waiting-for-host state _(REQ-0003-15)_
   - Tests: e2e AC-0003-12
   - Done when: the watcher follows the start without reloading.
-- [ ] T-20 Close PR 3: refresh visual baselines for new states (both themes, mobile and desktop, forced colors); `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
+- [ ] T-20 Close PR 3: new visual specs for the watched states (`test/visual/shared-game.spec.ts`); Linux baselines come from CI (add the `update-visual-baselines` label), macOS ones from a local run; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
 
 ## 4. Editing and sync (PR 4)
 

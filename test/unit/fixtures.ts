@@ -2,6 +2,7 @@ import { planChips, planUniformChip } from "@/lib/chip-plan";
 import { createGame, type GameState } from "@/lib/game";
 import { sequentialIds } from "@/lib/ids";
 import { moneyFormatter } from "@/lib/money";
+import { type GameSnapshot, SharedGameBodySchema } from "@/lib/shared-game";
 
 /**
  * A 20 USD game with predictable ids (players p1…p6; chips white, red, blue) and balanced
@@ -25,3 +26,16 @@ export function gameWith(overrides: Partial<GameState> = {}): GameState {
 }
 
 export const usd = moneyFormatter("USD", "en-US");
+
+/** A shared-game snapshot as the server sends it, over the 20 USD fixture game. */
+export function sharedSnapshot(overrides: Partial<GameSnapshot> = {}): GameSnapshot {
+  return {
+    rev: 1,
+    started: true,
+    game: SharedGameBodySchema.parse(defaultGame()),
+    role: "watch",
+    archived: false,
+    online: null,
+    ...overrides,
+  };
+}

@@ -23,6 +23,8 @@ export default defineConfig({
   ],
   webServer: {
     command: `pnpm start --port ${String(PORT)}`,
+    // Shared games (SPEC-0003) keep their data in this server's memory, so tests need no database.
+    env: { GAME_STORE_MEMORY: "true" },
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

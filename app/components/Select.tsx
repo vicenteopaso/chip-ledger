@@ -1,6 +1,7 @@
 import type { Ref, SelectHTMLAttributes } from "react";
 
 import { FIELD } from "@/app/components/Field";
+import { useReadOnly } from "@/app/components/ReadOnly";
 
 export type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "className"> & {
   /** Extra classes for the select: its left padding and text size. */
@@ -14,9 +15,14 @@ export type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "classNa
  * (REQ-0002-32). The chevron is decorative: the select is still announced as a list box.
  */
 export function Select({ className = "", ...props }: SelectProps) {
+  const readOnly = useReadOnly();
   return (
     <div className="relative">
-      <select className={`${FIELD} w-full appearance-none pr-8 ${className}`} {...props} />
+      <select
+        className={`${FIELD} w-full appearance-none pr-8 ${className}`}
+        {...props}
+        disabled={readOnly || props.disabled}
+      />
       <svg
         className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-text-muted"
         viewBox="0 0 16 16"

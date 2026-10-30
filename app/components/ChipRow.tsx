@@ -3,6 +3,7 @@ import type { Ref } from "react";
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
 import { FIELD } from "@/app/components/Field";
+import { useReadOnly } from "@/app/components/ReadOnly";
 import { Select } from "@/app/components/Select";
 import { ListRow } from "@/app/components/Surfaces";
 import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
@@ -55,6 +56,7 @@ export function ChipRow({
   onRemove,
   countRef,
 }: ChipRowProps) {
+  const readOnly = useReadOnly();
   const label = STACK_LABELS[chip.color];
   const mixed = chip.color === MIXED;
   const countLabel = mixed ? "Chips per player" : `${label} chips per player`;
@@ -119,16 +121,18 @@ export function ChipRow({
         parse={(text) => parseMoney(text, currency)}
         onValueChange={onValueChange}
       />
-      <button
-        type="button"
-        // 44px touch target in a 36px column; it overlaps only the gap beside it.
-        className="-mx-1 size-11 rounded-sm border-0 bg-transparent text-3xl leading-none text-text-muted hover:not-disabled:bg-surface-hover hover:not-disabled:text-text disabled:text-disabled-ink"
-        aria-label={`Remove ${label}`}
-        disabled={!canRemove}
-        onClick={onRemove}
-      >
-        ×
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          // 44px touch target in a 36px column; it overlaps only the gap beside it.
+          className="-mx-1 size-11 rounded-sm border-0 bg-transparent text-3xl leading-none text-text-muted hover:not-disabled:bg-surface-hover hover:not-disabled:text-text disabled:text-disabled-ink"
+          aria-label={`Remove ${label}`}
+          disabled={!canRemove}
+          onClick={onRemove}
+        >
+          ×
+        </button>
+      )}
       <div className="col-start-2 -col-end-1 -mt-1 text-md text-text-muted">
         {`${String(chip.count)} chips worth ${money(chip.count * chip.value)}`}
       </div>

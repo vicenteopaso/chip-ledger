@@ -14,6 +14,8 @@ import {
   createStoredGame,
   EditEnvelopeSchema,
   GameIdSchema,
+  GameReplySchema,
+  keyFromHash,
   KeySchema,
   lastActivityAt,
   lifecycleStatus,
@@ -356,5 +358,29 @@ describe("toSnapshot", () => {
     });
     expect(JSON.stringify(snapshot)).not.toContain(HASH);
     expect(Object.keys(snapshot)).not.toContain("watchKeyHash");
+  });
+});
+
+describe("join links and replies (REQ-0003-04, -05)", () => {
+  it("reads the key from #k= and nothing else", () => {
+    const key = "A".repeat(22);
+    expect(keyFromHash(`#k=${key}`)).toBe(key);
+    for (const bad of ["", "#", `#${key}`, `#k=${key}x`, "#k=short", `#k=${key}&x=1`, `k=${key}`]) {
+      expect(keyFromHash(bad)).toBeNull();
+    }
+  });
+
+  it("parses a snapshot and the short unchanged answer, and nothing in between", () => {
+    const snapshot = toSnapshot(storedGame(), "watch", "active", null);
+    expect("game" in (GameReplySchema.parse(snapshot) as object)).toBe(true);
+    expect(
+      GameReplySchema.parse({ rev: 1, unchanged: true, archived: false, online: 2 }),
+    ).toMatchObject({
+      unchanged: true,
+    });
+    expect(
+      GameReplySchema.safeParse({ rev: 1, unchanged: false, archived: false, online: 2 }).success,
+    ).toBe(false);
+    expect(GameReplySchema.safeParse({ ...snapshot, role: "admin" }).success).toBe(false);
   });
 });

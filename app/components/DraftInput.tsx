@@ -2,6 +2,8 @@
 
 import { type InputHTMLAttributes, type Ref, useState } from "react";
 
+import { useReadOnly } from "@/app/components/ReadOnly";
+
 export type DraftInputProps<T> = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "value" | "defaultValue" | "onChange"
@@ -25,6 +27,7 @@ export function DraftInput<T>({
   onValueChange,
   ...props
 }: DraftInputProps<T>) {
+  const readOnly = useReadOnly();
   const [draft, setDraft] = useState(() => format(value));
   const [seen, setSeen] = useState(value);
   if (!Object.is(seen, value)) {
@@ -34,6 +37,9 @@ export function DraftInput<T>({
   return (
     <input
       {...props}
+      // Read-only, not disabled, so a watcher can still focus, select, and hear the value.
+      readOnly={readOnly || props.readOnly}
+      aria-readonly={readOnly || props.readOnly ? true : undefined}
       value={draft}
       onChange={(event) => {
         const text = event.target.value;

@@ -1,6 +1,7 @@
 import { Button } from "@/app/components/Button";
 import { ConfirmInline } from "@/app/components/ConfirmInline";
 import { Notice } from "@/app/components/Notice";
+import { useReadOnly } from "@/app/components/ReadOnly";
 import { Card, ListRow } from "@/app/components/Surfaces";
 import { Hint, PageTitle, SectionTitle } from "@/app/components/Typography";
 import type { GameState, SpreadBy } from "@/lib/game";
@@ -50,6 +51,7 @@ export function SettleScreen({
   onResetConfirmingChange,
   onReset,
 }: SettleScreenProps) {
+  const readOnly = useReadOnly();
   const difference = Math.abs(settlement.difference);
   // Short: the shared money is added to cash-outs; over: it is taken from them.
   const short = settlement.difference < 0;
@@ -66,6 +68,7 @@ export function SettleScreen({
       effect: `${money(perPlayer)} ${short ? "more" : "less"} for each player.`,
     },
   ];
+  const chosen = spreadOptions.find((option) => option.value === game.spreadBy);
   return (
     <>
       <PageTitle>Settle up</PageTitle>
@@ -81,13 +84,20 @@ export function SettleScreen({
               type="checkbox"
               className="mt-px size-5.5 flex-none accent-accent"
               checked={game.scale}
+              disabled={readOnly}
               onChange={(event) => {
                 onScaleChange(event.target.checked);
               }}
             />
             <span>{`Share the ${money(difference)} difference so the payments balance.`}</span>
           </label>
-          {game.scale && (
+          {game.scale && readOnly && (
+            // A disabled radio group hides which choice is on, so a watcher gets a sentence.
+            <p className="mt-3 ml-8.5 text-md">
+              {`Shared ${chosen?.label.toLowerCase() ?? ""}. ${chosen?.effect ?? ""}`}
+            </p>
+          )}
+          {game.scale && !readOnly && (
             // Indented to line up with the checkbox's text: a 22 px box and a 12 px gap.
             <fieldset className="mt-3 ml-8.5 flex flex-col gap-2.5">
               <legend className="mb-2 font-semibold">Share it</legend>
@@ -99,6 +109,7 @@ export function SettleScreen({
                     className="mt-px size-5 flex-none accent-accent"
                     value={option.value}
                     checked={game.spreadBy === option.value}
+                    disabled={readOnly}
                     onChange={() => {
                       onSpreadByChange(option.value);
                     }}
@@ -178,14 +189,16 @@ export function SettleScreen({
         <Button variant="secondary" onClick={onBackToSetup}>
           Back to Setup
         </Button>
-        <ConfirmInline
-          triggerLabel="Start over from scratch"
-          message="Erase everything? Names, chips, and buy-ins will be cleared."
-          confirmLabel="Erase everything"
-          open={resetConfirming}
-          onOpenChange={onResetConfirmingChange}
-          onConfirm={onReset}
-        />
+        {!readOnly && (
+          <ConfirmInline
+            triggerLabel="Start over from scratch"
+            message="Erase everything? Names, chips, and buy-ins will be cleared."
+            confirmLabel="Erase everything"
+            open={resetConfirming}
+            onOpenChange={onResetConfirmingChange}
+            onConfirm={onReset}
+          />
+        )}
       </div>
     </>
   );
