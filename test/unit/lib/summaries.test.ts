@@ -53,6 +53,7 @@ describe("count check", () => {
       counted: 40,
       issued: 80,
       mismatch: true,
+      note: "40 short",
     });
     expect(countCheckSummary(counted, usd)).toEqual({
       kind: "warn",
@@ -66,7 +67,16 @@ describe("count check", () => {
     const over = { ...game, players: game.players.map((p) => ({ ...p, counts: { blue: 30 } })) };
     expect(countCheckSummary(over, usd).text).toContain("$40.00 more than the $80.00 pot");
     expect(countCheckSummary(over, usd).code).toBe("over");
+    // AC-0002-14: the mismatch is stated in words, not only by color.
+    expect(countCheckRows(over).find((row) => row.chipId === "blue")?.note).toBe("80 over");
+    expect(countCheckRows(defaultGame())[0]?.note).toBe("80 short");
     const exact = { ...game, players: game.players.map((p) => ({ ...p, counts: { blue: 20 } })) };
+    const issuedCounts = { white: 20, red: 10, blue: 10 };
+    const allMatch = {
+      ...game,
+      players: game.players.map((p) => ({ ...p, counts: issuedCounts })),
+    };
+    expect(countCheckRows(allMatch).map((row) => row.note)).toEqual([null, null, null]);
     expect(countCheckSummary(exact, usd)).toEqual({
       kind: "ok",
       code: "match",

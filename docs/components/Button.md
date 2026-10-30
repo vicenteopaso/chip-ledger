@@ -2,20 +2,21 @@
 
 The app's native button with its four variants. Use it for every action; use `next/link` for navigation.
 
-| Field    | Value                                   |
-| -------- | --------------------------------------- |
-| Location | `app/components/Button.tsx`             |
-| Type     | Server-compatible component             |
-| Status   | stable                                  |
-| Spec     | SPEC-0001, SPEC-0002 (REQ-0002-08, -09) |
+| Field    | Value                                             |
+| -------- | ------------------------------------------------- |
+| Location | `app/components/Button.tsx`                       |
+| Type     | Server-compatible component                       |
+| Status   | stable                                            |
+| Spec     | SPEC-0001, SPEC-0002 (REQ-0002-08, -09, -17, -18) |
 
 ## Props
 
 All `<button>` attributes except `type` (always `"button"`) and `className`, plus:
 
-| Prop      | Type                                             | Default | Required | Description  |
-| --------- | ------------------------------------------------ | ------- | -------- | ------------ |
-| `variant` | `"primary" \| "secondary" \| "danger" \| "link"` | —       | Yes      | Visual style |
+| Prop      | Type                                             | Default | Required | Description                                    |
+| --------- | ------------------------------------------------ | ------- | -------- | ---------------------------------------------- |
+| `variant` | `"primary" \| "secondary" \| "danger" \| "link"` | —       | Yes      | Visual style                                   |
+| `ref`     | `Ref<HTMLButtonElement>`                         | —       | No       | For moving focus to it (used by ConfirmInline) |
 
 ## Usage
 
@@ -41,7 +42,7 @@ All `<button>` attributes except `type` (always `"button"`) and `className`, plu
 
 ## States
 
-Default, focus-visible, active (scaled), disabled or `aria-disabled` (primary at 45% opacity, still readable).
+Default, hover (`--color-accent-hover` or `--color-surface-hover`, only on devices that hover and only when available), focus-visible, active (scaled), and disabled or `aria-disabled` (`--color-disabled-bg` / `--color-disabled-ink`, at least 3:1; no opacity). See REQ-0002-17 and -18.
 
 ## Testing
 

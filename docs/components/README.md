@@ -15,6 +15,7 @@ One-off page-private components do not need a doc.
 | Component       | Purpose                                                   | Doc                                 |
 | --------------- | --------------------------------------------------------- | ----------------------------------- |
 | `Button`        | Native button with primary/secondary/danger/link variants | [Button](./Button.md)               |
+| `ConfirmInline` | Destructive action confirmed in place                     | [ConfirmInline](./ConfirmInline.md) |
 | `Chip`          | Decorative chip artwork per color                         | [Chip](./Chip.md)                   |
 | `DraftInput`    | Text input bound to a parsed value                        | [DraftInput](./DraftInput.md)       |
 | `LiveAnnouncer` | The page's single polite live region                      | [LiveAnnouncer](./LiveAnnouncer.md) |

@@ -18,13 +18,13 @@ The four-step navigation at the top of every screen. Any step can be opened at a
 
 ## Accessibility
 
-- **Role / semantics:** `<nav aria-label="Steps">` with native buttons ("1 Setup" … "4 Settle"); the current one has `aria-current="step"`. Done steps show a check mark and are named "<n> <Step> (done)" (`aria-label`, which starts with the visible text), so the state is not carried by the border color alone (REQ-0002-04). In forced-colors mode the current step's border uses `Highlight`.
+- **Role / semantics:** `<nav aria-label="Steps">` with native buttons ("1 Setup" … "4 Settle"); the current one has `aria-current="step"`. Done steps show a check mark in place of their number ("✓ Setup", so 15 px labels fit at 320 px) and are named "<n> <Step> (done)" (`aria-label`, which starts with the visible text), so the state is not carried by the border color alone (REQ-0002-04). In forced-colors mode the current step's border uses `Highlight`.
 - **Keyboard:** `Tab` through the steps; `Enter`/`Space` open one.
 - **Touch target:** 44 px tall; a negative bottom margin keeps the prototype's spacing.
 
 ## Design tokens
 
-`--color-accent` (current), `--color-step-done`, `--color-border`, `--color-text`, `--color-text-muted`, `--text-xs`.
+`--color-accent` (current), `--color-step-done`, `--color-border`, `--color-text`, `--color-text-muted`, `--text-md` (REQ-0002-16). Labels wrap only after the step number.
 
 ## Testing
 

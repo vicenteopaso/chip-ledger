@@ -11,7 +11,8 @@ export type StepsNavProps = { current: Screen; onSelect: (screen: Screen) => voi
 
 /**
  * The four steps; any step can be opened at any time (REQ-0001-01). Earlier steps show a check
- * mark and say "(done)" to assistive technology, not only a border color (REQ-0002-04).
+ * mark in place of their number and say "(done)" to assistive technology, not only a border
+ * color (REQ-0002-04). The check mark replaces the number so 15 px labels fit at 320 px.
  */
 export function StepsNav({ current, onSelect }: StepsNavProps) {
   const currentIndex = SCREENS.indexOf(current);
@@ -31,16 +32,18 @@ export function StepsNav({ current, onSelect }: StepsNavProps) {
             key={screen}
             type="button"
             // 44px touch target; the negative margin keeps the prototype's spacing below.
-            className={`-mb-4 flex min-h-11 items-start gap-1 border-x-0 border-t-3 border-b-0 bg-transparent pt-1.5 text-left text-xs ${tone}`}
+            className={`-mb-4 flex min-h-11 min-w-0 flex-wrap items-start gap-x-1 border-x-0 border-t-3 border-b-0 bg-transparent pt-1.5 text-left text-md leading-tight ${tone}`}
             aria-current={isCurrent ? "step" : undefined}
-            // The visible text plus "(done)", so the state is not shown by color alone.
+            // Contains the visible text, adds the step number and "(done)", so the state is
+            // not shown by color alone.
             aria-label={isDone ? `${label} (done)` : undefined}
             onClick={() => {
               onSelect(screen);
             }}
           >
-            {isDone && <span aria-hidden="true">✓</span>}
-            {label}
+            {isDone ? <span aria-hidden="true">✓</span> : `${String(index + 1)} `}
+            {/* Kept on one line, so a narrow screen wraps only after the number. */}
+            <span className="whitespace-nowrap">{LABELS[screen]}</span>
           </button>
         );
       })}

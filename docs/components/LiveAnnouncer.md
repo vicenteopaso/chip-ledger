@@ -30,9 +30,8 @@ The page's single polite live region. Screen readers read its text when it chang
 | Setup or Cash out summary changed  | The summary text, only when its `code` changes         |
 | Photo counting started or finished | "Ana: <photo status>"                                  |
 | Results copied, or copying failed  | "Results copied." / the fallback hint                  |
-| Start over armed                   | "Tap again to erase everything."                       |
 
-Step changes are not announced here: focus moves to the new step's title, which screen readers read on arrival (REQ-0002-02).
+Step changes are not announced here: focus moves to the new step's title, which screen readers read on arrival (REQ-0002-02). Opening the Start over confirmation isn't either: focus moves to its Cancel button, whose group label asks the question (REQ-0002-11).
 
 ## Accessibility
 

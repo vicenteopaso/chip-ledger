@@ -63,7 +63,7 @@ Hosts use this app on a phone, often one-handed, in low light, with others readi
 
 - REQ-0002-11: "Start over from scratch" MUST open an inline confirmation in place of the button. It MUST read "Erase everything? Names, chips, and buy-ins will be cleared.", MUST offer "Cancel" and "Erase everything" (danger style), and MUST move focus to "Cancel". `Esc` or Cancel MUST close it and return focus to "Start over from scratch". Leaving the step MUST close it. _Amends REQ-0001-24._
 - REQ-0002-12: Settle's bottom bar MUST offer a secondary "‹ Cash out" and the primary "New game, same players", which behaves as REQ-0001-23. The content area MUST keep "Copy results", "Back to Setup" (secondary), and "Start over from scratch". _Amends REQ-0001-02._
-- REQ-0002-13: On Table, a player's − button MUST be disabled at 0 buy-ins, matching the Setup player-count stepper.
+- REQ-0002-13: On Table, a player's − button MUST be unavailable at 0 buy-ins, matching the Setup player-count stepper. Both steppers MUST mark their limit with `aria-disabled` rather than `disabled`, so keyboard focus stays on the button that reached it.
 - REQ-0002-14: A count mismatch in "Check the count" MUST be visible as text ("<n> short" or "<n> over") in addition to color and weight.
 - REQ-0002-15: Instruction copy MUST NOT assume touch. "Tap" becomes "Press" or is reworded (for example "Press + whenever someone buys back in…"). The text of the removed two-tap flow goes away with REQ-0002-11.
 - REQ-0002-16: Text on interactive controls and body hints MUST be at least `--text-md` (15 px). This covers step labels, hints, chip-row summaries, photo status, and the footer, whose minimum is `--text-sm` (14 px).

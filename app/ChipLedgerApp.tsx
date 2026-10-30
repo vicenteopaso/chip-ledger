@@ -68,7 +68,7 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   const [hydrated, setHydrated] = useState(false);
   const [photos, setPhotos] = useState<Record<string, PhotoState>>({});
   const [copy, setCopy] = useState<CopyState>({ kind: "idle" });
-  const [resetArmed, setResetArmed] = useState(false);
+  const [resetConfirming, setResetConfirming] = useState(false);
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [message, setMessage] = useState("");
   const [seen, setSeen] = useState<{ game: GameState; hydrated: boolean; summary?: string }>(
@@ -143,7 +143,7 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
 
   const go = (screen: Screen) => {
     setCopy({ kind: "idle" });
-    setResetArmed(false);
+    setResetConfirming(false);
     // A change of screen scrolls and moves focus in the effect above; reopening the same
     // screen does both here.
     if (screen === game.screen) {
@@ -203,15 +203,17 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
     );
   };
 
+  /** Confirmed in place by ConfirmInline (REQ-0002-11), so this always erases. */
   const reset = () => {
-    if (!resetArmed) {
-      setResetArmed(true);
-      setMessage("Tap again to erase everything.");
-      return;
-    }
     clearPhotos();
     dispatch({ type: "replace", game: createGame(randomId) });
     go("setup");
+  };
+
+  const newGameSamePlayers = () => {
+    clearPhotos();
+    dispatch({ type: "newGameSamePlayers" });
+    go("table");
   };
 
   const changeTheme = (next: Theme) => {
@@ -259,18 +261,17 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
             settlement={settlement}
             money={money}
             copy={copy}
-            resetArmed={resetArmed}
+            resetConfirming={resetConfirming}
             onScaleChange={(scale) => {
               dispatch({ type: "setScale", scale });
             }}
             onCopy={() => {
               void copyResults();
             }}
-            onNewGame={() => {
-              clearPhotos();
-              dispatch({ type: "newGameSamePlayers" });
-              go("table");
+            onBackToSetup={() => {
+              go("setup");
             }}
+            onResetConfirmingChange={setResetConfirming}
             onReset={reset}
           />
         )}
@@ -341,15 +342,11 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
                 go("cashout");
               }}
             >
-              Cash out
+              <span aria-hidden="true">‹ </span>Cash out
             </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                go("setup");
-              }}
-            >
-              Back to Setup
+            {/* The likely next step at the end of a night (REQ-0002-12, amends REQ-0001-02). */}
+            <Button variant="primary" onClick={newGameSamePlayers}>
+              New game, same players
             </Button>
           </>
         )}

@@ -119,7 +119,8 @@ describe("ChipLedgerApp", () => {
     const card = screen.getByRole("region", { name: "Player 1" });
     expect(within(card).getByText("$10.00")).toBeInTheDocument();
     const whiteRow = screen.getByRole("cell", { name: "White" }).closest("tr");
-    expect(whiteRow).toHaveTextContent("40 of 80 (does not match)");
+    // AC-0002-14: the mismatch is stated in visible words.
+    expect(whiteRow).toHaveTextContent("40 of 80 · 40 short");
     expect(screen.getByText(/\$70\.00 less than the \$80\.00 pot/)).toBeInTheDocument();
 
     await userEvent.clear(screen.getByLabelText("White chips for Player 1"));
@@ -263,26 +264,39 @@ describe("ChipLedgerApp", () => {
       })),
     });
     render(<ChipLedgerApp photoCountingEnabled={false} />);
-    await userEvent.click(
-      await screen.findByRole("button", { name: "New game with the same players" }),
-    );
+    // REQ-0002-12: the bottom bar's primary action on Settle.
+    await userEvent.click(await screen.findByRole("button", { name: "New game, same players" }));
     expect(heading()).toHaveTextContent("At the table");
     expect(savedGame().players[0]).toMatchObject({ name: "Zed", buyins: 1, counts: {} });
   });
 
-  it("AC-0001-10: start over needs a second tap, and leaving disarms it", async () => {
+  it("AC-0002-11: start over asks in place, Cancel and Esc return focus, leaving closes it", async () => {
     saved({ screen: "settle", buyIn: 50 });
     render(<ChipLedgerApp photoCountingEnabled={false} />);
-    await userEvent.click(await screen.findByRole("button", { name: "Start over from scratch" }));
-    expect(button("Tap again to erase everything")).toBeInTheDocument();
+    const startOver = await screen.findByRole("button", { name: "Start over from scratch" });
+    await userEvent.click(startOver);
+    const confirm = screen.getByRole("group", {
+      name: "Erase everything? Names, chips, and buy-ins will be cleared.",
+    });
+    expect(within(confirm).getByRole("button", { name: "Cancel" })).toHaveFocus();
     expect(savedGame().buyIn).toBe(50);
 
-    await userEvent.click(button("Cash out"));
-    await userEvent.click(button("Settle up"));
-    expect(button("Start over from scratch")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("group", { name: /Erase everything/ })).not.toBeInTheDocument();
+    expect(button("Start over from scratch")).toHaveFocus();
 
     await userEvent.click(button("Start over from scratch"));
-    await userEvent.click(button("Tap again to erase everything"));
+    await userEvent.click(button("Cancel"));
+    expect(button("Start over from scratch")).toHaveFocus();
+    expect(savedGame().buyIn).toBe(50);
+
+    await userEvent.click(button("Start over from scratch"));
+    await userEvent.click(button("Cash out"));
+    await userEvent.click(button("Settle up"));
+    expect(screen.queryByRole("group", { name: /Erase everything/ })).not.toBeInTheDocument();
+
+    await userEvent.click(button("Start over from scratch"));
+    await userEvent.click(button("Erase everything"));
     expect(heading()).toHaveTextContent("Chip Ledger");
     expect(savedGame().buyIn).toBe(10);
   });
@@ -299,7 +313,7 @@ describe("ChipLedgerApp", () => {
     expect(localStorage.getItem("chip-ledger.theme")).toBe("dark");
 
     await userEvent.click(button("Start over from scratch"));
-    await userEvent.click(button("Tap again to erase everything"));
+    await userEvent.click(button("Erase everything"));
     expect(localStorage.getItem("chip-ledger.theme")).toBe("dark");
     expect(button("Theme: Dark")).toBeInTheDocument();
 
@@ -320,6 +334,29 @@ describe("ChipLedgerApp", () => {
     await userEvent.click(button("4 Settle"));
     await userEvent.click(button("Cash out"));
     expect(heading()).toHaveTextContent("Cash out");
+  });
+
+  it("AC-0002-12: Settle's bottom bar goes back to Cash out or starts the next game", async () => {
+    saved({ screen: "settle" });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    await screen.findByRole("heading", { name: "Settle up" });
+    expect(screen.queryByRole("button", { name: "New game with the same players" })).toBeNull();
+    expect(button("Cash out")).toHaveTextContent("‹ Cash out");
+    expect(button("New game, same players")).toBeInTheDocument();
+    await userEvent.click(button("Back to Setup"));
+    expect(heading()).toHaveTextContent("Chip Ledger");
+  });
+
+  it("AC-0002-13: Table − is unavailable at 0 buy-ins but keeps focus", async () => {
+    saved({ screen: "table" });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    const remove = await screen.findByRole("button", { name: "Remove a buy-in for Player 1" });
+    expect(remove).toHaveAttribute("aria-disabled", "false");
+    await userEvent.click(remove);
+    expect(remove).toHaveAttribute("aria-disabled", "true");
+    expect(remove).toHaveFocus();
+    await userEvent.click(remove);
+    expect(screen.getByRole("status", { name: "Buy-ins for Player 1" })).toHaveTextContent("0");
   });
 });
 

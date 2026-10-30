@@ -9,14 +9,16 @@ export type TableScreenProps = {
   dispatch: (action: GameAction) => void;
 };
 
-const STEP_BUTTON = "press size-11.5 border-0 bg-transparent text-4xl font-semibold";
+/** Unavailable at a limit via `aria-disabled`, so keyboard focus stays put (REQ-0002-13). */
+const STEP_BUTTON =
+  "press size-11.5 rounded-lg border-0 bg-transparent text-4xl font-semibold hover:not-aria-disabled:bg-surface-hover aria-disabled:text-disabled-ink";
 
 /** Step 2: rebuys during the game and the running pot (REQ-0001-08, -09). */
 export function TableScreen({ game, money, dispatch }: TableScreenProps) {
   return (
     <>
       <PageTitle>At the table</PageTitle>
-      <Lede>{`Tap + whenever someone buys back in for another ${money(game.buyIn)} stack.`}</Lede>
+      <Lede>{`Press + whenever someone buys back in for another ${money(game.buyIn)} stack.`}</Lede>
       {activePlayers(game).map((player) => {
         const name = playerName(game, player);
         return (
@@ -30,6 +32,7 @@ export function TableScreen({ game, money, dispatch }: TableScreenProps) {
                 type="button"
                 className={STEP_BUTTON}
                 aria-label={`Remove a buy-in for ${name}`}
+                aria-disabled={player.buyins <= 0}
                 onClick={() => {
                   dispatch({ type: "adjustBuyins", playerId: player.id, delta: -1 });
                 }}

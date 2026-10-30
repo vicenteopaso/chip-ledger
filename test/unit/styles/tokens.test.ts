@@ -72,6 +72,27 @@ describe("design token contrast", () => {
     });
   }
 
+  for (const theme of ["light", "dark"] as const) {
+    it(`AC-0002-18: disabled text is at least 3:1 on its background (${theme})`, () => {
+      expect(
+        contrast(color("--color-disabled-ink", theme), color("--color-disabled-bg", theme)),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
+    it(`REQ-0002-17: hovered buttons keep their text contrast (${theme})`, () => {
+      expect(
+        contrast(color("--color-accent-ink", theme), color("--color-accent-hover", theme)),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast(color("--color-text", theme), color("--color-surface-hover", theme)),
+      ).toBeGreaterThanOrEqual(4.5);
+      // Danger text sits on the same hover background (the Start over buttons).
+      expect(
+        contrast(color("--color-danger", theme), color("--color-surface-hover", theme)),
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
   it("reads mixed tokens, so the check above is not vacuous", () => {
     expect(tokens("light").get("--color-step-done")).toMatch(/^color-mix/);
     expect(contrast([0, 0, 0], [255, 255, 255])).toBeCloseTo(21);

@@ -1,4 +1,5 @@
 import { Button } from "@/app/components/Button";
+import { ConfirmInline } from "@/app/components/ConfirmInline";
 import { Hint, PageTitle, SectionTitle } from "@/app/components/Typography";
 import type { GameState } from "@/lib/game";
 import { type Currency, fromMinor, type MoneyFormatter } from "@/lib/money";
@@ -13,10 +14,12 @@ export type SettleScreenProps = {
   settlement: Settlement;
   money: MoneyFormatter;
   copy: CopyState;
-  resetArmed: boolean;
+  /** Whether the "Start over" confirmation is open (REQ-0002-11). */
+  resetConfirming: boolean;
   onScaleChange: (scale: boolean) => void;
   onCopy: () => void;
-  onNewGame: () => void;
+  onBackToSetup: () => void;
+  onResetConfirmingChange: (open: boolean) => void;
   onReset: () => void;
 };
 
@@ -36,10 +39,11 @@ export function SettleScreen({
   settlement,
   money,
   copy,
-  resetArmed,
+  resetConfirming,
   onScaleChange,
   onCopy,
-  onNewGame,
+  onBackToSetup,
+  onResetConfirmingChange,
   onReset,
 }: SettleScreenProps) {
   const difference = Math.abs(settlement.difference);
@@ -104,8 +108,8 @@ export function SettleScreen({
             <span className={`text-right text-2xl font-extrabold ${netTone(row.netMinor)}`}>
               {signedMoney(money, row.netMinor, game.currency)}
             </span>
-            <small className="text-sm text-text-muted">{`Put in ${money(row.putIn)}`}</small>
-            <small className="text-right text-sm text-text-muted">
+            <small className="text-md text-text-muted">{`Put in ${money(row.putIn)}`}</small>
+            <small className="text-right text-md text-text-muted">
               {`Cashed out ${money(row.cashedOut)}`}
             </small>
           </li>
@@ -127,12 +131,18 @@ export function SettleScreen({
             <Hint>Select the text above and copy it.</Hint>
           </>
         )}
-        <Button variant="secondary" onClick={onNewGame}>
-          New game with the same players
+        {/* "New game, same players" is the bottom bar's primary action (REQ-0002-12). */}
+        <Button variant="secondary" onClick={onBackToSetup}>
+          Back to Setup
         </Button>
-        <Button variant="danger" onClick={onReset}>
-          {resetArmed ? "Tap again to erase everything" : "Start over from scratch"}
-        </Button>
+        <ConfirmInline
+          triggerLabel="Start over from scratch"
+          message="Erase everything? Names, chips, and buy-ins will be cleared."
+          confirmLabel="Erase everything"
+          open={resetConfirming}
+          onOpenChange={onResetConfirmingChange}
+          onConfirm={onReset}
+        />
       </div>
     </>
   );

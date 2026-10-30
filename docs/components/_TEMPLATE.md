@@ -2,19 +2,19 @@
 
 One sentence: what it is and when to use it (and when not to).
 
-| Field     | Value                              |
-| --------- | ---------------------------------- |
-| Location  | `app/components/ComponentName.tsx` |
-| Type      | Server / Client component          |
-| Status    | stable / experimental / deprecated |
-| Spec      | SPEC-NNNN (if any)                 |
+| Field    | Value                              |
+| -------- | ---------------------------------- |
+| Location | `app/components/ComponentName.tsx` |
+| Type     | Server / Client component          |
+| Status   | stable / experimental / deprecated |
+| Spec     | SPEC-NNNN (if any)                 |
 
 ## Props
 
-| Prop       | Type                    | Default | Required | Description          |
-| ---------- | ----------------------- | ------- | -------- | -------------------- |
-| `children` | `React.ReactNode`       | —       | Yes      | Content              |
-| `variant`  | `"primary" \| "secondary"` | `"primary"` | No   | Visual style         |
+| Prop       | Type                       | Default     | Required | Description  |
+| ---------- | -------------------------- | ----------- | -------- | ------------ |
+| `children` | `React.ReactNode`          | —           | Yes      | Content      |
+| `variant`  | `"primary" \| "secondary"` | `"primary"` | No       | Visual style |
 
 ## Usage
 
@@ -40,11 +40,11 @@ Default, hover, focus-visible, active, disabled, loading, error, empty — and h
 
 ## Testing
 
-| Level     | File                                  | Covers                         |
-| --------- | ------------------------------------- | ------------------------------ |
-| Component | `test/unit/ComponentName.test.tsx`    | Props, events, roles           |
-| A11y      | `test/a11y/…`                         | axe in each theme              |
-| Visual    | `test/visual/…`                       | Themes × viewports             |
+| Level     | File                               | Covers               |
+| --------- | ---------------------------------- | -------------------- |
+| Component | `test/unit/ComponentName.test.tsx` | Props, events, roles |
+| A11y      | `test/a11y/…`                      | axe in each theme    |
+| Visual    | `test/visual/…`                    | Themes × viewports   |
 
 ## Notes and gotchas
 
