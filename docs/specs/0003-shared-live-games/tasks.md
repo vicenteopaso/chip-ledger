@@ -8,16 +8,16 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 - [x] T-01 Owner approves plan.md and ADR-0005, then sets ADR-0005 to `accepted`.
   - Done when: both are merged to `main`. (Approved by the owner on 2026-10-30; merge with PR #9.)
-- [ ] T-02 Owner provisions the two Upstash databases and connects them to the Vercel project (steps in the hand-off and in plan §6), and tells the agent the variable names (never the values).
-  - Done when: the variables exist in Production, Preview and Development, and the names are written into `docs/CONFIGURATION.md` by T-04.
+- [x] T-02 Owner provisions the Upstash database and connects it to the Vercel project (plan §6), and tells the agent the variable names (never the values).
+  - Done when: the variables exist in Production and, scoped to the feature branch, in Preview, and the names are written into `docs/CONFIGURATION.md` by T-04. (Done 2026-10-30: one database, because the free plan allows one; names `KV_REST_API_URL` and `KV_REST_API_TOKEN`.)
 - [ ] T-03 Spike: a throwaway route holds an SSE connection that reads a Redis key every 1–3 s, with 10 simulated clients for 10 minutes, on a Vercel preview.
   - Tests: none (measurement); results go into ADR-0005 under Validation
   - Done when: function duration, CPU time and Redis command counts per client-hour are recorded, and the decision "SSE or polling only" is written into the plan. The spike code is not merged.
 
 ## 1. Domain and store (PR 1, no UI)
 
-- [ ] T-04 Store configuration: `getGameStoreConfig` in `lib/infra/env.ts`, `.env.example`, `docs/CONFIGURATION.md` _(REQ-0003-01, -27)_
-  - Tests: unit for present, partial and absent variables; partial fails naming the variable
+- [ ] T-04 Store configuration: `getGameStoreConfig` in `lib/infra/env.ts` (reads `KV_REST_API_URL`, `KV_REST_API_TOKEN` and `VERCEL_ENV` for the key prefix), `.env.example`, `docs/CONFIGURATION.md` _(REQ-0003-01, -27)_
+  - Tests: unit for present, partial and absent variables; partial fails naming the variable; the environment prefix is applied to every key and defaults to a safe value outside Vercel
   - Done when: sharing reports "off" with no variables and a clear error with half of them.
 - [ ] T-05 Split `screen` from the game; add `started` and `startGame` _(REQ-0003-15)_
   - Tests: unit for the reducer, the saved-game schema (old `chip-ledger.v1` fixture still loads), and per-device step

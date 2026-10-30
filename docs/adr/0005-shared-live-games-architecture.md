@@ -39,7 +39,7 @@ That needs four things the app does not have: a place to keep a game outside one
 
 Specifics:
 
-- **Store.** Upstash Redis, provisioned through the Vercel Marketplace and called with `fetch` over its REST interface. One database for Production, one for Preview and Development. Credentials are server-only and read in `lib/infra/env.ts`. Without them, sharing is off and the API answers 404.
+- **Store.** Upstash Redis, provisioned through the Vercel Marketplace and called with `fetch` over its REST interface. One database (the free plan allows one per account), shared by Production and Preview. Every key starts with the deployment environment (`VERCEL_ENV`: `production` or `preview`), so a preview never reads or writes a production game. The Preview variables are scoped to the feature branches that need them. Local development and tests use an in-memory store. Credentials are server-only and read in `lib/infra/env.ts`. Without them, sharing is off and the API answers 404.
 - **Access model.** Each game has a watch key and an edit key, 128 random bits each, carried in the URL fragment and sent as a bearer token. The server stores only SHA-256 hashes. A watcher becomes an editor by entering a six-character code that an editor shows; the code is salted, expires in 10 minutes and is replaced by the next one. Wrong codes are rate-limited per game.
 - **Edits.** Clients send typed actions (the existing `GameAction` kinds minus `go`, `replace` and `newGameSamePlayers`, plus `startGame`). The server applies `gameReducer`, validates the result with the game schema and saves with compare-and-set on a revision. Buy-in changes are deltas, other fields are last-write-wins.
 - **Updates.** Server-sent events with a reconnect cursor, closing before the platform limit; polling every 3 s as the fallback. A spike (SPEC-0003 T-03) measures duration, CPU and command use before the rest is built; its result may change this part to polling only without changing the rest of the design.
@@ -58,6 +58,7 @@ Specifics:
 
 **Negative**
 
+- Previews hold the production token, so a bug in a preview could touch production games. The key prefix and a rule that the code never issues bulk-delete commands limit this; a second database is the later fix if usage or risk grows.
 - The app now holds user data (player names, money amounts) on a third-party service, and needs a privacy notice, a retention policy, and a store contract to keep up to date.
 - Anyone holding an edit link or code can edit; there is no way to remove one editor, only to delete the game.
 - Long-lived SSE connections may cost more function time than short requests; polling costs more Redis commands. Both are measured in the spike.

@@ -67,6 +67,7 @@ Every handler follows [API Patterns](../../API_PATTERNS.md): request ID, same-or
 
 ### Store keys and lifecycle
 
+- Every key is prefixed with the deployment environment, as `{env}:` where `env` is `VERCEL_ENV` (`production` or `preview`), so Preview and Production share one database without sharing data. The code issues only single-key and prefixed commands and never a bulk delete.
 - `game:{id}` holds the game document; `seen:{id}` holds the last heartbeat time; `online:{id}` is a sorted set of connection ids scored by time (online count = members from the last 45 s).
 - Every write and every heartbeat refreshes the TTL of `game:{id}` and `seen:{id}` to 24 h + 30 d. Lifecycle is computed on read: `archived` when `max(updatedAt, seen) + 24 h < now`. The TTL deletes the record 30 days later, so no scheduled job is needed (REQ-0003-19 to -21).
 - Compare-and-set uses one small Lua script through the store's REST `EVAL`: write only if `rev` equals the value that was read.
@@ -128,6 +129,7 @@ Route tests run the real handlers against the in-memory store. A shared contract
 | Long-lived SSE requests use too much function time or CPU on Vercel (earlier sessions on this repo hit CPU-time limits) | Medium     | High   | A spike (T-03) measures duration and CPU for 10 connected devices before the rest is built. Fallback: polling only, which the client already supports.                                                                |
 | Redis command volume grows with connected devices (one check per device every 1–3 s)                                    | Medium     | Medium | Adaptive interval (1 s after a change, 3 s idle), one batched read per tick, a budget alert on the Upstash plan, and a per-game cap of 12 connections. Check the plan's current limits before relying on a free tier. |
 | Replayed offline edits overwrite newer values from other devices                                                        | Medium     | Medium | Notice while waiting; each action carries `baseRev` and the server rejects a replay older than 15 minutes; buy-in changes are deltas and never overwrite.                                                             |
+| Previews hold the production token, so a bug in a preview could touch production games                                  | Low        | High   | Keys are prefixed by `VERCEL_ENV`; no bulk-delete commands in the code; Preview variables scoped to feature branches; move previews to a second database if usage or risk grows.                                      |
 | A link or code leaks (screenshot, chat)                                                                                 | Medium     | Medium | Watch-only is the default; codes expire in 10 minutes; keys are never logged; `Referrer-Policy` and `noindex` are in place. Any editor can delete the game. Revocation is a non-goal (Q3).                            |
 | Code guessing                                                                                                           | Low        | High   | About 30 bits, 10-minute life, 5 wrong tries then a 1-minute lockout per game, store-backed so it holds across instances.                                                                                             |
 | Storage abuse by creating many games                                                                                    | Medium     | Medium | Create limit per client, 32 KB size cap, short TTL, a global daily creation cap as a circuit breaker (disables sharing and logs).                                                                                     |
@@ -136,7 +138,7 @@ Route tests run the real handlers against the in-memory store. A shared contract
 
 ## 6. Rollout and rollback
 
-**Provisioning (owner, once).** See the numbered steps in the hand-off message and in `docs/CONFIGURATION.md` once written: create two Upstash Redis databases through the Vercel Marketplace (one for Production, one for Preview and Development), connect them to the project, and confirm the variable names.
+**Provisioning (owner, once).** See the numbered steps in the hand-off message and in `docs/CONFIGURATION.md` once written: create one Upstash Redis database through the Vercel Marketplace (the free plan allows one), connect it to Production, add its two REST variables to Preview by hand scoped to the feature branch, and confirm the variable names. Done on 2026-10-30; the names are `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
 
 **Release.** Direct release behind configuration: until the store variables exist, nothing changes for anyone. Order of PRs: (1) the domain and store with tests, no UI; (2) API routes; (3) join page and watch-only; (4) editing, sync and the offline queue; (5) Share sheet and QR; (6) games list and lifecycle; (7) docs, `sdd.yaml` and close. Each PR keeps `pnpm verify` green and ships behind the missing-configuration switch.
 
