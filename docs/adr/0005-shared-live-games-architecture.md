@@ -72,11 +72,36 @@ Specifics:
 
 ## Validation
 
-- The SPEC-0003 spike records duration, CPU and commands for 10 devices over 10 minutes and the result is added here before PR 2 merges.
+- The SPEC-0003 spike (T-03) measured duration, CPU and commands for 5 devices over 3 minutes; the result is in the addendum below.
 - The two-browser e2e shows propagation within 2 seconds in at least 95 of 100 runs (AC-0003-09).
 - The store contract test passes on both the in-memory and the Upstash adapters.
 - After the first month in production, review command and duration usage against the plan limits, and the number of shared games and deletions.
 - `pnpm verify`, axe in both themes, and a real-device check on a preview deployment (SPEC-0003 T-34).
+
+## Addendum, 2026-10-30: T-03 spike result
+
+Appended after measuring on a Vercel preview; the decision above stands, with these changes to the update mechanism.
+
+**Setup.** One run from the owner's browser against the real Upstash database (free plan, 500,000 commands a month), 5 simulated devices, 180 s, one edit every 10 s. The sandbox cannot reach `*.vercel.app`, so the owner pressed the buttons and copied the output.
+
+**Findings.**
+
+- The Hobby plan stops a function run at 60 s (`invalid_max_duration` at 200 s), so SSE streams last 55 s and the client reconnects. This is a plan limit, not a code choice.
+- The store contract (create, compare-and-set, heartbeat script, presence, counters, flags, removal) passed on the real database, including the two Lua scripts.
+- SSE with a 2 s check: 20 streams opened and finished; 5 client error events, no server failures. Propagation p50 1.5 s, p95 7.4 s, max 10.0 s. The late samples are consistent with a gap at each 55 s reconnect (not proven; the next stream should overlap the old one).
+- Polling every 5 s: 175 requests, no errors. Propagation p50 2.7 s, p95 5.0 s, max 5.2 s, which is what a 5 s interval gives.
+- Cost: the SSE run counted 535 commands in the spike's own counter and 610 on the Upstash dashboard (235 writes, 375 reads), so real use is about 1.14 times the counted figure. Per device-hour that is about 2,440 for SSE checking every 2 s and about 970 for polling every 5 s. For 10 devices over 4 hours: about 98,000 against about 39,000, which is about 5 nights or 13 nights of the monthly 500,000.
+- CPU is small: 255 to 507 ms of instance-wide CPU across each 56 s window of 5 streams, which suggests the 5 concurrent streams ran in one instance. CPU is not the constraint.
+- Checking Redis every 2 s costs the same number of commands whether it happens in an SSE stream or a poll. SSE buys speed, not savings.
+
+**Changes to the decision.**
+
+1. **Polling ships first, SSE second.** The watch-only join (PR 3) uses polling at 2 s after a change and 5 s when quiet. SSE is added in PR 4 only if it meets AC-0003-09 (95% within 2 s) in a real two-browser run on a preview and stays inside the command budget.
+2. **Reduce reads, not just latency.** Where several SSE connections for a game share a server instance, they share one read per check. Heartbeats go out every 45 s with a 90 s presence window (the stored constants change in PR 2).
+3. **Overlap the 55 s reconnect** and de-duplicate by revision, so changes are not missed between streams.
+4. **Keep the free plan in mind.** If a typical night still costs more than about 40,000 commands, polling at 5 s stays the delivery path and SSE waits for a paid plan.
+
+**Not verified.** The 1.14 factor comes from one run. The same-instance reading rests on similar CPU figures, not on instance ids. The 5 client error events were not explained. The reconnect-gap explanation is a hypothesis. The first two are rechecked in PR 4's preview run.
 
 ## Pros and cons of the options
 

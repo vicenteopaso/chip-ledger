@@ -10,11 +10,12 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
   - Done when: both are merged to `main`. (Approved by the owner on 2026-10-30; merge with PR #9.)
 - [x] T-02 Owner provisions the Upstash database and connects it to the Vercel project (plan §6), and tells the agent the variable names (never the values).
   - Done when: the variables exist in Production and, scoped to the feature branch, in Preview, and the names are written into `docs/CONFIGURATION.md` by T-04. (Done 2026-10-30: one database, because the free plan allows one; names `KV_REST_API_URL` and `KV_REST_API_TOKEN`.)
-- [ ] T-03 Spike: a throwaway route measures SSE against polling on a Vercel preview, within a hard command budget, and also runs the store contract once against the real database.
+- [x] T-03 Spike: a throwaway route measures SSE against polling on a Vercel preview, within a hard command budget, and also runs the store contract once against the real database.
   - Scope, small on purpose (free Upstash plan): 5 simulated clients for 3 minutes with a 2 s check, then the same with 5 s polling requests, then one run of the store contract (about 40 commands). Expected total: under 2,500 commands.
   - Guards: the route counts every command it sends and stops at 3,000; it writes only under the throwaway key prefix `spike-t03:` and deletes it afterwards; it is removed in the same PR that records the result, and runs on a preview that is behind Vercel's deployment protection.
   - Tests: none (measurement); results go into ADR-0005 under Validation
   - Done when: function duration, CPU time and Redis commands per client-hour are recorded for both modes; the owner has compared them with the Upstash dashboard; the decision "SSE or polling only" and the measured game-night command estimate are written into the plan. The spike code is not merged.
+  - Result (2026-10-30, owner ran it in a browser because the sandbox cannot reach `*.vercel.app`): the store contract passed on the real database. The Hobby plan stops a function run at 60 s, so streams last 55 s. SSE (2 s check, 180 s, 5 devices): 20 streams, p50 1.5 s, p95 7.4 s, max 10 s, 5 client error events with no server failures; 535 counted and 610 dashboard commands (about 1.14 times). Polling (5 s): 175 requests, p50 2.7 s, p95 5.0 s, 213 counted commands. Details and the decision are in ADR-0005 (addendum) and plan §5. The spike code was never merged and the branch was reset.
 
 ## 1. Domain and store (PR 1, no UI)
 
@@ -40,6 +41,8 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 ## 2. API routes (PR 2)
 
+- [ ] T-10a Presence window 90 s (was 45 s) and heartbeat every 45 s, from the T-03 result; update `PRESENCE_WINDOW_MS`, the memory and Upstash adapters' tests, and the contract test _(REQ-0003-13)_
+  - Done when: the contract test passes against both adapters with the new window.
 - [ ] T-11 `POST /api/games` and `GET /api/games/{id}` _(REQ-0003-04, -05, -23, -25, -26)_
   - Tests: route tests for success, bad body, oversize, rate limit, wrong key, unknown id (identical 404)
   - Done when: error bodies are generic with a request ID and details go to the server log.
@@ -51,7 +54,7 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
   - Done when: AC-0003-07, -08 and -16 pass at route level.
 - [ ] T-14 `GET /api/games/{id}/events` (SSE) _(REQ-0003-10, -13)_
   - Tests: route test for the first snapshot, change events, heartbeat and the reconnect cursor
-  - Done when: the connection closes by itself before the platform limit and a reconnect loses no revision.
+  - Done when: the connection closes at 55 s (Hobby limit is 60 s), the next stream can overlap the old one, and a reconnect loses no revision. Log client error events at reconnects: T-03 saw 5 and could not explain them.
 - [ ] T-15 Close PR 2: `pnpm verify` green; no secrets or keys in logs (AC-0003-19).
 
 ## 3. Join and watch (PR 3)
@@ -59,7 +62,7 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 - [ ] T-16 `app/g/[id]/page.tsx`: `noindex`, no referrer, `robots.ts` disallow, generic unavailable page _(REQ-0003-04, -05, -26, SEO)_
   - Tests: component and e2e; AC-0003-03, -04 and -21
   - Done when: the key never appears in a request URL and wrong key and deleted game look identical.
-- [ ] T-17 `useSharedGame` hook (snapshot, SSE, polling fallback, status) and `ConnectionStatus` _(REQ-0003-10, -13, -14)_
+- [ ] T-17 `useSharedGame` hook (snapshot, polling first, then SSE on top, status) and `ConnectionStatus` _(REQ-0003-10, -13, -14)_
   - Tests: hook tests with a fake server; component states; axe
   - Done when: AC-0003-09 passes in e2e and the status is announced.
 - [ ] T-18 [P] `WatchOnlyNotice`, disabled editing controls for watchers _(REQ-0003-06)_
