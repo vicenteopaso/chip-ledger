@@ -65,4 +65,24 @@ describe("DraftInput and a change from elsewhere (REQ-0003-12)", () => {
     expect(onFocus).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
+
+  it("REQ-0001-10: a filter keeps characters the field does not accept out of the text", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render(
+      <DraftInput
+        aria-label="Count"
+        value={0}
+        format={String}
+        parse={(t) => Number.parseInt(t, 10) || 0}
+        filter={(t) => t.replace(/\D/g, "")}
+        onValueChange={onValueChange}
+      />,
+    );
+    const field = screen.getByLabelText("Count");
+    await user.clear(field);
+    await user.type(field, "a1s2d");
+    expect(field).toHaveValue("12");
+    expect(onValueChange).toHaveBeenLastCalledWith(12);
+  });
 });

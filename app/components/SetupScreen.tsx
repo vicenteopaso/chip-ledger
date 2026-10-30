@@ -19,7 +19,13 @@ import {
   UNIFORM_CHIP_ID,
 } from "@/lib/game";
 import { canSetPlayerCount, type GameAction } from "@/lib/game-reducer";
-import { CURRENCIES, CurrencySchema, type MoneyFormatter, parseMoney } from "@/lib/money";
+import {
+  CURRENCIES,
+  CurrencySchema,
+  type MoneyFormatter,
+  moneyText,
+  parseMoney,
+} from "@/lib/money";
 import { setupSummary } from "@/lib/summaries";
 
 export type SetupScreenProps = {
@@ -147,6 +153,7 @@ export function SetupScreen({
             value={game.buyIn}
             format={String}
             parse={(text) => parseMoney(text, game.currency)}
+            filter={(text) => moneyText(text, game.currency)}
             onValueChange={(buyIn) => {
               dispatch({ type: "setBuyIn", buyIn });
             }}

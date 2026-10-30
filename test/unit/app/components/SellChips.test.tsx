@@ -60,7 +60,7 @@ describe("SPEC-0004: the Sell chips form", () => {
     expect(screen.getByRole("combobox", { name: "Seller" })).toHaveFocus();
     await user.selectOptions(screen.getByRole("combobox", { name: "Seller" }), "p2");
     await user.selectOptions(screen.getByRole("combobox", { name: "Buyer" }), "p3");
-    await user.type(screen.getByRole("textbox", { name: "Amount" }), "5.5");
+    await user.type(screen.getByRole("textbox", { name: /^Amount in/ }), "5.5");
     await user.click(screen.getByRole("button", { name: "Record sale" }));
     expect(dispatch).toHaveBeenCalledWith({
       type: "sellChips",
@@ -71,6 +71,15 @@ describe("SPEC-0004: the Sell chips form", () => {
     expect(screen.getByRole("button", { name: "Sell chips" })).toHaveFocus();
   });
 
+  it("says the amount is money, in the game's currency, and takes no letters", async () => {
+    const user = userEvent.setup();
+    render(<TableScreen game={defaultGame()} money={usd} dispatch={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Sell chips" }));
+    const amount = screen.getByRole("textbox", { name: "Amount in USD" });
+    await user.type(amount, "a5sd.5x");
+    expect(amount).toHaveValue("5.5");
+  });
+
   it("explains in text, and records nothing, when the amount is empty or the players are the same", async () => {
     const dispatch = vi.fn();
     const user = userEvent.setup();
@@ -78,8 +87,8 @@ describe("SPEC-0004: the Sell chips form", () => {
     await user.click(screen.getByRole("button", { name: "Sell chips" }));
     await user.click(screen.getByRole("button", { name: "Record sale" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter an amount greater than zero.");
-    expect(screen.getByRole("textbox", { name: "Amount" })).toHaveFocus();
-    await user.type(screen.getByRole("textbox", { name: "Amount" }), "5");
+    expect(screen.getByRole("textbox", { name: /^Amount in/ })).toHaveFocus();
+    await user.type(screen.getByRole("textbox", { name: /^Amount in/ }), "5");
     expect(screen.queryByRole("alert")).toBeNull();
     await user.selectOptions(screen.getByRole("combobox", { name: "Buyer" }), "p1");
     await user.click(screen.getByRole("button", { name: "Record sale" }));

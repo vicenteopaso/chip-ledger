@@ -9,7 +9,7 @@ import { Select } from "@/app/components/Select";
 import { Card } from "@/app/components/Surfaces";
 import { activePlayers, type GameState, playerName } from "@/lib/game";
 import type { GameAction } from "@/lib/game-reducer";
-import { parseMoney, toMinor } from "@/lib/money";
+import { moneyText, parseMoney, toMinor } from "@/lib/money";
 
 export type SellChipsProps = {
   game: GameState;
@@ -98,7 +98,8 @@ export function SellChips({ game, dispatch }: SellChipsProps) {
         Sell chips
       </h2>
       <p className="mb-3 text-md text-text-muted">
-        One player sells chips to another for money. The pot stays the same.
+        One player sells chips to another for money, so the amount is in money, not a number of
+        chips. The pot stays the same.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
@@ -107,6 +108,7 @@ export function SellChips({ game, dispatch }: SellChipsProps) {
           </label>
           <Select
             id={`${ids}-seller`}
+            className="pl-3 text-body"
             ref={sellerRef}
             onKeyDown={closeOnEscape}
             value={sellerId}
@@ -124,6 +126,7 @@ export function SellChips({ game, dispatch }: SellChipsProps) {
           </label>
           <Select
             id={`${ids}-buyer`}
+            className="pl-3 text-body"
             onKeyDown={closeOnEscape}
             value={buyerId}
             onChange={(event) => {
@@ -136,7 +139,7 @@ export function SellChips({ game, dispatch }: SellChipsProps) {
         </div>
         <div>
           <label htmlFor={`${ids}-amount`} className={LABEL}>
-            Amount
+            {`Amount in ${game.currency}`}
           </label>
           <DraftInput
             id={`${ids}-amount`}
@@ -147,6 +150,7 @@ export function SellChips({ game, dispatch }: SellChipsProps) {
             value={amount}
             format={(value) => (value === 0 ? "" : String(value))}
             parse={(text) => parseMoney(text, game.currency)}
+            filter={(text) => moneyText(text, game.currency)}
             aria-invalid={error !== null && toMinor(amount, game.currency) <= 0}
             aria-describedby={error ? `${ids}-error` : undefined}
             onValueChange={(value) => {

@@ -7,7 +7,7 @@ async function sell(page: Page, seller: string, buyer: string, amount: string) {
   await page.getByRole("button", { name: "Sell chips" }).click();
   await page.getByRole("combobox", { name: "Seller" }).selectOption({ label: seller });
   await page.getByRole("combobox", { name: "Buyer" }).selectOption({ label: buyer });
-  await page.getByRole("textbox", { name: "Amount" }).fill(amount);
+  await page.getByRole("textbox", { name: /^Amount in/ }).fill(amount);
   await page.getByRole("button", { name: "Record sale" }).click();
 }
 
@@ -90,5 +90,27 @@ test.describe("SPEC-0004 chip sales between players", () => {
     await editor.close();
     await other.close();
     await watcher.close();
+  });
+
+  test("numeric fields take no letters: buy-in, chip counts and values, cash-out counts, sale amount", async ({
+    page,
+  }) => {
+    await openFresh(page);
+    await page.getByLabel("Buy-in amount").fill("");
+    await page.getByLabel("Buy-in amount").pressSequentially("a2s5d");
+    await expect(page.getByLabel("Buy-in amount")).toHaveValue("25");
+    await page.getByLabel("White chips per player").fill("");
+    await page.getByLabel("White chips per player").pressSequentially("x1y2");
+    await expect(page.getByLabel("White chips per player")).toHaveValue("12");
+    await page.getByLabel("Buy-in amount").fill("20");
+    await startGame(page);
+    await page.getByRole("button", { name: "Cash out", exact: true }).click();
+    await page.getByLabel("White chips for Ana").pressSequentially("q7w");
+    await expect(page.getByLabel("White chips for Ana")).toHaveValue("7");
+    await page.getByRole("button", { name: "2 Table" }).click();
+    await page.getByRole("button", { name: "Sell chips" }).click();
+    await expect(page.getByText("Amount in USD")).toBeVisible();
+    await page.getByRole("textbox", { name: "Amount in USD" }).pressSequentially("asd");
+    await expect(page.getByRole("textbox", { name: "Amount in USD" })).toHaveValue("");
   });
 });

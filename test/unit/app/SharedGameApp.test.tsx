@@ -390,7 +390,7 @@ describe("SharedGameApp: chip sales (SPEC-0004)", () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await open();
     await user.click(screen.getByRole("button", { name: "Sell chips" }));
-    await user.type(screen.getByRole("textbox", { name: "Amount" }), "5");
+    await user.type(screen.getByRole("textbox", { name: /^Amount in/ }), "5");
     await user.click(screen.getByRole("button", { name: "Record sale" }));
     expect(screen.getByText("$15.00 in")).toBeInTheDocument();
     expect(screen.getByText("$25.00 in")).toBeInTheDocument();
