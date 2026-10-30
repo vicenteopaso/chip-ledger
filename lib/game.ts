@@ -25,9 +25,9 @@ export const PLAYER_SLOTS = MAX_PLAYERS;
 /** Stack values within half a cent of each other are treated as equal. */
 export const MONEY_EPSILON = 0.005;
 
-const IdSchema = z.string().min(1).max(64);
-const AmountSchema = z.number().min(-MAX_AMOUNT).max(MAX_AMOUNT);
-const CountSchema = z.number().int().min(0).max(MAX_COUNT);
+export const IdSchema = z.string().min(1).max(64);
+export const AmountSchema = z.number().min(-MAX_AMOUNT).max(MAX_AMOUNT);
+export const CountSchema = z.number().int().min(0).max(MAX_COUNT);
 
 export const ChipSchema = z.object({
   id: IdSchema,
