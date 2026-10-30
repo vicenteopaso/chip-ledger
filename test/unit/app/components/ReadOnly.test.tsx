@@ -155,3 +155,28 @@ describe("read-only controls (REQ-0003-06)", () => {
     expect(screen.getByRole("button", { name: "Back to Setup" })).toBeEnabled();
   });
 });
+
+describe("Settle without a reset", () => {
+  it("allowReset={false} hides Start over for someone who can otherwise edit", () => {
+    const game = gameWith({ scale: true });
+    render(
+      <SettleScreen
+        game={game}
+        settlement={settle(game)}
+        money={usd}
+        copy={{ kind: "idle" }}
+        resetConfirming={false}
+        allowReset={false}
+        onScaleChange={noop}
+        onSpreadByChange={noop}
+        onCopy={noop}
+        onBackToSetup={noop}
+        onResetConfirmingChange={noop}
+        onReset={noop}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /start over/i })).toBeNull();
+    expect(screen.getAllByRole("radio").length).toBeGreaterThan(0);
+    for (const radio of screen.getAllByRole("radio")) expect(radio).toBeEnabled();
+  });
+});

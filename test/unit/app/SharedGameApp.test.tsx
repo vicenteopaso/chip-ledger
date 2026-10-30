@@ -5,13 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SharedGameApp } from "@/app/SharedGameApp";
 import { copyToClipboard } from "@/lib/infra/clipboard";
 import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
-import { type FetchOutcome, fetchGame } from "@/lib/infra/shared-game-client";
+import { type FetchOutcome, fetchGame, sendEdit } from "@/lib/infra/shared-game-client";
 import { sharedSnapshot } from "@/test/unit/fixtures";
 
-vi.mock("@/lib/infra/shared-game-client", () => ({ fetchGame: vi.fn() }));
+vi.mock("@/lib/infra/shared-game-client", () => ({ fetchGame: vi.fn(), sendEdit: vi.fn() }));
 vi.mock("@/lib/infra/clipboard", () => ({ copyToClipboard: vi.fn() }));
 
 const fetchMock = vi.mocked(fetchGame);
+const sendMock = vi.mocked(sendEdit);
 const copy = vi.mocked(copyToClipboard);
 const ID = "abcdefghijklmnop";
 const KEY = "K".repeat(22);
@@ -142,12 +143,6 @@ describe("SharedGameApp: watching", () => {
     expect(screen.getByText("Live · 3 here")).toBeInTheDocument();
   });
 
-  it("says when someone has edit access that this device cannot edit yet", async () => {
-    fetchMock.mockResolvedValue(snapshot({ role: "edit" }));
-    await open();
-    expect(screen.getByText(/edit access.*isn't available yet/i)).toBeInTheDocument();
-  });
-
   it("REQ-0003-20: says a game is archived", async () => {
     fetchMock.mockResolvedValue(snapshot({ archived: true }));
     await open();
@@ -246,5 +241,190 @@ describe("SharedGameApp: the connection", () => {
     await tick(8000);
     expect(screen.getByText("Live")).toBeInTheDocument();
     expect(announced()).toContain("Live again.");
+  });
+});
+
+describe("SharedGameApp: editing (REQ-0003-07, -10, -14)", () => {
+  const withBuyins = (rev: number, counts: Record<string, number>) => {
+    const base = sharedSnapshot({ role: "edit", rev });
+    return {
+      ...base,
+      game: {
+        ...base.game,
+        players: base.game.players.map((p) => ({ ...p, buyins: counts[p.id] ?? p.buyins })),
+      },
+    };
+  };
+
+  it("an editor has the buy-in buttons, and is not told they are only watching", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    await open();
+    expect(screen.getByRole("button", { name: "Add a buy-in for Player 1" })).toBeInTheDocument();
+    expect(screen.queryByText(/watch only/i)).toBeNull();
+  });
+
+  it("shows a rebuy at once, says it, and sends it to the server", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    sendMock.mockResolvedValue({ kind: "saved", snapshot: withBuyins(2, { p1: 2 }) });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Add a buy-in for Player 1" }));
+    expect(screen.getByRole("group", { name: "Buy-ins for Player 1" })).toHaveTextContent("2");
+    expect(announced()).toContain("Player 1: 2 buy-ins, pot $100.00");
+    await tick(0);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    expect(sendMock.mock.calls[0]?.[0].envelope.action).toEqual({
+      type: "adjustBuyins",
+      playerId: "p1",
+      delta: 1,
+    });
+  });
+
+  it("REQ-0003-29: says a change another device made, once, with the new pot", async () => {
+    fetchMock.mockResolvedValueOnce({
+      kind: "snapshot",
+      snapshot: sharedSnapshot({ role: "edit" }),
+    });
+    await open();
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: withBuyins(2, { p2: 2 }) });
+    await tick(2000);
+    expect(announced()).toContain("Player 2: 2 buy-ins, pot $100.00");
+  });
+
+  it("REQ-0003-14: says when a change is waiting for the connection", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    sendMock.mockResolvedValue({ kind: "retry" });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Add a buy-in for Player 1" }));
+    await tick(0);
+    expect(screen.getByText("Reconnecting… your changes will sync.")).toBeInTheDocument();
+    expect(announced()).toContain("Reconnecting.");
+    expect(screen.getByRole("group", { name: "Buy-ins for Player 1" })).toHaveTextContent("2");
+  });
+
+  it("REQ-0003-23: shows and says why a change was not saved, and can be dismissed", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    sendMock.mockResolvedValue({ kind: "rejected", reason: "stale" });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Add a buy-in for Player 1" }));
+    await tick(0);
+    expect(
+      screen.getAllByText("That change waited too long offline, so it wasn't saved.").length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByRole("group", { name: "Buy-ins for Player 1" })).toHaveTextContent("1");
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
+  });
+
+  it("an archived game is read-only even for an editor", async () => {
+    fetchMock.mockResolvedValue({
+      kind: "snapshot",
+      snapshot: sharedSnapshot({ role: "edit", archived: true }),
+    });
+    await open();
+    expect(screen.queryByRole("button", { name: /Add a buy-in/ })).toBeNull();
+    expect(screen.getByText(/This game is archived/)).toBeInTheDocument();
+  });
+
+  it("Cash out: typing a count sends it", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    sendMock.mockResolvedValue({
+      kind: "saved",
+      snapshot: sharedSnapshot({ role: "edit", rev: 2 }),
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    await user.type(screen.getByLabelText("White chips for Player 1"), "7");
+    await tick(0);
+    expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toMatchObject({
+      type: "setPlayerChipCount",
+      playerId: "p1",
+      count: 7,
+    });
+  });
+
+  it("Settle: an editor can change how the difference is shared, but cannot start over yet", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    sendMock.mockResolvedValue({
+      kind: "saved",
+      snapshot: sharedSnapshot({ role: "edit", rev: 2 }),
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    await user.click(screen.getByRole("button", { name: "Settle up" }));
+    expect(screen.queryByRole("button", { name: /start over/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: "New game, same players" })).toBeNull();
+    await user.click(screen.getByRole("radio", { name: /Equally/ }));
+    await tick(0);
+    expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toEqual({
+      type: "setSpreadBy",
+      spreadBy: "equal",
+    });
+    await user.click(screen.getByRole("checkbox", { name: /Share the/ }));
+    await tick(0);
+    expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toEqual({
+      type: "setScale",
+      scale: false,
+    });
+  });
+});
+
+describe("SharedGameApp: setting up and starting (REQ-0003-15)", () => {
+  const notStarted = (overrides: Parameters<typeof sharedSnapshot>[0] = {}): FetchOutcome => ({
+    kind: "snapshot",
+    snapshot: sharedSnapshot({ role: "edit", started: false, ...overrides }),
+  });
+
+  it("the host fills in Setup and starts the game; the page moves on to the table", async () => {
+    fetchMock.mockResolvedValue(notStarted());
+    sendMock.mockResolvedValueOnce({
+      kind: "saved",
+      snapshot: sharedSnapshot({ role: "edit", started: false, rev: 2 }),
+    });
+    sendMock.mockResolvedValue({
+      kind: "saved",
+      snapshot: sharedSnapshot({ role: "edit", rev: 3 }),
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    expect(heading()).toHaveTextContent("Setup");
+    expect(screen.queryByRole("navigation")).toBeNull();
+    await user.type(screen.getByLabelText("Player 1 name"), "A");
+    await tick(0);
+    expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toMatchObject({
+      type: "setName",
+      playerId: "p1",
+    });
+    await user.click(screen.getByRole("button", { name: "Start the game" }));
+    await tick(0);
+    expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toEqual({ type: "startGame" });
+    expect(heading()).toHaveTextContent("At the table");
+    expect(announced()).toContain("The game has started.");
+  });
+
+  it("REQ-0002-08: Start the game stays focusable when it cannot be used, and leads to the problem", async () => {
+    const snapshot = sharedSnapshot({ role: "edit", started: false });
+    fetchMock.mockResolvedValue({
+      kind: "snapshot",
+      snapshot: { ...snapshot, game: { ...snapshot.game, buyIn: 0 } },
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    const start = screen.getByRole("button", { name: "Start the game" });
+    expect(start).toHaveAttribute("aria-disabled", "true");
+    await user.click(start);
+    expect(screen.getByLabelText(/^Buy-in/)).toHaveFocus();
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("a watcher still just waits", async () => {
+    fetchMock.mockResolvedValue(notStarted({ role: "watch" }));
+    await open();
+    expect(heading()).toHaveTextContent("Waiting for the host");
+    expect(screen.queryByRole("button", { name: "Start the game" })).toBeNull();
   });
 });

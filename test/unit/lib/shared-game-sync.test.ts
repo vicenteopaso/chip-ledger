@@ -57,4 +57,12 @@ describe("what is said about the connection", () => {
     expect(statusText("reconnecting", 3)).toBe("Reconnecting…");
     expect(statusText("offline", null)).toMatch(/^Offline/);
   });
+
+  it("REQ-0003-14: says when changes made here are waiting to be sent", () => {
+    expect(statusText("reconnecting", null, 2)).toBe("Reconnecting… your changes will sync.");
+    expect(statusText("offline", null, 1)).toBe(
+      "Offline. Your changes will sync when the connection returns.",
+    );
+    expect(statusText("live", 3, 4)).toBe("Live · 3 here");
+  });
 });

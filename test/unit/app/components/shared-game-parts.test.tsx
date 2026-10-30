@@ -16,11 +16,26 @@ describe("shared-game parts", () => {
     expect(screen.getByText(/^Offline/)).toBeInTheDocument();
   });
 
+  it("REQ-0003-14: says that changes made here will sync", () => {
+    const { rerender } = render(
+      <ConnectionStatus status="reconnecting" online={null} pending={2} />,
+    );
+    expect(screen.getByText("Reconnecting… your changes will sync.")).toBeInTheDocument();
+    rerender(<ConnectionStatus status="offline" online={null} pending={1} />);
+    expect(
+      screen.getByText("Offline. Your changes will sync when the connection returns."),
+    ).toBeInTheDocument();
+    rerender(<ConnectionStatus status="live" online={2} pending={1} />);
+    expect(screen.getByText("Live · 2 here")).toBeInTheDocument();
+  });
+
   it("REQ-0003-06, -29: the notice states the role in text", () => {
     const { rerender } = render(<WatchNotice access="watch" archived={false} />);
     expect(screen.getByText(/^Watch only/)).toBeInTheDocument();
+    // Someone who can edit is not told they are only watching.
     rerender(<WatchNotice access="edit" archived={false} />);
-    expect(screen.getByText(/edit access.*isn't available yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/watch only/i)).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
     rerender(<WatchNotice access="edit" archived />);
     expect(screen.getByText(/archived/i)).toBeInTheDocument();
   });

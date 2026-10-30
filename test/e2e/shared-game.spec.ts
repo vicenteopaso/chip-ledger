@@ -166,6 +166,95 @@ test.describe("SPEC-0003 shared games: watching", () => {
   });
 });
 
+test.describe("SPEC-0003 shared games: editing", () => {
+  const buyIns = (page: Page, player: string) =>
+    page.getByRole("group", { name: `Buy-ins for ${player}` });
+
+  test("AC-0003-06: two editors pressing + together end at +2", async ({
+    browser,
+    request,
+    baseURL,
+  }) => {
+    const shared = await shareGame(request, baseURL ?? "");
+    const a = await browser.newPage();
+    const b = await browser.newPage();
+    await openShared(a, shared.id, shared.editKey);
+    await openShared(b, shared.id, shared.editKey);
+    await expect(title(a, "At the table")).toBeVisible();
+    await expect(title(b, "At the table")).toBeVisible();
+    await Promise.all([
+      a.getByRole("button", { name: "Add a buy-in for Player 1" }).click(),
+      b.getByRole("button", { name: "Add a buy-in for Player 1" }).click(),
+    ]);
+    await expect(buyIns(a, "Player 1")).toContainText("3", { timeout: 10_000 });
+    await expect(buyIns(b, "Player 1")).toContainText("3", { timeout: 10_000 });
+    await a.close();
+    await b.close();
+  });
+
+  test("AC-0003-11: a change made offline waits, then syncs by itself", async ({
+    page,
+    request,
+    baseURL,
+  }) => {
+    const shared = await shareGame(request, baseURL ?? "");
+    await openShared(page, shared.id, shared.editKey);
+    await expect(title(page, "At the table")).toBeVisible();
+    await page.context().setOffline(true);
+    await page.getByRole("button", { name: "Add a buy-in for Player 1" }).click();
+    await expect(buyIns(page, "Player 1")).toContainText("2");
+    await expect(page.getByText(/your changes will sync/i)).toBeVisible({ timeout: 15_000 });
+    await page.context().setOffline(false);
+    await expect(page.getByText(/your changes will sync/i)).toHaveCount(0, { timeout: 40_000 });
+    const body = (await (
+      await request.get(`/api/games/${shared.id}`, {
+        headers: { authorization: `Bearer ${shared.editKey}`, "x-forwarded-for": uniqueClient() },
+      })
+    ).json()) as { game: { players: { buyins: number }[] } };
+    expect(body.game.players[0]?.buyins).toBe(2);
+  });
+
+  test("AC-0003-10: a change from elsewhere does not disturb a field being typed in", async ({
+    page,
+    request,
+    baseURL,
+  }) => {
+    const shared = await shareGame(request, baseURL ?? "", { started: false });
+    await openShared(page, shared.id, shared.editKey);
+    await expect(title(page, "Setup")).toBeVisible();
+    const name = page.getByLabel("Player 1 name");
+    await name.click();
+    await name.pressSequentially("Ana");
+    await editGame(request, baseURL ?? "", shared, {
+      type: "setBuyIn",
+      buyIn: 25,
+    });
+    await page.waitForTimeout(4000);
+    await name.pressSequentially("bel");
+    await expect(name).toHaveValue("Anabel");
+    await expect(name).toBeFocused();
+  });
+
+  test("REQ-0003-15: the host starts the game and a watcher follows", async ({
+    browser,
+    request,
+    baseURL,
+  }) => {
+    const shared = await shareGame(request, baseURL ?? "", { started: false });
+    const host = await browser.newPage();
+    const guest = await browser.newPage();
+    await openShared(host, shared.id, shared.editKey);
+    await openShared(guest, shared.id, shared.watchKey);
+    await expect(title(host, "Setup")).toBeVisible();
+    await expect(title(guest, "Waiting for the host")).toBeVisible();
+    await host.getByRole("button", { name: "Start the game" }).click();
+    await expect(title(host, "At the table")).toBeVisible();
+    await expect(title(guest, "At the table")).toBeVisible({ timeout: 10_000 });
+    await host.close();
+    await guest.close();
+  });
+});
+
 test.describe("SPEC-0003 shared games: solo play is unchanged", () => {
   test("REQ-0003-27: playing alone sends no request to the sharing API", async ({ page }) => {
     const urls: string[] = [];

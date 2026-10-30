@@ -71,17 +71,17 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 - [x] T-19 [P] Waiting-for-host state _(REQ-0003-15)_
   - Tests: e2e AC-0003-12
   - Done when: the watcher follows the start without reloading.
-- [ ] T-20 Close PR 3: new visual specs for the watched states (`test/visual/shared-game.spec.ts`); Linux baselines come from CI (add the `update-visual-baselines` label), macOS ones from a local run; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
+- [x] T-20 Close PR 3: new visual specs for the watched states (`test/visual/shared-game.spec.ts`); Linux baselines come from CI (add the `update-visual-baselines` label), macOS ones from a local run; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
 
 ## 4. Editing and sync (PR 4)
 
-- [ ] T-21 Optimistic actions, pending queue, reconcile on snapshot _(REQ-0003-10, -11, -14)_
+- [x] T-21 Optimistic actions, pending queue, reconcile on snapshot _(REQ-0003-10, -11, -14)_
   - Tests: unit for reconcile order; e2e AC-0003-06 and AC-0003-11
-  - Done when: two editors pressing + together end at +2 and a network cut recovers by itself.
-- [ ] T-22 Do not overwrite a focused field; extend `DraftInput` _(REQ-0003-12)_
+  - Done when: two editors pressing + together end at +2 and a network cut recovers by itself. (`lib/shared-game-queue.ts`, `useSharedEditor`; e2e passes locally. SSE stays deferred, T-14.)
+- [x] T-22 Do not overwrite a focused field; extend `DraftInput` _(REQ-0003-12)_
   - Tests: component and e2e AC-0003-10
   - Done when: typed text, caret and focus survive remote updates.
-- [ ] T-23 Remote-change announcements, grouped _(REQ-0003-29)_
+- [x] T-23 Remote-change announcements, grouped _(REQ-0003-29)_
   - Tests: unit for sentences and grouping; component with `LiveAnnouncer`; AC-0003-23
   - Done when: one remote + gives exactly one announcement.
 - [ ] T-24 Close PR 4: `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.

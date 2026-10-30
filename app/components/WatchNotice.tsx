@@ -15,14 +15,13 @@ export function WatchNotice({ access, archived }: WatchNoticeProps) {
       />
     );
   }
+  // Someone who can edit is not told they are watching.
+  if (access === "edit") return null;
   return (
     <Notice
       notice={{
         kind: "warn",
-        text:
-          access === "edit"
-            ? "You have edit access to this game, but editing on this device isn't available yet. You're watching."
-            : "Watch only. You can follow this game, but only people with edit access can change it.",
+        text: "Watch only. You can follow this game, but only people with edit access can change it.",
       }}
     />
   );

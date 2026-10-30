@@ -25,14 +25,19 @@ export function DraftInput<T>({
   format,
   parse,
   onValueChange,
+  onFocus,
+  onBlur,
   ...props
 }: DraftInputProps<T>) {
   const readOnly = useReadOnly();
   const [draft, setDraft] = useState(() => format(value));
   const [seen, setSeen] = useState(value);
+  const [focused, setFocused] = useState(false);
   if (!Object.is(seen, value)) {
     setSeen(value);
-    if (!Object.is(parse(draft), value)) setDraft(format(value));
+    // A change from elsewhere must not replace what the person is typing (SPEC-0003 REQ-0003-12);
+    // it is taken in when they leave the field.
+    if (!focused && !Object.is(parse(draft), value)) setDraft(format(value));
   }
   return (
     <input
@@ -41,6 +46,15 @@ export function DraftInput<T>({
       readOnly={readOnly || props.readOnly}
       aria-readonly={readOnly || props.readOnly ? true : undefined}
       value={draft}
+      onFocus={(event) => {
+        setFocused(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        if (!Object.is(parse(draft), value)) setDraft(format(value));
+        onBlur?.(event);
+      }}
       onChange={(event) => {
         const text = event.target.value;
         const next = parse(text);

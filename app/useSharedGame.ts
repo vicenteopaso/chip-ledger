@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchGame } from "@/lib/infra/shared-game-client";
 import { type GameSnapshot, HEARTBEAT_MS } from "@/lib/shared-game";
@@ -25,15 +25,24 @@ export type SharedGameView =
       status: ConnectionStatus;
     };
 
+const LOADING: SharedGameView = { phase: "loading", status: "live" };
+
+export type SharedGameFeed = {
+  view: SharedGameView;
+  /**
+   * Takes in a newer snapshot the caller got elsewhere, such as the answer to a saved edit. An
+   * older or equal revision is ignored, and a change counts as activity, so checks speed up.
+   */
+  receive: (snapshot: GameSnapshot) => void;
+};
+
 /**
  * Keeps one shared game up to date by asking the server: every 2 s for a minute after a change,
  * then every 5 s; never while the tab is hidden, and once straight away when it returns. A missed
  * check backs off and shows as Reconnecting, then Offline (REQ-0003-10, -13, ADR-0005 addendum).
  * Every 45 s a check doubles as a heartbeat so the others can see this device is here.
  */
-const LOADING: SharedGameView = { phase: "loading", status: "live" };
-
-export function useSharedGame(id: string, key: string | null): SharedGameView {
+export function useSharedGame(id: string, key: string | null): SharedGameFeed {
   // The view belongs to the game and key it was fetched with: a different link for the same
   // game starts again instead of showing what the old key could see.
   const scope = `${id}:${key ?? ""}`;
@@ -42,21 +51,44 @@ export function useSharedGame(id: string, key: string | null): SharedGameView {
     view: LOADING,
   });
   const view = held.scope === scope ? held.view : LOADING;
+  const rev = useRef<number | undefined>(undefined);
+  // Set when the checks start; reading the clock here would make a render impure.
+  const lastChange = useRef(0);
 
-  useEffect(() => {
-    if (!key) return;
-    const connection = crypto.randomUUID();
-    const setView = (next: SharedGameView | ((previous: SharedGameView) => SharedGameView)) => {
+  const update = useCallback(
+    (next: SharedGameView | ((previous: SharedGameView) => SharedGameView)) => {
       setHeld((previous) => {
         const current = previous.scope === scope ? previous.view : LOADING;
         return { scope, view: typeof next === "function" ? next(current) : next };
       });
-    };
+    },
+    [scope],
+  );
+
+  const receive = useCallback(
+    (snapshot: GameSnapshot) => {
+      if (rev.current !== undefined && snapshot.rev <= rev.current) return;
+      rev.current = snapshot.rev;
+      lastChange.current = Date.now();
+      update((previous) => ({
+        phase: "ready",
+        snapshot,
+        archived: snapshot.archived,
+        online: snapshot.online ?? (previous.phase === "ready" ? previous.online : null),
+        status: "live",
+      }));
+    },
+    [update],
+  );
+
+  useEffect(() => {
+    if (!key) return;
+    rev.current = undefined;
+    lastChange.current = Date.now();
+    const connection = crypto.randomUUID();
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let controller: AbortController | undefined;
-    let rev: number | undefined;
-    let lastChange = Date.now();
     let lastBeat = 0;
     let failures = 0;
 
@@ -77,7 +109,7 @@ export function useSharedGame(id: string, key: string | null): SharedGameView {
       const outcome = await fetchGame({
         id,
         key: key ?? "",
-        ...(rev === undefined ? {} : { rev }),
+        ...(rev.current === undefined ? {} : { rev: rev.current }),
         ...(beat ? { connection } : {}),
         signal: current.signal,
       });
@@ -85,13 +117,13 @@ export function useSharedGame(id: string, key: string | null): SharedGameView {
       if (stopped || current.signal.aborted) return;
 
       if (outcome.kind === "unavailable") {
-        setView({ phase: "unavailable" });
+        update({ phase: "unavailable" });
         return;
       }
       if (outcome.kind === "error" || outcome.kind === "busy") {
         failures += 1;
         const status = connectionStatus(failures);
-        setView((previous) =>
+        update((previous) =>
           previous.phase === "unavailable" ? previous : { ...previous, status },
         );
         schedule(retryDelayMs(failures));
@@ -101,18 +133,9 @@ export function useSharedGame(id: string, key: string | null): SharedGameView {
       failures = 0;
       if (beat) lastBeat = now;
       if (outcome.kind === "snapshot") {
-        rev = outcome.snapshot.rev;
-        lastChange = Date.now();
-        const { snapshot } = outcome;
-        setView((previous) => ({
-          phase: "ready",
-          snapshot,
-          archived: snapshot.archived,
-          online: snapshot.online ?? (previous.phase === "ready" ? previous.online : null),
-          status: "live",
-        }));
+        receive(outcome.snapshot);
       } else {
-        setView((previous) =>
+        update((previous) =>
           previous.phase === "ready"
             ? {
                 ...previous,
@@ -123,7 +146,7 @@ export function useSharedGame(id: string, key: string | null): SharedGameView {
             : previous,
         );
       }
-      schedule(pollDelayMs(lastChange, Date.now()));
+      schedule(pollDelayMs(lastChange.current, Date.now()));
     }
 
     const resume = () => {
@@ -145,7 +168,7 @@ export function useSharedGame(id: string, key: string | null): SharedGameView {
       document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("online", resume);
     };
-  }, [id, key, scope]);
+  }, [id, key, update, receive]);
 
-  return view;
+  return { view, receive };
 }

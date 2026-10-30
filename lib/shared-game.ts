@@ -315,10 +315,34 @@ function toGameAction(action: Exclude<SharedAction, { type: "startGame" }>): Gam
   return action;
 }
 
+/** The part of a shared game an action changes: whether it has started, and the game itself. */
+export type SharedState = { started: boolean; game: SharedGameBody };
+
+/**
+ * One action on a shared game, or `null` when it would make the game invalid. The browser uses
+ * this to show a change at once and the server to apply it, so both agree on what an action does.
+ * Buy-in changes are deltas, so concurrent ones add up; other actions set a value, so the later
+ * one wins (REQ-0003-11).
+ */
+export function applyAction(state: SharedState, action: SharedAction): SharedState | null {
+  let started = state.started;
+  let body: unknown = state.game;
+  if (action.type === "startGame") {
+    if (!started) {
+      if (!canStartGame({ ...state.game, screen: "setup" })) return null;
+      started = true;
+    }
+  } else {
+    body = omitScreen(gameReducer({ ...state.game, screen: "setup" }, toGameAction(action)));
+  }
+  const parsed = SharedGameBodySchema.safeParse(body);
+  return parsed.success ? { started, game: parsed.data } : null;
+}
+
 /**
  * Applies one edit to a stored game. A retried edit (known action id) succeeds without changing
- * anything. Buy-in changes are deltas, so concurrent ones add up; other edits set a value, so the
- * later one wins (REQ-0003-11). The result is checked against the same rules as a saved game.
+ * anything. The result is checked against the same rules as a saved game, and against the size
+ * cap (REQ-0003-23, -25).
  */
 export function applyEdit(
   doc: StoredGame,
@@ -331,21 +355,9 @@ export function applyEdit(
   if (doc.recentActionIds.includes(envelope.actionId)) return { ok: true, doc, changed: false };
   if (envelope.queuedMs > MAX_QUEUED_MS) return { ok: false, reason: "stale" };
 
-  const { action } = envelope;
-  let started = doc.started;
-  let body: unknown = doc.game;
-  if (action.type === "startGame") {
-    if (!doc.started) {
-      if (!canStartGame({ ...doc.game, screen: "setup" })) return { ok: false, reason: "invalid" };
-      started = true;
-    }
-  } else {
-    body = omitScreen(gameReducer({ ...doc.game, screen: "setup" }, toGameAction(action)));
-  }
-
-  const parsed = SharedGameBodySchema.safeParse(body);
-  if (!parsed.success) return { ok: false, reason: "invalid" };
-  if (byteLength(parsed.data) > MAX_GAME_BYTES) return { ok: false, reason: "too_large" };
+  const next = applyAction({ started: doc.started, game: doc.game }, envelope.action);
+  if (!next) return { ok: false, reason: "invalid" };
+  if (byteLength(next.game) > MAX_GAME_BYTES) return { ok: false, reason: "too_large" };
 
   return {
     ok: true,
@@ -354,8 +366,8 @@ export function applyEdit(
       ...doc,
       rev: doc.rev + 1,
       updatedAt: context.now,
-      started,
-      game: parsed.data,
+      started: next.started,
+      game: next.game,
       recentActionIds: [...doc.recentActionIds, envelope.actionId].slice(-RECENT_ACTIONS),
     },
   };

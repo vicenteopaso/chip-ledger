@@ -33,6 +33,24 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expectNoViolations(page);
     });
 
+    test("an editor's table, setup and cash out", async ({ page, request, baseURL }) => {
+      const shared = await shareGame(request, baseURL ?? "");
+      await openShared(page, shared.id, shared.editKey);
+      await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
+      await expectNoViolations(page);
+      await page.getByRole("button", { name: "Cash out", exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: "Cash out" })).toBeVisible();
+      await expectNoViolations(page);
+    });
+
+    test("an editor setting up before the start", async ({ page, request, baseURL }) => {
+      const shared = await shareGame(request, baseURL ?? "", { started: false });
+      await openShared(page, shared.id, shared.editKey);
+      await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Start the game" })).toBeVisible();
+      await expectNoViolations(page);
+    });
+
     test("waiting for the host", async ({ page, request, baseURL }) => {
       const shared = await shareGame(request, baseURL ?? "", { started: false });
       await openShared(page, shared.id, shared.watchKey);
