@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { enterCounts, openFresh, SHORT_COUNTS, startGame } from "../e2e/helpers";
+import { openShared, shareGame } from "../e2e/shared-helpers";
 
 /** Full-page snapshots of every step (REQ-0001-27), in both themes at phone and desktop widths. */
 const VIEWPORTS = { mobile: { width: 375, height: 812 }, desktop: { width: 1280, height: 900 } };
@@ -48,3 +49,49 @@ test.describe("forced colors mobile", () => {
     await snap(page, "cashout-forced-colors-mobile");
   });
 });
+
+/**
+ * A shared game as a watcher sees it (SPEC-0003 AC-0003-24), in both themes. The table is shown at
+ * phone and desktop widths; the waiting and unavailable pages at phone width. They live in this
+ * file so the baseline workflow, which collects this file's snapshots, picks them up.
+ */
+for (const colorScheme of ["light", "dark"] as const) {
+  for (const [size, viewport] of Object.entries(VIEWPORTS)) {
+    test.describe(`shared ${colorScheme} ${size}`, () => {
+      test.use({ colorScheme, viewport });
+
+      test("watching the table", async ({ page, request, baseURL }) => {
+        const shared = await shareGame(request, baseURL ?? "");
+        await openShared(page, shared.id, shared.watchKey);
+        await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
+        await expect(page.getByText("Live · 1 here")).toBeVisible();
+        await snap(page, `shared-table-${colorScheme}-${size}`);
+      });
+    });
+  }
+
+  test.describe(`shared ${colorScheme} mobile states`, () => {
+    test.use({ colorScheme, viewport: VIEWPORTS.mobile });
+
+    test("waiting for the host, and a game that is not available", async ({
+      page,
+      request,
+      baseURL,
+    }) => {
+      const shared = await shareGame(request, baseURL ?? "", { started: false });
+      await openShared(page, shared.id, shared.watchKey);
+      await expect(
+        page.getByRole("heading", { level: 1, name: "Waiting for the host" }),
+      ).toBeVisible();
+      await expect(page.getByText("Live · 1 here")).toBeVisible();
+      await snap(page, `shared-waiting-${colorScheme}-mobile`);
+
+      await page.goto("about:blank");
+      await page.goto(`/g/${shared.id}#k=${"B".repeat(22)}`);
+      await expect(
+        page.getByRole("heading", { level: 1, name: "This game isn’t available" }),
+      ).toBeVisible();
+      await snap(page, `shared-unavailable-${colorScheme}-mobile`);
+    });
+  });
+}
