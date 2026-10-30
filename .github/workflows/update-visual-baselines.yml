@@ -5,9 +5,11 @@ name: Update visual baselines
 # come from CI (docs/TESTING.md §6). Run it by adding the `update-visual-baselines` label to a
 # pull request; the label is removed when the run finishes.
 #
-# A commit pushed with the default GITHUB_TOKEN does not start new workflow runs, so CI would
-# not re-run on it. Set the optional `VISUAL_BASELINES_TOKEN` secret (a fine-grained token with
-# Contents: read and write on this repository) to have CI re-run automatically.
+# Pushing needs the optional `VISUAL_BASELINES_TOKEN` secret: a fine-grained token with Contents:
+# read and write on this repository, for an account allowed to bypass the branch ruleset. The
+# default GITHUB_TOKEN can't bypass it (GH013), and its pushes wouldn't start CI anyway. Without
+# the secret, the baselines are uploaded as the `linux-baselines` artifact instead, and the
+# comment gives the one command that puts them in place.
 
 on:
   pull_request:
@@ -66,12 +68,28 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "test: refresh Linux visual baselines from CI"
-          git push origin "HEAD:refs/heads/${HEAD_REF}"
+          # A rejected push (branch ruleset, or no push token) falls back to the artifact below.
+          if git push origin "HEAD:refs/heads/${HEAD_REF}"; then
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload the baselines when they couldn't be pushed
+        if: steps.commit.outputs.pushed == 'false'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-baselines
+          path: test/visual/screens.spec.ts-snapshots/*-linux.png
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Report on the pull request
         if: always()
         env:
           CHANGED: ${{ steps.commit.outputs.changed }}
+          PUSHED: ${{ steps.commit.outputs.pushed }}
+          RUN_ID: ${{ github.run_id }}
           OUTCOME: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -80,6 +98,13 @@ jobs:
             body="Updating the Linux visual baselines failed. See the [run]($RUN_URL)."
           elif [ "${CHANGED:-0}" = "0" ]; then
             body="The Linux visual baselines already match CI's renders. Nothing to commit."
+          elif [ "$PUSHED" = "false" ]; then
+            body="${CHANGED} Linux visual baselines changed, but this workflow can't push to the branch (set \`VISUAL_BASELINES_TOKEN\` to allow it). Put them in place from your checkout of the branch, then commit and push:
+
+          \`\`\`bash
+          rm -rf /tmp/linux-baselines && gh run download ${RUN_ID} -n linux-baselines -D /tmp/linux-baselines
+          cp /tmp/linux-baselines/*-linux.png test/visual/screens.spec.ts-snapshots/
+          \`\`\`"
           elif [ "$HAS_PUSH_TOKEN" = "true" ]; then
             body="Committed ${CHANGED} refreshed Linux visual baselines from CI's renders. CI re-runs on that commit."
           else

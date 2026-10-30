@@ -14,26 +14,26 @@ Tools: Vitest + Testing Library (jsdom) for unit and component tests, Playwright
 
 ## 2. The pyramid
 
-| Level          | Tool (default)                | Scope                                       | Volume  | Speed     |
-| -------------- | ----------------------------- | ------------------------------------------- | ------- | --------- |
-| Unit           | Vitest                        | Pure functions, schemas, domain logic       | Many    | ms        |
-| Component      | Vitest + Testing Library      | One component, props and events, a11y roles | Many    | 10s of ms |
-| Route/contract | Vitest                        | API handlers with mocked infra              | Several | 10s of ms |
-| E2E            | Playwright                    | Critical user flows in a real browser       | Few     | seconds   |
-| Visual         | Playwright screenshots        | Layout and theme regressions                | Targeted | seconds  |
-| Accessibility  | axe via Playwright            | Violations per page/state/theme             | Targeted | seconds  |
+| Level          | Tool (default)           | Scope                                       | Volume   | Speed     |
+| -------------- | ------------------------ | ------------------------------------------- | -------- | --------- |
+| Unit           | Vitest                   | Pure functions, schemas, domain logic       | Many     | ms        |
+| Component      | Vitest + Testing Library | One component, props and events, a11y roles | Many     | 10s of ms |
+| Route/contract | Vitest                   | API handlers with mocked infra              | Several  | 10s of ms |
+| E2E            | Playwright               | Critical user flows in a real browser       | Few      | seconds   |
+| Visual         | Playwright screenshots   | Layout and theme regressions                | Targeted | seconds   |
+| Accessibility  | axe via Playwright       | Violations per page/state/theme             | Targeted | seconds   |
 
 ## 3. What to test
 
-| Change                | Required tests                                                                  |
-| --------------------- | ------------------------------------------------------------------------------- |
-| New pure logic        | Unit: valid, invalid, boundary, and error cases                                 |
-| New component         | Component: renders from props, events, keyboard, accessible roles/names         |
-| New route / action    | Route tests: success, validation failure, unauthorized, rate-limited, upstream failure |
-| New user flow         | E2E: happy path plus the primary failure path                                   |
-| UI change             | Visual (light/dark, mobile/desktop) and an axe check                            |
-| Bug fix               | A regression test that fails before the fix and passes after                    |
-| Refactor              | Existing tests pass unmodified (that is the point)                              |
+| Change             | Required tests                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| New pure logic     | Unit: valid, invalid, boundary, and error cases                                        |
+| New component      | Component: renders from props, events, keyboard, accessible roles/names                |
+| New route / action | Route tests: success, validation failure, unauthorized, rate-limited, upstream failure |
+| New user flow      | E2E: happy path plus the primary failure path                                          |
+| UI change          | Visual (light/dark, mobile/desktop) and an axe check                                   |
+| Bug fix            | A regression test that fails before the fix and passes after                           |
+| Refactor           | Existing tests pass unmodified (that is the point)                                     |
 
 ## 4. Coverage
 
@@ -106,7 +106,7 @@ Use visual tests to catch layout and theme regressions, not to assert behavior.
 - Wait for stable state with shared helpers (fonts loaded, images decoded, network idle, animation off) — never `waitForTimeout`.
 - Mask or freeze dynamic regions (dates, ads, charts with live data) and disable animations globally.
 - Keep a small tolerance (`maxDiffPixelRatio`) to absorb anti-aliasing noise; never raise it to hide a real diff.
-- Baselines are committed per platform (`*-linux.png` for CI, `*-darwin.png` for local runs on macOS). Update them only for intentional changes, in the same PR, and review the image diff. Linux baselines must come from CI's pinned browser: other Chromium builds wrap text differently at mobile widths. Add the `update-visual-baselines` label to the pull request, and `.github/workflows/update-visual-baselines.yml` regenerates them, commits only `*-linux.png`, removes the label, and comments the result. The fallback is to copy the actual images from a failed run's `playwright-report` artifact.
+- Baselines are committed per platform (`*-linux.png` for CI, `*-darwin.png` for local runs on macOS). Update them only for intentional changes, in the same PR, and review the image diff. Linux baselines must come from CI's pinned browser: other Chromium builds wrap text differently at mobile widths. Add the `update-visual-baselines` label to the pull request, and `.github/workflows/update-visual-baselines.yml` regenerates them, commits only `*-linux.png` (pushing needs the `VISUAL_BASELINES_TOKEN` secret, see [Deployment](./DEPLOYMENT.md); otherwise it uploads a `linux-baselines` artifact), removes the label, and comments the result or the command to apply it. The fallback is to copy the actual images from a failed run's `playwright-report` artifact.
 - Suppress third-party widgets (analytics toolbars, consent banners) in test mode.
 
 ## 7. Accessibility tests
@@ -139,25 +139,25 @@ A flaky test is a bug. Quarantining is a last resort and needs an issue.
 
 ## 10. CI integration
 
-| Job                   | Runs                                              |
-| --------------------- | ------------------------------------------------- |
-| `verify`              | lint, typecheck, unit tests with coverage, build  |
-| `test-e2e`            | Playwright e2e against a production build         |
-| `test-a11y`           | axe audits                                        |
-| `test-coverage-check` | PR must change tests when it changes code paths   |
-| `lighthouse`          | Performance/a11y/SEO budgets                      |
+| Job                   | Runs                                             |
+| --------------------- | ------------------------------------------------ |
+| `verify`              | lint, typecheck, unit tests with coverage, build |
+| `test-e2e`            | Playwright e2e against a production build        |
+| `test-a11y`           | axe audits                                       |
+| `test-coverage-check` | PR must change tests when it changes code paths  |
+| `lighthouse`          | Performance/a11y/SEO budgets                     |
 
 Failed e2e/visual runs upload the report and traces as artifacts.
 
 ## 11. Troubleshooting
 
-| Symptom                           | Likely cause and fix                                                     |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| Passes locally, fails in CI       | Node/browser version drift, timing, OS rendering. Match `.nvmrc`; use the CI container for visual baselines |
-| E2E timeouts                      | App not built or port busy. Build first; use the config's `webServer`    |
-| Visual diffs of a few pixels      | Unmasked dynamic content or font loading. Mask/wait; do not raise tolerance blindly |
-| Coverage drops unexpectedly       | New file with no tests, or excluded path changed. Check the report       |
-| "Cannot find module" in tests     | Path alias missing in the runner config                                  |
+| Symptom                       | Likely cause and fix                                                                                        |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Passes locally, fails in CI   | Node/browser version drift, timing, OS rendering. Match `.nvmrc`; use the CI container for visual baselines |
+| E2E timeouts                  | App not built or port busy. Build first; use the config's `webServer`                                       |
+| Visual diffs of a few pixels  | Unmasked dynamic content or font loading. Mask/wait; do not raise tolerance blindly                         |
+| Coverage drops unexpectedly   | New file with no tests, or excluded path changed. Check the report                                          |
+| "Cannot find module" in tests | Path alias missing in the runner config                                                                     |
 
 ## Related
 
