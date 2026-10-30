@@ -59,12 +59,6 @@ function contrast(a: Rgb, b: Rgb): number {
 
 describe("design token contrast", () => {
   for (const theme of ["light", "dark"] as const) {
-    it(`AC-0002-04: the done-step border is at least 3:1 against the page (${theme})`, () => {
-      expect(
-        contrast(color("--color-step-done", theme), color("--color-bg", theme)),
-      ).toBeGreaterThanOrEqual(3);
-    });
-
     it(`REQ-0002-06: field borders are at least 3:1 against page and surface (${theme})`, () => {
       const border = color("--color-border-control", theme);
       expect(contrast(border, color("--color-bg", theme))).toBeGreaterThanOrEqual(3);
@@ -86,15 +80,41 @@ describe("design token contrast", () => {
       expect(
         contrast(color("--color-text", theme), color("--color-surface-hover", theme)),
       ).toBeGreaterThanOrEqual(4.5);
-      // Danger text sits on the same hover background (the Start over buttons).
+    });
+
+    it(`REQ-0002-31: button and notice tints keep their text contrast (${theme})`, () => {
+      for (const fill of ["--color-accent-soft", "--color-accent-soft-hover"]) {
+        expect(contrast(color("--color-text", theme), color(fill, theme))).toBeGreaterThanOrEqual(
+          4.5,
+        );
+      }
+      for (const fill of ["--color-danger-soft", "--color-danger-soft-hover"]) {
+        expect(contrast(color("--color-danger", theme), color(fill, theme))).toBeGreaterThanOrEqual(
+          4.5,
+        );
+      }
+      const success = color("--color-success-bg", theme);
+      expect(contrast(color("--color-text", theme), success)).toBeGreaterThanOrEqual(4.5);
+      // The check mark and the left rule are graphics: 3:1 (WCAG 1.4.11).
+      expect(contrast(color("--color-success", theme), success)).toBeGreaterThanOrEqual(3);
+      // The warning's rule and icon are its text color.
       expect(
-        contrast(color("--color-danger", theme), color("--color-surface-hover", theme)),
+        contrast(color("--color-warn-ink", theme), color("--color-warn-bg", theme)),
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it(`AC-0002-04, REQ-0002-27: step circles are at least 3:1 against the page (${theme})`, () => {
+      const bg = color("--color-bg", theme);
+      expect(contrast(color("--color-accent", theme), bg)).toBeGreaterThanOrEqual(3);
+      expect(contrast(color("--color-border-control", theme), bg)).toBeGreaterThanOrEqual(3);
+      expect(
+        contrast(color("--color-accent-ink", theme), color("--color-accent", theme)),
       ).toBeGreaterThanOrEqual(4.5);
     });
   }
 
   it("reads mixed tokens, so the check above is not vacuous", () => {
-    expect(tokens("light").get("--color-step-done")).toMatch(/^color-mix/);
+    expect(tokens("light").get("--color-accent-soft")).toMatch(/^color-mix/);
     expect(contrast([0, 0, 0], [255, 255, 255])).toBeCloseTo(21);
   });
 });

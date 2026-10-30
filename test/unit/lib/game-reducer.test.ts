@@ -100,6 +100,13 @@ describe("gameReducer", () => {
     expect(gameReducer(defaultGame(), { type: "setScale", scale: false }).scale).toBe(false);
   });
 
+  it("REQ-0002-33: chooses how the difference is shared", () => {
+    expect(defaultGame().spreadBy).toBe("chips");
+    expect(gameReducer(defaultGame(), { type: "setSpreadBy", spreadBy: "equal" }).spreadBy).toBe(
+      "equal",
+    );
+  });
+
   it("REQ-0001-23: new game keeps names and chips, resets buy-ins and counts, opens Table", () => {
     let game = gameReducer(defaultGame(), { type: "setName", playerId: "p1", name: "Ana" });
     game = gameReducer(game, { type: "adjustBuyins", playerId: "p1", delta: 1 });

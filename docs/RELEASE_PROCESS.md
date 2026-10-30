@@ -20,11 +20,11 @@ A lightweight, label-driven release flow. `main` is always deployable (CONSTITUT
 
 [Semantic Versioning](https://semver.org/):
 
-| Bump  | When                                                              |
-| ----- | ----------------------------------------------------------------- |
-| Major | Breaking change to a public contract or documented behavior       |
-| Minor | Backward-compatible feature                                       |
-| Patch | Backward-compatible fix, docs, dependency, or internal change     |
+| Bump  | When                                                          |
+| ----- | ------------------------------------------------------------- |
+| Major | Breaking change to a public contract or documented behavior   |
+| Minor | Backward-compatible feature                                   |
+| Patch | Backward-compatible fix, docs, dependency, or internal change |
 
 - The version lives in `package.json` and in the latest `CHANGELOG.md` entry; a script (`scripts/check-version-sync.mjs`, optional) keeps them equal.
 - Tag releases `vMAJOR.MINOR.PATCH` on `main`. CI re-checks that the tag, `package.json`, and changelog agree.

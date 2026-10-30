@@ -4,14 +4,14 @@ You cannot fix what you cannot see. This document defines what we collect, why, 
 
 ## 1. Signals
 
-| Signal         | Purpose                                      | Default tool (swap freely)          |
-| -------------- | -------------------------------------------- | ----------------------------------- |
-| Structured logs | Debug a specific request or job             | Platform logs / log drain           |
-| Error tracking | Group, count, and alert on exceptions        | Sentry or equivalent                |
-| Web Vitals _(web)_ | Real-user performance (LCP, INP, CLS)    | Platform speed insights / RUM       |
-| Product analytics | Usage, privacy-respecting                 | Cookieless analytics                |
-| Traces/metrics | Latency and saturation of services          | OpenTelemetry-compatible backend    |
-| Synthetic checks | Is it up, and are budgets met?            | Lighthouse CI, uptime monitor       |
+| Signal             | Purpose                               | Default tool (swap freely)       |
+| ------------------ | ------------------------------------- | -------------------------------- |
+| Structured logs    | Debug a specific request or job       | Platform logs / log drain        |
+| Error tracking     | Group, count, and alert on exceptions | Sentry or equivalent             |
+| Web Vitals _(web)_ | Real-user performance (LCP, INP, CLS) | Platform speed insights / RUM    |
+| Product analytics  | Usage, privacy-respecting             | Cookieless analytics             |
+| Traces/metrics     | Latency and saturation of services    | OpenTelemetry-compatible backend |
+| Synthetic checks   | Is it up, and are budgets met?        | Lighthouse CI, uptime monitor    |
 
 ## 2. Principles
 
@@ -49,11 +49,11 @@ Runs on each PR against a production build, asserting the budgets in `sdd.yaml` 
 
 Define two or three, review quarterly:
 
-| SLI                      | Objective (example) | Window |
-| ------------------------ | ------------------- | ------ |
-| Successful page responses | 99.9%              | 30 d   |
-| API p95 latency          | < 500 ms            | 30 d   |
-| Error-free sessions      | > 99%               | 30 d   |
+| SLI                       | Objective (example) | Window |
+| ------------------------- | ------------------- | ------ |
+| Successful page responses | 99.9%               | 30 d   |
+| API p95 latency           | < 500 ms            | 30 d   |
+| Error-free sessions       | > 99%               | 30 d   |
 
 An exhausted error budget pauses feature work in favor of reliability work.
 

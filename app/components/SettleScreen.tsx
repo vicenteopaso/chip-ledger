@@ -1,7 +1,9 @@
 import { Button } from "@/app/components/Button";
 import { ConfirmInline } from "@/app/components/ConfirmInline";
+import { Notice } from "@/app/components/Notice";
+import { Card, ListRow } from "@/app/components/Surfaces";
 import { Hint, PageTitle, SectionTitle } from "@/app/components/Typography";
-import type { GameState } from "@/lib/game";
+import type { GameState, SpreadBy } from "@/lib/game";
 import { type Currency, fromMinor, type MoneyFormatter } from "@/lib/money";
 import type { Settlement } from "@/lib/settlement";
 import { hasPotMismatch } from "@/lib/summaries";
@@ -17,6 +19,7 @@ export type SettleScreenProps = {
   /** Whether the "Start over" confirmation is open (REQ-0002-11). */
   resetConfirming: boolean;
   onScaleChange: (scale: boolean) => void;
+  onSpreadByChange: (spreadBy: SpreadBy) => void;
   onCopy: () => void;
   onBackToSetup: () => void;
   onResetConfirmingChange: (open: boolean) => void;
@@ -41,18 +44,38 @@ export function SettleScreen({
   copy,
   resetConfirming,
   onScaleChange,
+  onSpreadByChange,
   onCopy,
   onBackToSetup,
   onResetConfirmingChange,
   onReset,
 }: SettleScreenProps) {
   const difference = Math.abs(settlement.difference);
+  // Short: the shared money is added to cash-outs; over: it is taken from them.
+  const short = settlement.difference < 0;
+  const perPlayer = difference / settlement.rows.length;
+  const spreadOptions: { value: SpreadBy; label: string; effect: string }[] = [
+    {
+      value: "chips",
+      label: "In proportion to chips",
+      effect: short ? "Bigger stacks get more of it." : "Bigger stacks give up more of it.",
+    },
+    {
+      value: "equal",
+      label: "Equally",
+      effect: `${money(perPlayer)} ${short ? "more" : "less"} for each player.`,
+    },
+  ];
   return (
     <>
       <PageTitle>Settle up</PageTitle>
       {hasPotMismatch(settlement) && (
-        <div className="my-3 rounded-md bg-warn-bg px-3.5 py-3 text-md text-warn-ink">
-          {`The counted chips are ${money(difference)} ${settlement.difference > 0 ? "over" : "short of"} the ${money(settlement.pot)} pot.`}
+        <Notice
+          notice={{
+            kind: "warn",
+            text: `The counted chips are ${money(difference)} ${settlement.difference > 0 ? "over" : "short of"} the ${money(settlement.pot)} pot.`,
+          }}
+        >
           <label className="mt-2.5 flex items-start gap-3 text-md">
             <input
               type="checkbox"
@@ -62,21 +85,43 @@ export function SettleScreen({
                 onScaleChange(event.target.checked);
               }}
             />
-            <span>
-              Spread the difference across everyone in proportion to their chips, so the payments
-              balance.
-            </span>
+            <span>{`Share the ${money(difference)} difference so the payments balance.`}</span>
           </label>
-        </div>
+          {game.scale && (
+            // Indented to line up with the checkbox's text: a 22 px box and a 12 px gap.
+            <fieldset className="mt-3 ml-8.5 flex flex-col gap-2.5">
+              <legend className="mb-2 font-semibold">Share it</legend>
+              {spreadOptions.map((option) => (
+                <label key={option.value} className="flex items-start gap-3 text-md">
+                  <input
+                    type="radio"
+                    name="spread-by"
+                    className="mt-px size-5 flex-none accent-accent"
+                    value={option.value}
+                    checked={game.spreadBy === option.value}
+                    onChange={() => {
+                      onSpreadByChange(option.value);
+                    }}
+                  />
+                  <span>
+                    <span className="block font-semibold">{option.label}</span>
+                    {option.effect}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+        </Notice>
       )}
 
       <SectionTitle>Payments</SectionTitle>
       {settlement.payments.length > 0 ? (
         <ul>
           {settlement.payments.map((payment, index) => (
-            <li
+            <Card
+              as="li"
               key={`${payment.from}-${payment.to}-${String(index)}`}
-              className="my-2.5 flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3.5"
+              className="my-2.5 flex items-center gap-3"
             >
               <div className="flex-1 text-lg">
                 <b>{payment.from}</b> <span className="text-text-muted">pays</span>{" "}
@@ -85,11 +130,11 @@ export function SettleScreen({
               <div className="text-4xl font-extrabold">
                 {money(fromMinor(payment.minor, game.currency))}
               </div>
-            </li>
+            </Card>
           ))}
         </ul>
       ) : (
-        <p className="my-3 text-md text-success">Everyone broke even. Nobody owes anything.</p>
+        <Notice notice={{ kind: "ok", text: "Everyone broke even. Nobody owes anything." }} />
       )}
       {!game.scale && settlement.unaccountedMinor !== 0 && (
         <Hint>
@@ -100,10 +145,7 @@ export function SettleScreen({
       <SectionTitle>Results</SectionTitle>
       <ul>
         {settlement.rows.map((row) => (
-          <li
-            key={row.playerId}
-            className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-b border-border py-3"
-          >
+          <ListRow as="li" key={row.playerId} className="grid grid-cols-2 gap-x-3 gap-y-0.5">
             <b className="text-lg">{row.name}</b>
             <span className={`text-right text-2xl font-extrabold ${netTone(row.netMinor)}`}>
               {signedMoney(money, row.netMinor, game.currency)}
@@ -112,7 +154,7 @@ export function SettleScreen({
             <small className="text-right text-md text-text-muted">
               {`Cashed out ${money(row.cashedOut)}`}
             </small>
-          </li>
+          </ListRow>
         ))}
       </ul>
 
@@ -123,7 +165,8 @@ export function SettleScreen({
         {copy.kind === "fallback" && (
           <>
             <textarea
-              className="h-42.5 w-full rounded-md border-control border-border-control bg-surface p-2.5 font-mono text-sm text-text"
+              rows={7}
+              className="w-full rounded-md border-control border-border-control bg-surface p-2.5 font-mono text-sm text-text"
               readOnly
               aria-label="Results text"
               value={copy.text}

@@ -90,11 +90,11 @@ export function countCheckSummary(game: GameState, money: MoneyFormatter): Notic
   return {
     kind: "warn",
     code: difference > 0 ? "over" : "under",
-    text: `Counted chips are worth ${money(counted)}, which is ${money(Math.abs(difference))} ${difference > 0 ? "more" : "less"} than the ${money(potTotal)} pot. Recount the colors marked in red, or settle anyway and the difference is spread across everyone.`,
+    text: `Counted chips are worth ${money(counted)}, which is ${money(Math.abs(difference))} ${difference > 0 ? "more" : "less"} than the ${money(potTotal)} pot. Recount the colors marked in red, or settle anyway and choose how to share the difference.`,
   };
 }
 
-/** Whether Settle needs the "spread the difference" notice (REQ-0001-20). */
+/** Whether Settle needs the "share the difference" notice (REQ-0001-20, REQ-0002-33). */
 export function hasPotMismatch(settlement: Settlement): boolean {
   return Math.abs(settlement.difference) >= MONEY_EPSILON;
 }
@@ -111,6 +111,11 @@ export function resultsText(settlement: Settlement, money: MoneyFormatter, date:
   return [
     `Poker night ${date}`,
     `Pot: ${money(settlement.pot)}`,
+    ...(settlement.spreadBy && Math.abs(settlement.difference) >= MONEY_EPSILON
+      ? [
+          `Counted chips: ${money(settlement.counted)}, the ${money(Math.abs(settlement.difference))} difference shared ${settlement.spreadBy === "chips" ? "in proportion to chips" : "equally"}`,
+        ]
+      : []),
     "",
     ...settlement.rows.map((row) => `${row.name}: ${signed(row.netMinor)}`),
     "",

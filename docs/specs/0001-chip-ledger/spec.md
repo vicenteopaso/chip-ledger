@@ -82,9 +82,9 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 
 ### Settle
 
-- REQ-0001-18: Each player's net MUST be cash-out − money in, in whole cents. When "spread the difference" is on and chips were counted, cash-outs MUST be scaled by pot ÷ counted value and any rounding residue MUST be absorbed by the player with the largest absolute net, so nets sum to zero.
+- REQ-0001-18: Each player's net MUST be cash-out − money in, in whole cents. When "spread the difference" is on and chips were counted, cash-outs MUST be scaled by pot ÷ counted value and any rounding residue MUST be absorbed by the player with the largest absolute net, so nets sum to zero. _Amended by SPEC-0002 REQ-0002-33: the host chooses to share the difference in proportion to chips (this scaling, the default) or equally (the same amount added to or taken from every cash-out)._
 - REQ-0001-19: Payments MUST be computed by repeatedly matching the largest remaining debtor with the largest remaining creditor. With no payments the screen MUST say "Everyone broke even. Nobody owes anything."
-- REQ-0001-20: When the counted value differs from the pot, a notice MUST state the difference and offer the "spread the difference" checkbox (on by default). When it is off and payments do not balance, the screen MUST state the unaccounted amount.
+- REQ-0001-20: When the counted value differs from the pot, a notice MUST state the difference and offer the "spread the difference" checkbox (on by default). When it is off and payments do not balance, the screen MUST state the unaccounted amount. _Amended by SPEC-0002 REQ-0002-33: the checkbox reads "Share the <amount> difference so the payments balance." and, when on, offers how to share it._
 - REQ-0001-21: Results MUST list each player's net (with a + sign for gains), money put in, and amount cashed out.
 - REQ-0001-22: "Copy results" MUST copy a plain-text summary (date, pot, each net, payments) to the clipboard and change to "Copied"; if the clipboard is unavailable it MUST show the text in a read-only field with "Select the text above and copy it."
 - REQ-0001-23: "New game with the same players" MUST reset buy-ins to 1, clear all counts, photos, and statuses, keep names and chip setup, and open Table.

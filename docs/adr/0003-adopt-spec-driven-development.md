@@ -1,12 +1,12 @@
 # ADR-0003: Adopt spec-driven development
 
-|                |                                    |
-| -------------- | ---------------------------------- |
-| **Status**     | Accepted                           |
-| **Date**       | 2026-01-01                     |
-| **Deciders**   | vicenteopaso                   |
-| **Area**       | Process, governance                |
-| **Related**    | ADR-0001, ADR-0002                 |
+|              |                     |
+| ------------ | ------------------- |
+| **Status**   | Accepted            |
+| **Date**     | 2026-01-01          |
+| **Deciders** | vicenteopaso        |
+| **Area**     | Process, governance |
+| **Related**  | ADR-0001, ADR-0002  |
 
 ## Context and problem statement
 

@@ -69,6 +69,14 @@ describe("GameStateSchema", () => {
     expect(parsed.success && parsed.data.uniformValue).toBe(false);
   });
 
+  it("REQ-0002-33: games saved before the sharing choice load sharing by chips", () => {
+    const older: Record<string, unknown> = { ...defaultGame() };
+    delete older.spreadBy;
+    const parsed = GameStateSchema.safeParse(older);
+    expect(parsed.success && parsed.data.spreadBy).toBe("chips");
+    expect(GameStateSchema.safeParse({ ...defaultGame(), spreadBy: "dice" }).success).toBe(false);
+  });
+
   it("REQ-0001-26: rejects duplicate chip colors", () => {
     const game = defaultGame();
     const chips = game.chips.map((chip) => ({ ...chip, color: "red" as const }));

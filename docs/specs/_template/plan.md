@@ -1,10 +1,10 @@
 # Plan: SPEC-NNNN Short Title
 
-| Field  | Value                         |
-| ------ | ----------------------------- |
-| Spec   | [spec.md](./spec.md)          |
-| ADR    | ADR-NNNN, or `none (Tier 1)`  |
-| Status | draft                         |
+| Field  | Value                        |
+| ------ | ---------------------------- |
+| Spec   | [spec.md](./spec.md)         |
+| ADR    | ADR-NNNN, or `none (Tier 1)` |
+| Status | draft                        |
 
 ## 1. Approach
 
@@ -14,12 +14,12 @@ The chosen design in a few paragraphs. Link the ADR for any decision with real a
 
 Confirm the design against `docs/CONSTITUTION.md`. A "No" needs a justification or a redesign.
 
-| Invariant group | Complies? | Notes |
-| --------------- | --------- | ----- |
-| Governance (01–03, 16–18) |    |       |
-| Architecture (04–07)      |    |       |
-| Security (08–11)          |    |       |
-| Quality (12–15)           |    |       |
+| Invariant group           | Complies? | Notes |
+| ------------------------- | --------- | ----- |
+| Governance (01–03, 16–18) |           |       |
+| Architecture (04–07)      |           |       |
+| Security (08–11)          |           |       |
+| Quality (12–15)           |           |       |
 
 ## 3. Design
 

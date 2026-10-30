@@ -197,7 +197,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
       localStorage.setItem("chip-ledger.v1", '{"players":"oops"}');
     });
     await page.reload();
-    await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
     await expect(page.getByLabel("Buy-in amount")).toHaveValue("10");
   });
 
@@ -239,7 +239,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(page.getByRole("button", { name: "Start over from scratch" })).toBeFocused();
     await page.getByRole("button", { name: "Start over from scratch" }).click();
     await page.getByRole("button", { name: "Erase everything" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Chip Ledger" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
     await expect(page.getByLabel("Player 1 name")).toHaveValue("");
   });
 
@@ -357,6 +357,34 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(problems).toEqual([]);
   });
 
+  test("AC-0002-28: one banner holds the brand and the steps, in the same place on every step", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const banner = page.getByRole("banner");
+    await expect(banner).toHaveCount(1);
+    await expect(banner.getByText("Chip Ledger", { exact: true })).toBeVisible();
+    const top = async () => (await page.getByRole("main").boundingBox())?.y;
+    const setupTop = await top();
+    for (const step of ["2 Table", "3 Cash out", "4 Settle"]) {
+      await banner.getByRole("button", { name: new RegExp(`^${step}`) }).click();
+      // The content starts at the same height on every step: no jump (REQ-0002-28).
+      expect(await top()).toBe(setupTop);
+    }
+  });
+
+  test("AC-0002-29: serves an SVG favicon and a home-screen icon", async ({ page, request }) => {
+    await page.goto("/");
+    const icon = page.locator('link[rel="icon"][type="image/svg+xml"]');
+    await expect(icon).toHaveCount(1);
+    const svg = await request.get((await icon.getAttribute("href")) ?? "");
+    expect(svg.headers()["content-type"]).toContain("image/svg+xml");
+    const apple = page.locator('link[rel="apple-touch-icon"]');
+    await expect(apple).toHaveAttribute("sizes", "180x180");
+    const png = await request.get((await apple.getAttribute("href")) ?? "");
+    expect(png.headers()["content-type"]).toBe("image/png");
+  });
+
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Chip Ledger");
@@ -399,7 +427,7 @@ test.describe("SPEC-0002 phase 1 accessibility", () => {
     await expect(start).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(buyIn).toBeFocused();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Chip Ledger");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Setup");
   });
 
   test("AC-0002-10: the bottom bar never covers the focused field", async ({ page }) => {

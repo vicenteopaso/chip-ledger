@@ -2,6 +2,9 @@ import type { Ref } from "react";
 
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
+import { FIELD } from "@/app/components/Field";
+import { Select } from "@/app/components/Select";
+import { ListRow } from "@/app/components/Surfaces";
 import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
 import type { StackChip } from "@/lib/game";
 import { type Currency, type MoneyFormatter, parseCount, parseMoney } from "@/lib/money";
@@ -22,9 +25,6 @@ export type ChipRowProps = {
   countRef?: Ref<HTMLInputElement>;
 };
 
-const FIELD =
-  "block w-full min-w-0 rounded-md border-control border-border-control bg-surface px-2 py-2.5 text-body focus:border-accent";
-
 /**
  * Visible column headers over the chip rows, on the same grid (REQ-0002-05). Hidden from
  * assistive technology because each field's name already contains its header.
@@ -32,7 +32,7 @@ const FIELD =
 export function ChipRowHeader() {
   return (
     <div
-      className="chip-row grid items-end gap-2 border-b border-border pb-1.5 text-md leading-tight font-semibold text-text-muted"
+      className="chip-row grid items-end gap-x-1.5 gap-y-2 border-b border-border pb-1.5 text-md leading-tight font-semibold text-text-muted"
       aria-hidden="true"
     >
       <span className="col-start-2 pl-1">Color</span>
@@ -65,7 +65,7 @@ export function ChipRow({
     value: `chip-${chip.id}-value`,
   };
   return (
-    <div className="chip-row grid items-center gap-2 border-b border-border py-2.5">
+    <ListRow className="chip-row grid items-center gap-x-1.5 gap-y-2">
       <Chip color={chip.color} />
       {chip.color === MIXED ? (
         <span className="pl-1 text-body whitespace-nowrap">{label}</span>
@@ -75,9 +75,9 @@ export function ChipRow({
           <label htmlFor={ids.color} className="sr-only">
             {`${label} chip color`}
           </label>
-          <select
+          <Select
             id={ids.color}
-            className={`${FIELD} text-left`}
+            className="pl-2 text-md"
             value={chip.color}
             onChange={(event) => {
               onColorChange(ChipColorSchema.parse(event.target.value));
@@ -88,7 +88,7 @@ export function ChipRow({
                 {STACK_LABELS[color]}
               </option>
             ))}
-          </select>
+          </Select>
         </>
       )}
       <label htmlFor={ids.count} className="sr-only">
@@ -97,7 +97,7 @@ export function ChipRow({
       <DraftInput
         id={ids.count}
         ref={countRef}
-        className={`${FIELD} text-center`}
+        className={`${FIELD} w-full px-2 text-center text-body`}
         inputMode="numeric"
         value={chip.count}
         format={String}
@@ -112,7 +112,7 @@ export function ChipRow({
       </label>
       <DraftInput
         id={ids.value}
-        className={`${FIELD} text-center`}
+        className={`${FIELD} w-full px-2 text-center text-body`}
         inputMode="decimal"
         value={chip.value}
         format={String}
@@ -132,6 +132,6 @@ export function ChipRow({
       <div className="col-start-2 -col-end-1 -mt-1 text-md text-text-muted">
         {`${String(chip.count)} chips worth ${money(chip.count * chip.value)}`}
       </div>
-    </div>
+    </ListRow>
   );
 }

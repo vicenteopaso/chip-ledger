@@ -4,12 +4,12 @@ One checklist for every change, human or AI-authored. Automated checks cover a l
 
 ## How to use
 
-| Change type                                  | Do                                                                      |
-| -------------------------------------------- | ----------------------------------------------------------------------- |
-| Docs, formatting, minor fix                  | Section 1 (spirit), 9, and anything the diff touches                    |
-| Feature, refactor, fix                       | Sections 1–10 as applicable                                             |
-| Security-sensitive (auth, API, validation)   | Section 2 twice, plus a second reviewer; exercise the controls manually |
-| AI-generated                                 | Everything above, plus section 11                                       |
+| Change type                                | Do                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| Docs, formatting, minor fix                | Section 1 (spirit), 9, and anything the diff touches                    |
+| Feature, refactor, fix                     | Sections 1–10 as applicable                                             |
+| Security-sensitive (auth, API, validation) | Section 2 twice, plus a second reviewer; exercise the controls manually |
+| AI-generated                               | Everything above, plus section 11                                       |
 
 **Authors:** self-review against this list before requesting review and tick the matching items in the PR template.
 **Reviewers:** leave comments that cite the item or a `FP-NN` ID from [Forbidden Patterns](./FORBIDDEN_PATTERNS.md). Blockers are items in sections 2 (security), 3 (accessibility), and 4 (tests); the rest are judgment calls.

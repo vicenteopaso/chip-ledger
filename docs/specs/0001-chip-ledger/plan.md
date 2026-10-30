@@ -1,10 +1,10 @@
 # Plan: SPEC-0001 Chip Ledger
 
-| Field  | Value                                                             |
-| ------ | ----------------------------------------------------------------- |
-| Spec   | [spec.md](./spec.md)                                              |
-| ADR    | [ADR-0004](../../adr/0004-chip-ledger-client-architecture.md)     |
-| Status | implemented                                                           |
+| Field  | Value                                                         |
+| ------ | ------------------------------------------------------------- |
+| Spec   | [spec.md](./spec.md)                                          |
+| ADR    | [ADR-0004](../../adr/0004-chip-ledger-client-architecture.md) |
+| Status | implemented                                                   |
 
 ## 1. Approach
 
@@ -12,12 +12,12 @@ Port the prototype onto the stack in `sdd.yaml` (Next.js App Router, TypeScript 
 
 ## 2. Constitution check
 
-| Invariant group           | Complies? | Notes                                                                                     |
-| ------------------------- | --------- | ----------------------------------------------------------------------------------------- |
-| Governance (01–03, 16–18) | Yes       | Spec, plan, ADR in the same PR; `sdd.yaml` and docs updated; PR from a feature branch      |
+| Invariant group           | Complies? | Notes                                                                                                                        |
+| ------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Governance (01–03, 16–18) | Yes       | Spec, plan, ADR in the same PR; `sdd.yaml` and docs updated; PR from a feature branch                                        |
 | Architecture (04–07)      | Yes       | Layers enforced by `no-restricted-imports`; UI does no I/O; domain is React-free and tested; routes layer added via ADR-0004 |
-| Security (08–11)          | Yes       | Zod at both boundaries (storage, photo reply); headers + nonce CSP; central logger; generic messages |
-| Quality (12–15)           | Yes       | WCAG 2.1 AA with axe in both themes; coverage thresholds unchanged; Lighthouse budgets unchanged |
+| Security (08–11)          | Yes       | Zod at both boundaries (storage, photo reply); headers + nonce CSP; central logger; generic messages                         |
+| Quality (12–15)           | Yes       | WCAG 2.1 AA with axe in both themes; coverage thresholds unchanged; Lighthouse budgets unchanged                             |
 
 ## 3. Design
 
@@ -63,29 +63,29 @@ sequenceDiagram
 
 ## 4. Testing strategy
 
-| Requirement           | Unit                          | Component                 | E2E | Visual | A11y |
-| --------------------- | ----------------------------- | ------------------------- | --- | ------ | ---- |
-| REQ-0001-01, -02      | reducer `go`                  | StepsNav                  | ✓   | ✓      | ✓    |
-| REQ-0001-03 … -07     | reducer, setup summary, money | SetupScreen, ChipRow      | ✓   | ✓      | ✓    |
-| REQ-0001-08, -09      | reducer, selectors            | TableScreen               | ✓   | ✓      | ✓    |
-| REQ-0001-10 … -12     | parsing, selectors, count check | CashOutScreen, CountCheck | ✓ | ✓      | ✓    |
-| REQ-0001-13 … -17     | schemas, prompt, messages, adapters, route handler | PlayerCashCard, container | ✓ (hidden when off) |  | ✓ |
-| REQ-0001-18 … -21     | settlement                    | SettleScreen              | ✓   | ✓      | ✓    |
-| REQ-0001-22 … -24     | results text, reducer         | SettleScreen              | ✓   |        |      |
-| REQ-0001-25, -26      | storage adapter, schema       |                           | ✓   |        |      |
-| REQ-0001-27           |                               |                           |     | ✓      | ✓    |
+| Requirement       | Unit                                               | Component                 | E2E                 | Visual | A11y |
+| ----------------- | -------------------------------------------------- | ------------------------- | ------------------- | ------ | ---- |
+| REQ-0001-01, -02  | reducer `go`                                       | StepsNav                  | ✓                   | ✓      | ✓    |
+| REQ-0001-03 … -07 | reducer, setup summary, money                      | SetupScreen, ChipRow      | ✓                   | ✓      | ✓    |
+| REQ-0001-08, -09  | reducer, selectors                                 | TableScreen               | ✓                   | ✓      | ✓    |
+| REQ-0001-10 … -12 | parsing, selectors, count check                    | CashOutScreen, CountCheck | ✓                   | ✓      | ✓    |
+| REQ-0001-13 … -17 | schemas, prompt, messages, adapters, route handler | PlayerCashCard, container | ✓ (hidden when off) |        | ✓    |
+| REQ-0001-18 … -21 | settlement                                         | SettleScreen              | ✓                   | ✓      | ✓    |
+| REQ-0001-22 … -24 | results text, reducer                              | SettleScreen              | ✓                   |        |      |
+| REQ-0001-25, -26  | storage adapter, schema                            |                           | ✓                   |        |      |
+| REQ-0001-27       |                                                    |                           |                     | ✓      | ✓    |
 
 The container's photo, clipboard, and storage wiring is covered by a component test with the adapters mocked at the infra boundary. Security headers are asserted in e2e.
 
 ## 5. Risks and mitigations
 
-| Risk                                                 | Likelihood | Impact | Mitigation                                                                  |
-| ---------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------- |
-| Visual drift from the prototype during the Tailwind port | Medium  | Medium | Side-by-side screenshots of prototype and app per step, both themes, both widths |
-| Visual baselines differ between macOS and CI Linux   | High       | Low    | Generate baselines from the CI run (Linux) and commit them                   |
-| CSP blocks Next.js scripts                           | Medium     | High   | Nonce via `proxy.ts`; e2e loads every step with the production build         |
-| Saved games from the prototype in another origin     | Low        | Low    | Same key and shape; origins differ so no migration is needed                 |
-| Photo route enabled before abuse controls exist      | Low        | High   | Off by default; §7 of the spec lists the preconditions; enabling is a reviewed change |
+| Risk                                                     | Likelihood | Impact | Mitigation                                                                            |
+| -------------------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------------------- |
+| Visual drift from the prototype during the Tailwind port | Medium     | Medium | Side-by-side screenshots of prototype and app per step, both themes, both widths      |
+| Visual baselines differ between macOS and CI Linux       | High       | Low    | Generate baselines from the CI run (Linux) and commit them                            |
+| CSP blocks Next.js scripts                               | Medium     | High   | Nonce via `proxy.ts`; e2e loads every step with the production build                  |
+| Saved games from the prototype in another origin         | Low        | Low    | Same key and shape; origins differ so no migration is needed                          |
+| Photo route enabled before abuse controls exist          | Low        | High   | Off by default; §7 of the spec lists the preconditions; enabling is a reviewed change |
 
 ## 6. Rollout and rollback
 

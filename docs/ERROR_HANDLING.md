@@ -44,7 +44,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
     logError(error, { context: "ErrorBoundary", componentStack: info.componentStack });
   }
   render() {
-    return this.state.hasError ? <Fallback onRetry={() => this.setState({ hasError: false })} /> : this.props.children;
+    return this.state.hasError ? (
+      <Fallback onRetry={() => this.setState({ hasError: false })} />
+    ) : (
+      this.props.children
+    );
   }
 }
 ```
@@ -109,7 +113,9 @@ Lint rules that help: `no-empty` (catch blocks), `@typescript-eslint/no-floating
 
 ```typescript
 // ❌
-try { await sync(); } catch {}
+try {
+  await sync();
+} catch {}
 
 // ✅ handle, or log and continue deliberately
 try {
@@ -121,21 +127,21 @@ try {
 
 ## 6. Message guidelines
 
-| Do                                              | Don't                                  |
-| ----------------------------------------------- | -------------------------------------- |
-| "We couldn't save your changes. Try again."     | "Error 0x80004005" / raw `error.message` |
-| Say what happened and what to do next           | Blame the user                         |
-| Keep messages localized and consistent          | Mix tones or languages                 |
-| Offer a retry or alternative path               | Dead-end the user                      |
+| Do                                          | Don't                                    |
+| ------------------------------------------- | ---------------------------------------- |
+| "We couldn't save your changes. Try again." | "Error 0x80004005" / raw `error.message` |
+| Say what happened and what to do next       | Blame the user                           |
+| Keep messages localized and consistent      | Mix tones or languages                   |
+| Offer a retry or alternative path           | Dead-end the user                        |
 
 ## 7. Monitoring and debugging
 
-| Question                          | Where to look                                         |
-| --------------------------------- | ----------------------------------------------------- |
-| What failed for this request?     | Server logs by `requestId`                            |
-| Is this new since the last deploy? | Error tracker, filtered by release                    |
-| How many users are affected?      | Error tracker issue count and affected sessions        |
-| Is it getting slower?             | Web Vitals / tracing in [Observability](./OBSERVABILITY.md) |
+| Question                           | Where to look                                               |
+| ---------------------------------- | ----------------------------------------------------------- |
+| What failed for this request?      | Server logs by `requestId`                                  |
+| Is this new since the last deploy? | Error tracker, filtered by release                          |
+| How many users are affected?       | Error tracker issue count and affected sessions             |
+| Is it getting slower?              | Web Vitals / tracing in [Observability](./OBSERVABILITY.md) |
 
 Debugging workflow: reproduce → read the log with context → find the first failing boundary → write a failing test → fix → confirm the error rate drops after deploy.
 

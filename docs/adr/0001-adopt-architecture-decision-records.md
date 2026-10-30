@@ -1,11 +1,11 @@
 # ADR-0001: Adopt Architecture Decision Records
 
-|                |                                    |
-| -------------- | ---------------------------------- |
-| **Status**     | Accepted                           |
-| **Date**       | 2026-01-01                     |
-| **Deciders**   | vicenteopaso                   |
-| **Area**       | Documentation, governance          |
+|              |                           |
+| ------------ | ------------------------- |
+| **Status**   | Accepted                  |
+| **Date**     | 2026-01-01                |
+| **Deciders** | vicenteopaso              |
+| **Area**     | Documentation, governance |
 
 ## Context and problem statement
 

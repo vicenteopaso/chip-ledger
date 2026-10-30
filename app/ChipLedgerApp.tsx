@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { ActionBar } from "@/app/components/ActionBar";
+import { AppHeader } from "@/app/components/AppHeader";
 import { Button } from "@/app/components/Button";
 import { CashOutScreen } from "@/app/components/CashOutScreen";
 import { LiveAnnouncer } from "@/app/components/LiveAnnouncer";
@@ -40,6 +41,19 @@ import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { loadSavedGame, saveGame } from "@/lib/infra/game-storage";
 import { requestPhotoCount } from "@/lib/infra/photo-count-client";
+
+/**
+ * The bottom bar's back button: visible "‹ <step>", named "Back to <step>" (REQ-0002-25). The
+ * name contains the visible text; the arrow is decorative.
+ */
+function BackButton({ step, onClick }: { step: string; onClick: () => void }) {
+  return (
+    <Button variant="secondary" aria-label={`Back to ${step}`} onClick={onClick}>
+      <span aria-hidden="true">‹ </span>
+      {step}
+    </Button>
+  );
+}
 
 /** Locale for the server render and the first client render, so their markup matches. */
 const RENDER_LOCALE = "en-US";
@@ -225,8 +239,10 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   return (
     <StepTitleContext value={titleRef}>
       <LiveAnnouncer message={message} />
-      <main id="main" className="mx-auto max-w-app px-4 pt-3.5 pb-(--bar-clearance) short:pb-4">
+      <AppHeader>
         <StepsNav current={game.screen} onSelect={go} />
+      </AppHeader>
+      <main id="main" className="mx-auto max-w-app px-4 pt-2 pb-(--bar-clearance) short:pb-4">
         {game.screen === "setup" && (
           <SetupScreen
             game={game}
@@ -265,6 +281,9 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
             onScaleChange={(scale) => {
               dispatch({ type: "setScale", scale });
             }}
+            onSpreadByChange={(spreadBy) => {
+              dispatch({ type: "setSpreadBy", spreadBy });
+            }}
             onCopy={() => {
               void copyResults();
             }}
@@ -296,14 +315,12 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
         )}
         {game.screen === "table" && (
           <>
-            <Button
-              variant="secondary"
+            <BackButton
+              step="Setup"
               onClick={() => {
                 go("setup");
               }}
-            >
-              Setup
-            </Button>
+            />
             <Button
               variant="primary"
               onClick={() => {
@@ -316,14 +333,12 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
         )}
         {game.screen === "cashout" && (
           <>
-            <Button
-              variant="secondary"
+            <BackButton
+              step="Table"
               onClick={() => {
                 go("table");
               }}
-            >
-              Table
-            </Button>
+            />
             <Button
               variant="primary"
               onClick={() => {
@@ -336,14 +351,12 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
         )}
         {game.screen === "settle" && (
           <>
-            <Button
-              variant="secondary"
+            <BackButton
+              step="Cash out"
               onClick={() => {
                 go("cashout");
               }}
-            >
-              <span aria-hidden="true">‹ </span>Cash out
-            </Button>
+            />
             {/* The likely next step at the end of a night (REQ-0002-12, amends REQ-0001-02). */}
             <Button variant="primary" onClick={newGameSamePlayers}>
               New game, same players
