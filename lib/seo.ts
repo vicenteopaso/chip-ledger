@@ -44,7 +44,8 @@ export function sitemapEntries(siteUrl: string) {
 
 export function robotsRules(siteUrl: string) {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: "/api/" }],
+    // Shared games carry a secret in their link: never crawled, never listed (SPEC-0003).
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/g/"] }],
     sitemap: absoluteUrl(siteUrl, "/sitemap.xml"),
   };
 }

@@ -59,6 +59,12 @@ If a brand color cannot meet contrast in one theme, WCAG allows a **conforming a
 - Prefer native HTML. Use ARIA only when no native element exists, and follow the authoring practices for the pattern.
 - No redundant roles, no `aria-hidden` on focusable content, and `aria-label` must include the visible text.
 
+### Shared games (SPEC-0003)
+
+- A watcher is told in words what they can do; read-only fields are focusable and announced as read-only, not disabled, so keyboard and screen-reader users can still read them ([ReadOnly](./components/ReadOnly.md)).
+- Connection changes ("Reconnecting.", "You're offline…", "Live again.") and "The game has started." go through the page's one polite live region, in words.
+- The page for a game that cannot be opened is the same for every cause and has a title, a way on, and no color-only meaning.
+
 ## 3. Implementation
 
 - Shared components bake in accessibility (labels, focus management) so feature code inherits it.

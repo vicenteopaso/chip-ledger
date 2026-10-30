@@ -42,3 +42,7 @@ A native `<select>` in the shared field box, with its own chevron inside the box
 ## Testing
 
 `test/unit/app/components/shared.test.tsx` (control language, Select), visual snapshots.
+
+## Read-only
+
+In a [read-only](./ReadOnly.md) subtree the select is `disabled`.

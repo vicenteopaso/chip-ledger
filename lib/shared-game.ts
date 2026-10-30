@@ -149,16 +149,35 @@ export const StoredGameSchema = z.object({
 });
 export type StoredGame = z.infer<typeof StoredGameSchema>;
 
-/** What a device receives about a game (REQ-0003-05, -13, -20). */
-export type GameSnapshot = {
-  rev: number;
-  started: boolean;
-  game: SharedGameBody;
-  role: Role;
-  archived: boolean;
+/** What a device receives about a game (REQ-0003-05, -13, -20). Parsed again by the client. */
+export const SnapshotSchema = z.object({
+  rev: z.number().int().min(0),
+  started: z.boolean(),
+  game: SharedGameBodySchema,
+  role: z.enum(["watch", "edit"]),
+  archived: z.boolean(),
   /** Connected devices, or null when this request did not ask for a heartbeat. */
-  online: number | null;
-};
+  online: z.number().int().min(0).nullable(),
+});
+export type GameSnapshot = z.infer<typeof SnapshotSchema>;
+
+/** The short answer to a poll that already has the current revision. */
+export const UnchangedSchema = z.object({
+  rev: z.number().int().min(0),
+  unchanged: z.literal(true),
+  archived: z.boolean(),
+  online: z.number().int().min(0).nullable(),
+});
+export type UnchangedReply = z.infer<typeof UnchangedSchema>;
+
+export const GameReplySchema = z.union([SnapshotSchema, UnchangedSchema]);
+
+/** The key in a join link: `#k=<22 characters>`; anything else is not a key (REQ-0003-04). */
+export function keyFromHash(hash: string): string | null {
+  const match = /^#k=([^&]+)$/.exec(hash);
+  const key = KeySchema.safeParse(match?.[1]);
+  return key.success ? key.data : null;
+}
 
 export function toSnapshot(
   doc: StoredGame,

@@ -49,3 +49,7 @@ The field box (`FIELD_BOX`: 48 px, `--radius-md`, `--color-border-control`, `--c
 ## Testing
 
 `test/unit/app/components/shared.test.tsx` (AC-0002-19: both directions, limits, the same markup on Setup and Table); container and e2e tests for each screen.
+
+## Read-only
+
+In a [read-only](./ReadOnly.md) subtree (a watched shared game) only the number is shown and the buttons are not rendered.
