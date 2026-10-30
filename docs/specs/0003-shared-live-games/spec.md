@@ -2,7 +2,7 @@
 
 | Field   | Value                                                                                                                                                                                                                                                                                              |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status  | draft                                                                                                                                                                                                                                                                                              |
+| Status  | approved                                                                                                                                                                                                                                                                                           |
 | Tier    | 2                                                                                                                                                                                                                                                                                                  |
 | Owner   | @vicenteopaso                                                                                                                                                                                                                                                                                      |
 | Created | 2026-10-30                                                                                                                                                                                                                                                                                         |
@@ -31,7 +31,7 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 **Non-goals** (deliberately out of scope)
 
 - Accounts, sign-in, or per-person permissions. Access is by link or code only.
-- Removing a single editor, or telling editors apart (see Q3).
+- Removing a single editor, or telling editors apart (Q3).
 - Chat, reactions, edit history, undo, or showing who changed what.
 - Scanning a QR code from inside the app. Phones scan with their camera app.
 - Native apps, push notifications, or email invitations.
@@ -64,9 +64,9 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 ### Roles
 
 - REQ-0003-06: A watcher MUST NOT be able to change anything in the game. Controls that edit MUST be absent or disabled, with a visible note that the game is watch only, and the server MUST reject any edit from a watcher.
-- REQ-0003-07: Every editor MUST have the same rights as every other editor, including the host: change any setting, name, count, or buy-in, move through the steps (see Q2), start new games, delete the game, and show the edit code.
+- REQ-0003-07: Every editor MUST have the same rights as every other editor, including the host: change any setting, name, count, or buy-in, start the game, start new games, delete the game, and show the edit code.
 - REQ-0003-08: An editor MUST be able to show an **edit code** of 6 characters taken from a set without look-alike characters (no 0/O, 1/I/L). The code MUST expire after 10 minutes and MUST be replaced when an editor asks for a new one, which also invalidates the old one.
-- REQ-0003-09: A watcher who enters a valid edit code MUST become an editor on that device for that game, without a new link. After 5 wrong codes within a minute, the game MUST refuse further attempts for 1 minute, whoever tries.
+- REQ-0003-09: A watcher who enters the current edit code MUST become an editor on that device for that game, without a new link. After 5 wrong codes within a minute, the game MUST refuse further attempts for 1 minute, whoever tries.
 
 ### Live updates
 
@@ -74,11 +74,11 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 - REQ-0003-11: Changes to different fields MUST all be kept. Two changes to the same field MUST resolve to the later one. Buy-in increases and decreases MUST add up, not overwrite each other: two people each pressing + once on the same player produce two extra buy-ins.
 - REQ-0003-12: A change that arrives from another device MUST NOT replace text the user is currently typing, MUST NOT move focus, and MUST NOT scroll the page.
 - REQ-0003-13: Each device MUST show whether it is **Live**, **Reconnecting**, or **Offline**, and how many devices are connected to the game. The status MUST update by itself, and a change from Live to Offline or back MUST be announced to assistive technology.
-- REQ-0003-14: When the connection returns, the device MUST catch up to the current state without the user doing anything. What happens to edits made while offline is open (Q6).
+- REQ-0003-14: When the connection returns, the device MUST catch up to the current state without the user doing anything. Edits an editor makes while offline MUST be kept on the device and sent in order when the connection returns, with a visible "Reconnecting, changes will sync" notice while they wait.
 
 ### Steps and starting the game
 
-- REQ-0003-15: While the host has not yet started the game, a device that joins MUST see a "Waiting for the host to start" state instead of an empty or half-filled Setup. Once any editor starts the game, every device MUST move to the table. Whether later step changes are shared is open (Q2).
+- REQ-0003-15: While the host has not yet started the game, a device that joins MUST see a "Waiting for the host to start" state instead of an empty or half-filled Setup. Once any editor starts the game, every device MUST move to the table. After that, each device MUST keep its own current step: moving to another step on one device MUST NOT move any other device.
 
 ### Several games
 
@@ -88,9 +88,9 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 
 ### Lifecycle and retention
 
-- REQ-0003-19: A game counts as in use while any device is connected to it and for as long as changes keep arriving. When 24 hours pass with no connected device and no change, the game MUST be archived (open Q4 for the exact duration).
+- REQ-0003-19: A game counts as in use while any device is connected to it and for as long as changes keep arriving. When 24 hours pass with no connected device and no change, the game MUST be archived.
 - REQ-0003-20: An archived game MUST still open from its link, read-only for everyone, with a visible "Archived" notice, and MUST offer **Duplicate into a new game**.
-- REQ-0003-21: An archived game MUST be deleted from the server 30 days after archiving (open Q4). Any editor MUST be able to delete a game earlier, after a confirmation that says it is deleted for everyone. After deletion, no player name or count from the game may remain on the server.
+- REQ-0003-21: An archived game MUST be deleted from the server 30 days after archiving. Any editor MUST be able to delete a game earlier, after a confirmation that says it is deleted for everyone. After deletion, no player name or count from the game may remain on the server.
 - REQ-0003-22: Before the first share, the app MUST tell the host in plain words what is stored and for how long: the game, including names, is kept on a server until 24 hours after last use, then read-only for 30 days, then deleted.
 
 ### Safety and limits
@@ -146,7 +146,7 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 - **Error states:**
   - Cannot create the shared game: stay private, show "Couldn't share this game. Try again.", keep the local game intact.
   - Link unknown, deleted, or wrong key: the generic page in REQ-0003-26.
-  - Connection lost: **Offline** state in REQ-0003-13; edits per Q6.
+  - Connection lost: **Offline** state in REQ-0003-13; edits are kept and sent on reconnect (REQ-0003-14).
   - Rate limited: "Too many tries. Wait a minute."
   - Game archived: read-only notice in REQ-0003-20.
   - Detail goes to server-side logs with a request ID; users see generic messages (CONSTITUTION-11).
@@ -155,15 +155,15 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 
 ## 7. Open questions
 
-Planning is blocked until every item is resolved or explicitly deferred with a reason. Each has a recommended answer; none is assumed.
+All resolved by the owner on 2026-10-30.
 
-- [NEEDS CLARIFICATION: Q1 — Which hosted store may we provision for shared games? Recommended: Upstash Redis through the Vercel Marketplace, called over `fetch` (no new npm package). It needs an account and server-only secrets in the hosting environment, and it is the first external service that holds user data. The alternative is a managed realtime service (Ably, Pusher), which pushes faster but adds a second service.]
-- [NEEDS CLARIFICATION: Q2 — After the game starts, does each device keep its own current step (recommended: someone tapping Settle must not pull everyone's screen), or do all devices follow one shared step? Per-device means the step is no longer part of the shared game state.]
-- [NEEDS CLARIFICATION: Q3 — Is regenerating the edit code enough control over who can edit (recommended for the first version), or must an editor be able to cut off all other editors ("reset edit access")?]
-- [NEEDS CLARIFICATION: Q4 — Are 24 hours idle before archiving and 30 days read-only before deletion the right retention numbers?]
-- [NEEDS CLARIFICATION: Q5 — May we add one small, dependency-free, MIT-licensed QR encoder package (for example `qrcode-generator`)? Dependencies need owner approval.]
-- [NEEDS CLARIFICATION: Q6 — When an editor goes offline, should their edits be kept on the device and sent when the connection returns (recommended, with a visible "Reconnecting, changes will sync" notice), or should editing pause until the connection returns? Replaying old edits can overwrite newer values from other devices.]
-- [NEEDS CLARIFICATION: Q7 — Names. Recommended: **Watch only** and **Can edit** on the switch, "Watch link" and "Co-host link" in help text, and "edit code" for the code. Keep, or choose other words?]
+- Resolved (Q1): the shared games are stored in Upstash Redis through the Vercel Marketplace, called over `fetch` with no new npm package. The owner provisions it; the steps are in [plan.md §6](./plan.md). This is the app's first external service that holds user data.
+- Resolved (Q2): after the game starts, each device keeps its own current step (REQ-0003-15). The step is no longer part of the shared game state.
+- Resolved (Q3): generating a new edit code is the only control over who can edit in this version; it invalidates the previous code (REQ-0003-08). There is no "reset edit access" button.
+- Resolved (Q4): 24 hours idle before archiving, 30 days read-only before deletion (REQ-0003-19, -21).
+- Resolved (Q5): one small, dependency-free, MIT-licensed QR encoder package may be added (for example `qrcode-generator`). The exact package and version are chosen and justified in the PR that adds it.
+- Resolved (Q6): offline edits are kept on the device and sent in order on reconnect, with a visible notice (REQ-0003-14). The plan covers the overwrite risk.
+- Resolved (Q7): the switch reads **Watch only** and **Can edit**; help text says "Watch link" and "Co-host link"; the code is the "edit code".
 
 ## 8. References
 
