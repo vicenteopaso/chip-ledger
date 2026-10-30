@@ -3,8 +3,8 @@
 | Field  | Value                                                                   |
 | ------ | ----------------------------------------------------------------------- |
 | Spec   | [spec.md](./spec.md)                                                    |
-| ADR    | [ADR-0005](../../adr/0005-shared-live-games-architecture.md) (proposed) |
-| Status | draft (needs human approval before any code: Tier 2, CONSTITUTION-17)   |
+| ADR    | [ADR-0005](../../adr/0005-shared-live-games-architecture.md) (accepted) |
+| Status | approved (owner, 2026-10-30)                                            |
 
 ## 1. Approach
 

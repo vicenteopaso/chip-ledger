@@ -6,8 +6,8 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 ## 0. Before code
 
-- [ ] T-01 Owner approves plan.md and ADR-0005, then sets ADR-0005 to `accepted`.
-  - Done when: both are merged to `main`.
+- [x] T-01 Owner approves plan.md and ADR-0005, then sets ADR-0005 to `accepted`.
+  - Done when: both are merged to `main`. (Approved by the owner on 2026-10-30; merge with PR #9.)
 - [ ] T-02 Owner provisions the two Upstash databases and connects them to the Vercel project (steps in the hand-off and in plan §6), and tells the agent the variable names (never the values).
   - Done when: the variables exist in Production, Preview and Development, and the names are written into `docs/CONFIGURATION.md` by T-04.
 - [ ] T-03 Spike: a throwaway route holds an SSE connection that reads a Redis key every 1–3 s, with 10 simulated clients for 10 minutes, on a Vercel preview.
