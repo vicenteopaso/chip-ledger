@@ -22,7 +22,8 @@ The process is defined in [`../SDD_GUIDE.md`](../SDD_GUIDE.md). Start a new spec
 
 ## Index
 
-| #    | Title                                           | Status      | Tier | Links                                                                                                                                                                       |
-| ---- | ----------------------------------------------- | ----------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0001 | Chip Ledger — poker buy-in and cash-out tracker | implemented | 2    | [spec](./0001-chip-ledger/spec.md) · [plan](./0001-chip-ledger/plan.md) · [tasks](./0001-chip-ledger/tasks.md) · [ADR-0004](../adr/0004-chip-ledger-client-architecture.md) |
-| 0002 | Accessibility, UX, and consistency pass         | approved    | 1    | [spec](./0002-a11y-ux-polish/spec.md) · [plan](./0002-a11y-ux-polish/plan.md) · [tasks](./0002-a11y-ux-polish/tasks.md)                                                     |
+| #    | Title                                                          | Status      | Tier | Links                                                                                                                                                                       |
+| ---- | -------------------------------------------------------------- | ----------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0001 | Chip Ledger — poker buy-in and cash-out tracker                | implemented | 2    | [spec](./0001-chip-ledger/spec.md) · [plan](./0001-chip-ledger/plan.md) · [tasks](./0001-chip-ledger/tasks.md) · [ADR-0004](../adr/0004-chip-ledger-client-architecture.md) |
+| 0002 | Accessibility, UX, and consistency pass                        | approved    | 1    | [spec](./0002-a11y-ux-polish/spec.md) · [plan](./0002-a11y-ux-polish/plan.md) · [tasks](./0002-a11y-ux-polish/tasks.md)                                                     |
+| 0003 | Shared live games — QR and links, watch/edit access, live sync | approved    | 2    | [spec](./0003-shared-live-games/spec.md) · [plan](./0003-shared-live-games/plan.md) · [tasks](./0003-shared-live-games/tasks.md)                                            |
