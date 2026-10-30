@@ -8,7 +8,14 @@ import { Select } from "@/app/components/Select";
 import { ListRow } from "@/app/components/Surfaces";
 import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
 import type { StackChip } from "@/lib/game";
-import { type Currency, type MoneyFormatter, parseCount, parseMoney } from "@/lib/money";
+import {
+  type Currency,
+  digitsOnly,
+  type MoneyFormatter,
+  moneyText,
+  parseCount,
+  parseMoney,
+} from "@/lib/money";
 
 export type ChipRowProps = {
   /** A color row, or the single "All colors" chip in one-value mode (REQ-0001-28). */
@@ -104,6 +111,7 @@ export function ChipRow({
         value={chip.count}
         format={String}
         parse={parseCount}
+        filter={digitsOnly}
         onValueChange={onCountChange}
       />
       <span className="text-center text-text-muted" aria-hidden="true">
@@ -119,6 +127,7 @@ export function ChipRow({
         value={chip.value}
         format={String}
         parse={(text) => parseMoney(text, currency)}
+        filter={(text) => moneyText(text, currency)}
         onValueChange={onValueChange}
       />
       {!readOnly && (

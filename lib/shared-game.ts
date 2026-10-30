@@ -272,6 +272,10 @@ export const SharedActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("setUniformChipValue"), value: AmountSchema }).strict(),
   z.object({ type: z.literal("adjustBuyins"), playerId: Id, delta: Delta }).strict(),
   z
+    .object({ type: z.literal("sellChips"), sellerId: Id, buyerId: Id, amount: AmountSchema })
+    .strict()
+    .refine((sale) => sale.sellerId !== sale.buyerId && sale.amount > 0),
+  z
     .object({
       type: z.literal("setPlayerChipCount"),
       playerId: Id,
@@ -333,7 +337,11 @@ export function applyAction(state: SharedState, action: SharedAction): SharedSta
       started = true;
     }
   } else {
-    body = omitScreen(gameReducer({ ...state.game, screen: "setup" }, toGameAction(action)));
+    const before: GameState = { ...state.game, screen: "setup" };
+    const after = gameReducer(before, toGameAction(action));
+    // A sale the game rules do not apply (unknown player, rounds to nothing) changes nothing.
+    if (action.type === "sellChips" && after === before) return null;
+    body = omitScreen(after);
   }
   const parsed = SharedGameBodySchema.safeParse(body);
   return parsed.success ? { started, game: parsed.data } : null;

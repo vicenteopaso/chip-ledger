@@ -97,6 +97,23 @@ export function parseMoney(text: string, currency: Currency): number {
   return Number.isNaN(value) ? 0 : Math.min(MAX_AMOUNT, value);
 }
 
+/** What a chip count may contain while it is typed: digits only. */
+export const digitsOnly = (text: string): string => text.replace(/\D/g, "");
+
+/**
+ * What an amount may contain while it is typed. A currency with decimals takes digits and one
+ * decimal separator (a point or a comma); one without takes digits and the separators people use
+ * for thousands, which `parseMoney` reads past (REQ-0001-30).
+ */
+export function moneyText(text: string, currency: Currency): string {
+  const kept = text.replace(/[^\d.,]/g, "");
+  if (currencyDigits(currency) === 0) return kept;
+  const first = kept.search(/[.,]/);
+  return first === -1
+    ? kept
+    : kept.slice(0, first + 1) + kept.slice(first + 1).replace(/[.,]/g, "");
+}
+
 /** Parses a whole chip count, ignoring anything that is not a digit (REQ-0001-10). */
 export function parseCount(text: string): number {
   const value = Number.parseInt(text.replace(/\D/g, ""), 10);

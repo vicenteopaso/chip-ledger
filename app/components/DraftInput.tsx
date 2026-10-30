@@ -13,6 +13,8 @@ export type DraftInputProps<T> = Omit<
   format: (value: T) => string;
   parse: (text: string) => T;
   onValueChange: (value: T) => void;
+  /** Removes characters the field does not accept, as they are typed or pasted (numbers only). */
+  filter?: (text: string) => string;
 };
 
 /**
@@ -25,6 +27,7 @@ export function DraftInput<T>({
   format,
   parse,
   onValueChange,
+  filter,
   onFocus,
   onBlur,
   ...props
@@ -56,7 +59,7 @@ export function DraftInput<T>({
         onBlur?.(event);
       }}
       onChange={(event) => {
-        const text = event.target.value;
+        const text = filter ? filter(event.target.value) : event.target.value;
         const next = parse(text);
         setDraft(text);
         setSeen(next);

@@ -54,6 +54,7 @@ export function coalesceKey(action: SharedAction): string | null {
     case "addChip":
     case "removeChip":
     case "adjustBuyins":
+    case "sellChips":
     case "applyPhotoCounts":
     case "autoFillChips":
     case "startGame":

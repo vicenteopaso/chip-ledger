@@ -75,6 +75,7 @@ export function SettleScreen({
   return (
     <>
       <PageTitle>Settle up</PageTitle>
+      {settlement.includesChipSales && <Hint>Includes chip sales between players.</Hint>}
       {hasPotMismatch(settlement) && (
         <Notice
           notice={{

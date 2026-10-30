@@ -40,6 +40,11 @@ export const PlayerSchema = z.object({
   id: IdSchema,
   name: z.string().max(200),
   buyins: CountSchema,
+  /**
+   * Net money moved to this player by chip sales between players: a buyer's goes up, a seller's
+   * goes down, and it may be negative (SPEC-0004). Absent in games saved before it existed.
+   */
+  moved: AmountSchema.default(0),
   counts: z.record(z.string(), CountSchema),
 });
 
@@ -89,6 +94,7 @@ export const GameStateSchema = GameFieldsSchema.refine(
       id: `slot-${String(game.players.length + i + 1)}`,
       name: "",
       buyins: 1,
+      moved: 0,
       counts: {},
     })),
   ],
@@ -102,7 +108,7 @@ export type IdFactory = () => string;
 
 /** A new player with one buy-in and no counted chips. */
 export function newPlayer(id: string): Player {
-  return { id, name: "", buyins: 1, counts: {} };
+  return { id, name: "", buyins: 1, moved: 0, counts: {} };
 }
 
 /** The default game (REQ-0001-26, -29): 4 players, 10 EUR, spread on, balanced white/red/blue chips. */
@@ -162,8 +168,18 @@ export function totalBuyins(game: GameState): number {
   return activePlayers(game).reduce((sum, player) => sum + player.buyins, 0);
 }
 
+/** What a player has put in: their buy-ins, plus or minus money moved by chip sales (REQ-0004-02). */
+export function moneyIn(game: GameState, player: Player): number {
+  return player.buyins * game.buyIn + player.moved;
+}
+
+/** Whether any active player has money moved to or from them by a chip sale (REQ-0004-05). */
+export function hasChipSales(game: GameState): boolean {
+  return activePlayers(game).some((player) => player.moved !== 0);
+}
+
 export function pot(game: GameState): number {
-  return totalBuyins(game) * game.buyIn;
+  return activePlayers(game).reduce((sum, player) => sum + moneyIn(game, player), 0);
 }
 
 export function chipFaceValue(game: GameState, player: Player): number {

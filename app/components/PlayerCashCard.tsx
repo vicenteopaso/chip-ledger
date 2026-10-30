@@ -7,7 +7,7 @@ import { FIELD } from "@/app/components/Field";
 import { Card } from "@/app/components/Surfaces";
 import { MIXED, STACK_LABELS } from "@/lib/chips";
 import type { Player, StackChip } from "@/lib/game";
-import { parseCount } from "@/lib/money";
+import { digitsOnly, parseCount } from "@/lib/money";
 import type { PhotoStatus } from "@/lib/photo-count";
 
 export type PhotoState = { status?: PhotoStatus; thumbnailUrl?: string; busy: boolean };
@@ -117,6 +117,7 @@ export function PlayerCashCard({
               value={player.counts[chip.id] ?? null}
               format={formatCount}
               parse={parseOptionalCount}
+              filter={digitsOnly}
               onValueChange={(count) => {
                 onCountChange(chip.id, count);
               }}

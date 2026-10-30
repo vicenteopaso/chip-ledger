@@ -373,6 +373,44 @@ describe("SharedGameApp: editing (REQ-0003-07, -10, -14)", () => {
   });
 });
 
+describe("SharedGameApp: chip sales (SPEC-0004)", () => {
+  it("REQ-0004-08: an editor sells chips; it shows at once and is sent as sellChips", async () => {
+    const base = sharedSnapshot({ role: "edit", rev: 2 });
+    const saved = {
+      ...base,
+      game: {
+        ...base.game,
+        players: base.game.players.map((p) =>
+          p.id === "p1" ? { ...p, moved: -5 } : p.id === "p2" ? { ...p, moved: 5 } : p,
+        ),
+      },
+    };
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    sendMock.mockResolvedValue({ kind: "saved", snapshot: saved });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Sell chips" }));
+    await user.type(screen.getByRole("textbox", { name: /^Amount in/ }), "5");
+    await user.click(screen.getByRole("button", { name: "Record sale" }));
+    expect(screen.getByText("$15.00 in")).toBeInTheDocument();
+    expect(screen.getByText("$25.00 in")).toBeInTheDocument();
+    expect(announced()).toContain("Chip sale: Player 1 now $15.00 in, Player 2 now $25.00 in");
+    await tick(0);
+    expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toEqual({
+      type: "sellChips",
+      sellerId: "p1",
+      buyerId: "p2",
+      amount: 5,
+    });
+  });
+
+  it("REQ-0004-09: a watcher has no Sell chips button", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "watch" }) });
+    await open();
+    expect(screen.queryByRole("button", { name: "Sell chips" })).toBeNull();
+  });
+});
+
 describe("SharedGameApp: setting up and starting (REQ-0003-15)", () => {
   const notStarted = (overrides: Parameters<typeof sharedSnapshot>[0] = {}): FetchOutcome => ({
     kind: "snapshot",

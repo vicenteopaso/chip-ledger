@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   CURRENCIES,
   currencyDigits,
+  digitsOnly,
   fromMinor,
   MAX_AMOUNT,
   MAX_COUNT,
   moneyFormatter,
+  moneyText,
   parseCount,
   parseDecimal,
   parseMoney,
@@ -71,5 +73,25 @@ describe("currencies", () => {
     expect(fromMinor(1250, "USD")).toBe(12.5);
     expect(fromMinor(1250, "CLP")).toBe(1250);
     expect(moneyFormatter("CLP", "es-CL")(fromMinor(2500, "CLP"))).toBe("$2.500");
+  });
+});
+
+describe("typing numbers only", () => {
+  it("digitsOnly keeps digits and drops letters and signs", () => {
+    expect(digitsOnly("12a3 -4")).toBe("1234");
+    expect(digitsOnly("asd")).toBe("");
+  });
+
+  it("moneyText keeps digits and one decimal separator where the currency has decimals", () => {
+    expect(moneyText("12.5", "EUR")).toBe("12.5");
+    expect(moneyText("12,5", "EUR")).toBe("12,5");
+    expect(moneyText("1a2.5.6,7x", "EUR")).toBe("12.567");
+    expect(moneyText("asd", "EUR")).toBe("");
+    expect(moneyText("-5", "USD")).toBe("5");
+  });
+
+  it("moneyText keeps thousands separators where the currency has no decimals (REQ-0001-30)", () => {
+    expect(moneyText("10.000", "CLP")).toBe("10.000");
+    expect(moneyText("1,0a00", "CLP")).toBe("1,000");
   });
 });
