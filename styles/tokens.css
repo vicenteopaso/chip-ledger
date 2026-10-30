@@ -22,7 +22,8 @@
   --color-danger: #b0342b;
   --color-warn-bg: #fbf1dc;
   --color-warn-ink: #6b4a0e;
-  --color-step-done: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  /* Done-step border: 3:1 against bg in both themes (REQ-0002-04). */
+  --color-step-done: color-mix(in srgb, var(--color-accent) 65%, var(--color-border));
   --color-bar: color-mix(in srgb, var(--color-bg) 92%, transparent);
 
   /* Chip artwork: body and edge-spot colors, the same in every theme. */
@@ -73,6 +74,8 @@
   --border-control: 1.5px;
   --blur-bar: 10px;
   --container-app: 35rem;
+  /* Room kept under the content for the fixed bottom bar; also its scroll padding (REQ-0002-10). */
+  --bar-clearance: calc(var(--spacing) * 44);
 }
 
 @layer theme {

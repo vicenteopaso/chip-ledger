@@ -20,21 +20,24 @@ Tokens are defined once in `styles/tokens.css` as a Tailwind `@theme`, so each t
 
 Contrast is the lower of the ratios against `bg` and `surface`.
 
-| Role                     | Light     | Dark      | Used for                              | Contrast (light / dark) |
-| ------------------------ | --------- | --------- | ------------------------------------- | ----------------------- |
-| `--color-bg`             | `#E9EFEA` | `#0B261D` | Page background                       | —                       |
-| `--color-surface`        | `#FFFFFF` | `#11342A` | Cards, fields, outlined buttons       | —                       |
-| `--color-sunk`           | `#F2F6F3` | `#0E2D23` | Count cells                           | —                       |
-| `--color-text`           | `#13241C` | `#ECF3EE` | Body text                             | 13.9 / 12.0             |
-| `--color-text-muted`     | `#56685E` | `#9AB2A5` | Secondary text, placeholders          | 5.1 / 6.0               |
-| `--color-accent`         | `#14573F` | `#43B884` | Primary actions, links, pot           | 7.3 / 5.4               |
-| `--color-accent-ink`     | `#FFFFFF` | `#06231A` | Text on accent                        | 8.5 / 6.7 on accent     |
-| `--color-border`         | `#CFDAD2` | `#22503F` | Dividers, card and button outlines    | decorative              |
-| `--color-border-control` | `#7A8B81` | `#5A8A77` | Text-field and select borders         | 3.1 / 3.5               |
-| `--color-focus`          | `#9A6E1C` | `#E3B95A` | Focus ring                            | 3.9 / 7.3               |
-| `--color-success`        | `#1D7448` | `#6CD49C` | Gains, confirmations                  | 4.9 / 7.5               |
-| `--color-danger`         | `#B0342B` | `#F28274` | Losses, mismatches, destructive       | 5.3 / 5.3               |
-| `--color-warn-bg` / `--color-warn-ink` | `#FBF1DC` / `#6B4A0E` | `#3A2F12` / `#F2D58C` | Notes; busy photo status | 7.2 / 9.2         |
+| Role                                   | Light                 | Dark                  | Used for                           | Contrast (light / dark)    |
+| -------------------------------------- | --------------------- | --------------------- | ---------------------------------- | -------------------------- |
+| `--color-bg`                           | `#E9EFEA`             | `#0B261D`             | Page background                    | —                          |
+| `--color-surface`                      | `#FFFFFF`             | `#11342A`             | Cards, fields, outlined buttons    | —                          |
+| `--color-sunk`                         | `#F2F6F3`             | `#0E2D23`             | Count cells                        | —                          |
+| `--color-text`                         | `#13241C`             | `#ECF3EE`             | Body text                          | 13.9 / 12.0                |
+| `--color-text-muted`                   | `#56685E`             | `#9AB2A5`             | Secondary text, placeholders       | 5.1 / 6.0                  |
+| `--color-accent`                       | `#14573F`             | `#43B884`             | Primary actions, links, pot        | 7.3 / 5.4                  |
+| `--color-accent-ink`                   | `#FFFFFF`             | `#06231A`             | Text on accent                     | 8.5 / 6.7 on accent        |
+| `--color-border`                       | `#CFDAD2`             | `#22503F`             | Dividers, card and button outlines | decorative                 |
+| `--color-border-control`               | `#7A8B81`             | `#5A8A77`             | Text-field and select borders      | 3.1 / 3.5                  |
+| `--color-focus`                        | `#9A6E1C`             | `#E3B95A`             | Focus ring                         | 3.9 / 7.3                  |
+| `--color-step-done`                    | accent 65% + border   | same mix              | Done-step border (with a ✓)        | ≥ 3:1 on `bg`, both themes |
+| `--color-success`                      | `#1D7448`             | `#6CD49C`             | Gains, confirmations               | 4.9 / 7.5                  |
+| `--color-danger`                       | `#B0342B`             | `#F28274`             | Losses, mismatches, destructive    | 5.3 / 5.3                  |
+| `--color-warn-bg` / `--color-warn-ink` | `#FBF1DC` / `#6B4A0E` | `#3A2F12` / `#F2D58C` | Notes; busy photo status           | 7.2 / 9.2                  |
+
+Pairs that carry meaning are checked against `styles/tokens.css` by `test/unit/styles/tokens.test.ts`, so a changed value cannot silently drop below its ratio. `--color-step-done` was raised from a 45% to a 65% accent mix (light was about 2.5:1) by SPEC-0002 (REQ-0002-04).
 
 Contrast fixes against the prototype: text-field borders use `--color-border-control` (the prototype's `#CFDAD2` was 1.2:1), and the busy photo status uses `--color-warn-ink` instead of the focus gold (3.9:1 as text).
 
@@ -42,13 +45,13 @@ Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes,
 
 ### Typography
 
-| Token                     | Value                                   | Use                                  |
-| ------------------------- | --------------------------------------- | ------------------------------------ |
-| `--font-sans`             | Bricolage Grotesque (self-hosted by `next/font`), system fallbacks | UI and body |
-| `--font-mono`             | `ui-monospace, Menlo, monospace`        | Copyable results text                |
-| `--text-xs` … `--text-5xl` | 13, 14, 15, 16, 17 (`body`), 18, 19, 20, 22, 24, 34 px | Type scale (`--text-body` is the body size) |
-| `--leading-display` / `--tracking-display` | 1.05 / −0.02em          | Step titles and the pot              |
-| Line height               | 1.4 body                                | Kept from the prototype              |
+| Token                                      | Value                                                              | Use                                         |
+| ------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
+| `--font-sans`                              | Bricolage Grotesque (self-hosted by `next/font`), system fallbacks | UI and body                                 |
+| `--font-mono`                              | `ui-monospace, Menlo, monospace`                                   | Copyable results text                       |
+| `--text-xs` … `--text-5xl`                 | 13, 14, 15, 16, 17 (`body`), 18, 19, 20, 22, 24, 34 px             | Type scale (`--text-body` is the body size) |
+| `--leading-display` / `--tracking-display` | 1.05 / −0.02em                                                     | Step titles and the pot                     |
+| Line height                                | 1.4 body                                                           | Kept from the prototype                     |
 
 ### Spacing, radius, borders, motion
 
@@ -56,6 +59,8 @@ Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes,
 - **Radius:** `sm` 10, `md` 12, `lg` 14, `xl` 16, `2xl` 18 px, `full`.
 - **Borders:** `--border-control` (1.5 px) through the `border-control` utility for fields and outlined buttons.
 - **Effects:** `--blur-bar` (10 px) for the bottom bar; `--color-chip-shadow` for chip artwork.
+- **Bottom bar:** `--bar-clearance` (44 spacing steps) is both the space kept under the content and the page's `scroll-padding-bottom`, so a focused field never lands behind the bar. Under the `short:` variant (`max-height: 30rem`: landscape phones, 200% zoom) the bar is static and scrolls with the page (REQ-0002-10).
+- **Forced colors:** controls use transparent borders, never none, so forced-colors mode can draw them; the current step uses `Highlight`, and chip artwork keeps its colors next to its text label (REQ-0002-09).
 - **Motion:** buttons scale to 0.97 while pressed, only under `prefers-reduced-motion: no-preference`.
 - **Touch targets:** 44 px minimum. Where the prototype drew smaller controls (step tabs, remove-chip button), the hit area is enlarged without changing the drawn size.
 
@@ -63,15 +68,15 @@ Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes,
 
 Document each in `docs/components/` with the [template](./components/_TEMPLATE.md).
 
-| Pattern    | Rules                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------ |
+| Pattern    | Rules                                                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- |
 | Buttons    | Native `<button>`; primary/secondary/destructive; min 44×44 px target; visible focus; disabled state still readable |
-| Links      | Distinguishable without color alone; descriptive text; external links indicated            |
-| Forms      | Visible labels; helper and error text associated; errors announced; required indicated     |
-| Cards      | Semantic heading; whole-card links implemented with one real link, not nested interactives |
-| Navigation | Landmark `nav` with label; current page indicated (`aria-current`); keyboard operable menus |
-| Dialogs    | Focus trap, `Esc` to close, labelled, focus restored on close, scroll locked               |
-| Feedback   | Status messages via live regions; toasts never the only channel for important info         |
+| Links      | Distinguishable without color alone; descriptive text; external links indicated                                     |
+| Forms      | Visible labels; helper and error text associated; errors announced; required indicated                              |
+| Cards      | Semantic heading; whole-card links implemented with one real link, not nested interactives                          |
+| Navigation | Landmark `nav` with label; current page indicated (`aria-current`); keyboard operable menus                         |
+| Dialogs    | Focus trap, `Esc` to close, labelled, focus restored on close, scroll locked                                        |
+| Feedback   | Status messages via live regions; toasts never the only channel for important info                                  |
 
 ## 4. Theming
 

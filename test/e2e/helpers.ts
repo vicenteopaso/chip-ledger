@@ -19,7 +19,7 @@ export async function openFresh(page: Page, currency: "USD" | "EUR" = "USD") {
 /** Names the four players and starts the game. */
 export async function startGame(page: Page) {
   for (const [i, name] of NAMES.entries()) {
-    await page.getByLabel(`Name of player ${String(i + 1)}`).fill(name);
+    await page.getByLabel(`Player ${String(i + 1)} name`).fill(name);
   }
   await page.getByRole("button", { name: "Start the game" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();

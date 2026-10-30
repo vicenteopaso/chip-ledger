@@ -1,3 +1,5 @@
+import type { Ref } from "react";
+
 import { Chip } from "@/app/components/Chip";
 import { DraftInput } from "@/app/components/DraftInput";
 import { availableColors, type ChipColor, ChipColorSchema, MIXED, STACK_LABELS } from "@/lib/chips";
@@ -16,10 +18,29 @@ export type ChipRowProps = {
   onCountChange: (count: number) => void;
   onValueChange: (value: number) => void;
   onRemove: () => void;
+  /** Lets the container focus this row's count when the stack is empty (REQ-0002-08). */
+  countRef?: Ref<HTMLInputElement>;
 };
 
 const FIELD =
   "block w-full min-w-0 rounded-md border-control border-border-control bg-surface px-2 py-2.5 text-body focus:border-accent";
+
+/**
+ * Visible column headers over the chip rows, on the same grid (REQ-0002-05). Hidden from
+ * assistive technology because each field's name already contains its header.
+ */
+export function ChipRowHeader() {
+  return (
+    <div
+      className="chip-row grid items-end gap-2 border-b border-border pb-1.5 text-sm leading-tight font-semibold text-text-muted"
+      aria-hidden="true"
+    >
+      <span className="col-start-2 pl-1">Color</span>
+      <span className="col-start-3 text-center">Per player</span>
+      <span className="col-start-5 text-center">Value</span>
+    </div>
+  );
+}
 
 /** One chip color in the starting stack: color, count per player, value per chip (REQ-0001-05). */
 export function ChipRow({
@@ -32,6 +53,7 @@ export function ChipRow({
   onCountChange,
   onValueChange,
   onRemove,
+  countRef,
 }: ChipRowProps) {
   const label = STACK_LABELS[chip.color];
   const mixed = chip.color === MIXED;
@@ -49,8 +71,9 @@ export function ChipRow({
         <span className="pl-1 text-body whitespace-nowrap">{label}</span>
       ) : (
         <>
+          {/* Named per row; the visible "Color" header is part of the name (REQ-0002-05). */}
           <label htmlFor={ids.color} className="sr-only">
-            Chip color
+            {`${label} chip color`}
           </label>
           <select
             id={ids.color}
@@ -73,6 +96,7 @@ export function ChipRow({
       </label>
       <DraftInput
         id={ids.count}
+        ref={countRef}
         className={`${FIELD} text-center`}
         inputMode="numeric"
         value={chip.count}

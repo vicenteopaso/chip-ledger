@@ -8,42 +8,42 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 - [x] T-01 Resolve the open questions in spec §7 and set the spec to `approved`.
   - Done when: no `[NEEDS CLARIFICATION]` markers remain.
-- [ ] T-02 Capture "before" evidence: screenshots of findings 1, 2, 4, 9, and 10 (plan §1) in light and dark at 375 px and 1280 px.
+- [x] T-02 Capture "before" evidence: screenshots of findings 1, 2, 4, 9, and 10 (plan §1) in light and dark at 375 px and 1280 px.
   - Done when: the screenshots are attached to the first implementation PR.
-- [ ] T-03 Add tokens: hover, disabled, recalculated step-done, and size tokens for the one-offs _(REQ-0002-04, -17, -18, -26)_
+- [x] T-03 Add tokens: hover, disabled, recalculated step-done, and size tokens for the one-offs _(REQ-0002-04, -17, -18, -26)_
   - Tests: unit contrast check over `tokens.css` pairs in both themes
   - Done when: every new pair is ≥ its WCAG minimum and is listed in `DESIGN_SYSTEM.md`.
 
 ## Phase 1: accessibility (P1)
 
-- [ ] T-04 Focus and title on step change _(REQ-0002-02)_
+- [x] T-04 Focus and title on step change _(REQ-0002-02)_
   - Tests: component test on `ChipLedgerApp`; e2e: Enter on "Start the game" → focus on the `h1`, Tab → step nav
   - Done when: AC-0002-02 passes and focus is not moved on first load.
-- [ ] T-05 [P] Visible color names in count cells _(REQ-0002-01)_
+- [x] T-05 [P] Visible color names in count cells _(REQ-0002-01)_
   - Tests: PlayerCashCard component test; e2e `enterCounts` unchanged
   - Done when: AC-0002-01 passes; screenshot under a deuteranopia simulation attached.
-- [ ] T-06 [P] Photo control name _(REQ-0002-03)_
+- [x] T-06 [P] Photo control name _(REQ-0002-03)_
   - Tests: component test for the three states
   - Done when: AC-0002-03 passes.
-- [ ] T-07 [P] Step done state: check mark and "(done)" _(REQ-0002-04)_
+- [x] T-07 [P] Step done state: check mark and "(done)" _(REQ-0002-04)_
   - Tests: StepsNav component test; visual
   - Done when: AC-0002-04 passes.
-- [ ] T-08 Visible labels on Setup _(REQ-0002-05)_
+- [x] T-08 Visible labels on Setup _(REQ-0002-05)_
   - Tests: component tests; update e2e helpers; visual at 320 px
   - Done when: AC-0002-05 passes and Setup reflows at 320 px and 200% zoom.
-- [ ] T-09 [P] Copy-fallback field border _(REQ-0002-06)_
+- [x] T-09 [P] Copy-fallback field border _(REQ-0002-06)_
   - Tests: component test
   - Done when: AC-0002-06 passes.
 - [ ] T-10 LiveAnnouncer and announcements _(REQ-0002-07)_
   - Tests: component tests for each message and the debounce by kind
   - Done when: AC-0002-07 passes; a VoiceOver or NVDA check is recorded in the PR.
-- [ ] T-11 `aria-disabled` start button _(REQ-0002-08)_
+- [x] T-11 `aria-disabled` start button _(REQ-0002-08)_
   - Tests: Button and SetupScreen component tests; e2e cleared buy-in
   - Done when: AC-0002-08 passes.
-- [ ] T-12 [P] Forced-colors support _(REQ-0002-09)_
+- [x] T-12 [P] Forced-colors support _(REQ-0002-09)_
   - Tests: visual snapshots with `forcedColors: "active"`
   - Done when: AC-0002-09 passes.
-- [ ] T-13 Bottom bar never hides focus _(REQ-0002-10)_
+- [x] T-13 Bottom bar never hides focus _(REQ-0002-10)_
   - Tests: e2e at 375 × 812 and 375 × 400
   - Done when: AC-0002-10 passes.
 

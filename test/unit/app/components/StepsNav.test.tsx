@@ -13,8 +13,20 @@ describe("StepsNav", () => {
       "aria-current",
       "step",
     );
-    expect(screen.getByRole("button", { name: "1 Setup" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("button", { name: "1 Setup (done)" })).not.toHaveAttribute(
+      "aria-current",
+    );
     await userEvent.click(screen.getByRole("button", { name: "4 Settle" }));
     expect(onSelect).toHaveBeenCalledWith("settle");
+  });
+
+  it("AC-0002-04: marks earlier steps done in text, not only by color", () => {
+    render(<StepsNav current="cashout" onSelect={vi.fn()} />);
+    const done = ["1 Setup (done)", "2 Table (done)"];
+    for (const name of done) {
+      expect(screen.getByRole("button", { name })).toHaveTextContent(/^✓/);
+    }
+    expect(screen.getByRole("button", { name: "3 Cash out" })).not.toHaveTextContent("✓");
+    expect(screen.getByRole("button", { name: "4 Settle" })).not.toHaveTextContent("done");
   });
 });

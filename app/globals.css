@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
+/* Short viewports (landscape phones, 200% zoom): the bottom bar scrolls with the page instead of
+   covering it (REQ-0002-10). */
+@custom-variant short (@media (max-height: 30rem));
+
 @layer base {
   :root {
     padding-top: env(safe-area-inset-top, 0px);
@@ -9,7 +13,15 @@
 
   html {
     scroll-padding-top: env(safe-area-inset-top, 0px);
+    /* A field scrolled into view on focus stops above the fixed bottom bar (REQ-0002-10). */
+    scroll-padding-bottom: var(--bar-clearance);
     -webkit-text-size-adjust: 100%;
+  }
+
+  @media (max-height: 30rem) {
+    html {
+      scroll-padding-bottom: 0;
+    }
   }
 
   body {
@@ -30,6 +42,12 @@
   :focus-visible {
     outline: 3px solid var(--color-focus);
     outline-offset: 2px;
+  }
+
+  /* The step title takes focus by script after a step change (REQ-0002-02). It is not a control,
+     so it shows no focus ring; screen readers announce it on arrival. */
+  h1[tabindex="-1"]:focus {
+    outline: none;
   }
 }
 
@@ -110,6 +128,21 @@
 
   .count-grid {
     grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing) * 24), 1fr));
+  }
+}
+
+/* Windows High Contrast and other forced-colors modes (REQ-0002-09). System colors replace the
+   theme, so state shown by border color needs system colors too, and chip artwork keeps its own
+   colors because it is identified by them next to its text label. */
+@media (forced-colors: active) {
+  nav[aria-label="Steps"] button {
+    border-top-color: GrayText;
+  }
+  nav[aria-label="Steps"] button[aria-current="step"] {
+    border-top-color: Highlight;
+  }
+  .chip {
+    forced-color-adjust: none;
   }
 }
 

@@ -5,16 +5,27 @@ import { type ReactNode, useEffect, useMemo, useReducer, useRef, useState } from
 import { ActionBar } from "@/app/components/ActionBar";
 import { Button } from "@/app/components/Button";
 import { CashOutScreen } from "@/app/components/CashOutScreen";
+import { LiveAnnouncer } from "@/app/components/LiveAnnouncer";
 import type { PhotoState } from "@/app/components/PlayerCashCard";
 import { type CopyState, SettleScreen } from "@/app/components/SettleScreen";
 import { SetupScreen } from "@/app/components/SetupScreen";
 import { StepsNav } from "@/app/components/StepsNav";
 import { TableScreen } from "@/app/components/TableScreen";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
-import { canStartGame, createGame, type Screen } from "@/lib/game";
+import { StepTitleContext } from "@/app/components/Typography";
+import { changeAnnouncement } from "@/lib/announcements";
+import {
+  activePlayers,
+  canStartGame,
+  createGame,
+  type GameState,
+  playerName,
+  type Screen,
+  STEP_TITLES,
+} from "@/lib/game";
 import { gameReducer } from "@/lib/game-reducer";
 import { randomId, sequentialIds } from "@/lib/ids";
-import { moneyFormatter } from "@/lib/money";
+import { type MoneyFormatter, moneyFormatter } from "@/lib/money";
 import {
   COUNTING_STATUS,
   photoColorsFor,
@@ -22,7 +33,8 @@ import {
   photoResultStatus,
 } from "@/lib/photo-count";
 import { settle } from "@/lib/settlement";
-import { resultsText } from "@/lib/summaries";
+import { SITE } from "@/lib/seo";
+import { countCheckSummary, resultsText, setupSummary } from "@/lib/summaries";
 import { copyToClipboard } from "@/lib/infra/clipboard";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
@@ -33,6 +45,13 @@ import { requestPhotoCount } from "@/lib/infra/photo-count-client";
 const RENDER_LOCALE = "en-US";
 
 const defaultGame = () => createGame(sequentialIds("default-"));
+
+/** The summary whose change is announced on each step, if any (REQ-0002-07). */
+function stepSummary(game: GameState, money: MoneyFormatter) {
+  if (game.screen === "setup") return setupSummary(game, money);
+  if (game.screen === "cashout") return countCheckSummary(game, money);
+  return undefined;
+}
 
 export type ChipLedgerAppProps = {
   photoCountingEnabled: boolean;
@@ -51,7 +70,16 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   const [copy, setCopy] = useState<CopyState>({ kind: "idle" });
   const [resetArmed, setResetArmed] = useState(false);
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
+  const [message, setMessage] = useState("");
+  const [seen, setSeen] = useState<{ game: GameState; hydrated: boolean; summary?: string }>(
+    () => ({ game, hydrated }),
+  );
   const thumbnails = useRef(new Set<string>());
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const buyInRef = useRef<HTMLInputElement>(null);
+  const firstChipRef = useRef<HTMLInputElement>(null);
+  /** Set by a step change the person made, so focus moves only then, never on load. */
+  const focusTitle = useRef(false);
 
   // Restore the saved game once, after hydration (REQ-0001-25). Browser storage and the
   // browser's locale are not available during the server render.
@@ -69,8 +97,15 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
     if (hydrated) saveGame(game);
   }, [game, hydrated]);
 
+  // A step the person opened: scroll to the top, name it in the document title, and move focus
+  // to its title so keyboard and screen-reader users land on the new content (REQ-0002-02).
+  // Not on load, so the served title stays as is for crawlers (SPEC-0002 §6).
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (!focusTitle.current) return;
+    focusTitle.current = false;
+    document.title = `${STEP_TITLES[game.screen]} · ${SITE.name}`;
+    titleRef.current?.focus({ preventScroll: true });
   }, [game.screen]);
 
   useEffect(() => {
@@ -85,6 +120,20 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
     [game.currency, hydrated],
   );
   const settlement = useMemo(() => settle(game), [game]);
+  const summary = stepSummary(game, money);
+
+  // Announce edits on the current step: the player count, a rebuy with the new pot, or a change
+  // of summary message, but not every keystroke that only changes an amount (REQ-0002-07).
+  // Compared with the previous render; restoring a saved game or changing step says nothing.
+  if (seen.game !== game || seen.hydrated !== hydrated) {
+    setSeen({ game, hydrated, summary: summary?.code });
+    if (seen.hydrated && seen.game.screen === game.screen) {
+      const change = changeAnnouncement(seen.game, game, money);
+      const summaryChanged = summary && summary.code !== seen.summary;
+      const text = [change, summaryChanged ? summary.text : null].filter(Boolean).join(" ");
+      if (text) setMessage(text);
+    }
+  }
 
   const clearPhotos = () => {
     for (const url of thumbnails.current) URL.revokeObjectURL(url);
@@ -95,9 +144,24 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   const go = (screen: Screen) => {
     setCopy({ kind: "idle" });
     setResetArmed(false);
-    // A change of screen scrolls in the effect above; reopening the same screen scrolls here.
-    if (screen === game.screen) window.scrollTo(0, 0);
+    // A change of screen scrolls and moves focus in the effect above; reopening the same
+    // screen does both here.
+    if (screen === game.screen) {
+      window.scrollTo(0, 0);
+      titleRef.current?.focus({ preventScroll: true });
+    } else {
+      focusTitle.current = true;
+    }
     dispatch({ type: "go", screen });
+  };
+
+  /** "Start the game" stays focusable when it can't be used and leads to the problem (REQ-0002-08). */
+  const startGame = () => {
+    if (canStartGame(game)) {
+      go("table");
+      return;
+    }
+    (game.buyIn <= 0 ? buyInRef : firstChipRef).current?.focus();
   };
 
   const updatePhoto = (playerId: string, update: Partial<PhotoState>) => {
@@ -118,24 +182,31 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
     thumbnails.current.add(thumbnailUrl);
     updatePhoto(playerId, { busy: true, thumbnailUrl, status: COUNTING_STATUS });
 
+    const player = activePlayers(game).find((candidate) => candidate.id === playerId);
+    const name = player ? playerName(game, player) : "";
+    setMessage(`${name}: ${COUNTING_STATUS.text}`);
     const outcome = await requestPhotoCount(file, photoColorsFor(game));
+    const status = outcome.ok ? photoResultStatus(outcome.result) : photoErrorStatus(outcome.code);
     if (outcome.ok) {
       dispatch({ type: "applyPhotoCounts", playerId, counts: outcome.result.counts });
-      updatePhoto(playerId, { busy: false, status: photoResultStatus(outcome.result) });
-    } else {
-      updatePhoto(playerId, { busy: false, status: photoErrorStatus(outcome.code) });
     }
+    updatePhoto(playerId, { busy: false, status });
+    setMessage(`${name}: ${status.text}`);
   };
 
   const copyResults = async () => {
     const text = resultsText(settlement, money, new Date().toLocaleDateString());
     const copied = await copyToClipboard(text);
     setCopy(copied ? { kind: "copied" } : { kind: "fallback", text });
+    setMessage(
+      copied ? "Results copied." : "Couldn't copy. The results are shown as text to select.",
+    );
   };
 
   const reset = () => {
     if (!resetArmed) {
       setResetArmed(true);
+      setMessage("Tap again to erase everything.");
       return;
     }
     clearPhotos();
@@ -150,8 +221,9 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   };
 
   return (
-    <>
-      <main id="main" className="mx-auto max-w-app px-4 pt-3.5 pb-44">
+    <StepTitleContext value={titleRef}>
+      <LiveAnnouncer message={message} />
+      <main id="main" className="mx-auto max-w-app px-4 pt-3.5 pb-(--bar-clearance) short:pb-4">
         <StepsNav current={game.screen} onSelect={go} />
         {game.screen === "setup" && (
           <SetupScreen
@@ -159,6 +231,8 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
             money={money}
             photoCountingEnabled={photoCountingEnabled}
             dispatch={dispatch}
+            buyInRef={buyInRef}
+            firstChipRef={firstChipRef}
             onAddChip={() => {
               dispatch({ type: "addChip", chipId: randomId() });
             }}
@@ -212,10 +286,9 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
         {game.screen === "setup" && (
           <Button
             variant="primary"
-            disabled={!canStartGame(game)}
-            onClick={() => {
-              go("table");
-            }}
+            aria-disabled={!canStartGame(game)}
+            aria-describedby="setup-summary"
+            onClick={startGame}
           >
             Start the game
           </Button>
@@ -281,6 +354,6 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
           </>
         )}
       </ActionBar>
-    </>
+    </StepTitleContext>
   );
 }

@@ -31,9 +31,8 @@ export function CountCheck({ game, money }: CountCheckProps) {
           ))}
         </tbody>
       </table>
-      <div role="status">
-        <Notice notice={countCheckSummary(game, money)} />
-      </div>
+      {/* Announced by the page's live region when the message changes (REQ-0002-07). */}
+      <Notice notice={countCheckSummary(game, money)} />
     </>
   );
 }

@@ -119,7 +119,7 @@ export function SettleScreen({
         {copy.kind === "fallback" && (
           <>
             <textarea
-              className="h-42.5 w-full rounded-md border border-border bg-surface p-2.5 font-mono text-sm text-text"
+              className="h-42.5 w-full rounded-md border-control border-border-control bg-surface p-2.5 font-mono text-sm text-text"
               readOnly
               aria-label="Results text"
               value={copy.text}
