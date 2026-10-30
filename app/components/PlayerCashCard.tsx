@@ -59,7 +59,7 @@ export function PlayerCashCard({
       </header>
       {photo && (
         <>
-          <div className="my-2.5 flex items-center gap-2.5">
+          <div className="mt-3 mb-2.5 flex items-center gap-2.5">
             <label
               // A label styled as the outline button, so the file input stays native (REQ-0002-21).
               // The ring is the global focus token, shown on the label for its hidden input.
@@ -96,9 +96,9 @@ export function PlayerCashCard({
           </p>
         </>
       )}
-      <div className="count-grid grid gap-2">
+      <div className="count-grid mt-3 grid gap-x-2 gap-y-3.5">
         {chips.map((chip) => (
-          <label key={chip.id} className="flex flex-col gap-1">
+          <label key={chip.id} className="flex flex-col gap-2">
             {/* The color in words, so the cell is not told apart by color alone (REQ-0002-01). */}
             <span className="flex items-center gap-1.5 text-md font-semibold text-text-muted">
               <Chip color={chip.color} size="sm" />

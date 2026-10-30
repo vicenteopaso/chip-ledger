@@ -67,12 +67,12 @@ If a brand color cannot meet contrast in one theme, WCAG allows a **conforming a
 
 ## 4. Testing
 
-| Layer      | What                                                                      |
-| ---------- | ------------------------------------------------------------------------- |
-| Lint       | `eslint-plugin-jsx-a11y`; no disabled a11y rules ([FP-11](./FORBIDDEN_PATTERNS.md)) |
-| Component  | Query by role/name; assert focus behavior and live-region text            |
-| Automated  | axe on key pages and states in every theme (`pnpm test:a11y`)             |
-| Lighthouse | Accessibility score budget in `sdd.yaml`                                  |
+| Layer      | What                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| Lint       | `eslint-plugin-jsx-a11y`; no disabled a11y rules ([FP-11](./FORBIDDEN_PATTERNS.md))                            |
+| Component  | Query by role/name; assert focus behavior and live-region text                                                 |
+| Automated  | axe on key pages and states in every theme (`pnpm test:a11y`)                                                  |
+| Lighthouse | Accessibility score budget in `sdd.yaml`                                                                       |
 | Manual     | Keyboard-only walkthrough; screen reader (VoiceOver, NVDA) for new patterns; zoom to 200% and reflow at 320 px |
 
 Automated tools find only a portion of issues. A manual pass is part of review for any new interaction.

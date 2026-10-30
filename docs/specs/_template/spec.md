@@ -1,12 +1,12 @@
 # SPEC-NNNN: Short Title
 
-| Field      | Value                                              |
-| ---------- | -------------------------------------------------- |
-| Status     | draft                                              |
-| Tier       | 1                                                  |
-| Owner      | @github-handle                                     |
-| Created    | YYYY-MM-DD                                         |
-| Related    | Issue #, ADR-NNNN, superseded-by SPEC-NNNN (if any) |
+| Field   | Value                                               |
+| ------- | --------------------------------------------------- |
+| Status  | draft                                               |
+| Tier    | 1                                                   |
+| Owner   | @github-handle                                      |
+| Created | YYYY-MM-DD                                          |
+| Related | Issue #, ADR-NNNN, superseded-by SPEC-NNNN (if any) |
 
 ## 1. Problem
 
@@ -24,9 +24,9 @@ Who is affected, what is going wrong or missing, and why it matters now. No solu
 
 ## 3. User stories
 
-| ID     | Priority | Story                                      |
-| ------ | -------- | ------------------------------------------ |
-| US-01  | P1       | As a <role>, I want <capability> so that <benefit>. |
+| ID    | Priority | Story                                               |
+| ----- | -------- | --------------------------------------------------- |
+| US-01 | P1       | As a <role>, I want <capability> so that <benefit>. |
 
 ## 4. Requirements
 

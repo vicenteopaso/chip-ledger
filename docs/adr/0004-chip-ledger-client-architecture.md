@@ -1,12 +1,12 @@
 # ADR-0004: Client-side architecture for Chip Ledger
 
-|              |                                                                    |
-| ------------ | ------------------------------------------------------------------ |
-| **Status**   | Accepted                                                           |
-| **Date**     | 2026-10-24                                                         |
-| **Deciders** | @vicenteopaso                                                      |
-| **Area**     | frontend architecture, security, data                              |
-| **Related**  | [SPEC-0001](../specs/0001-chip-ledger/spec.md)                      |
+|              |                                                |
+| ------------ | ---------------------------------------------- |
+| **Status**   | Accepted                                       |
+| **Date**     | 2026-10-24                                     |
+| **Deciders** | @vicenteopaso                                  |
+| **Area**     | frontend architecture, security, data          |
+| **Related**  | [SPEC-0001](../specs/0001-chip-ledger/spec.md) |
 
 ## Context and problem statement
 

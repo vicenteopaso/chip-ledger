@@ -11,10 +11,10 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 
 ## Props
 
-| Component   | Prop        | Type        | Required | Description                            |
-| ----------- | ----------- | ----------- | -------- | -------------------------------------- |
-| `AppHeader` | `children`  | `ReactNode` | Yes      | The step navigation                    |
-| `BrandMark` | `className` | `string`    | No       | Size and layout classes, e.g. `size-9` |
+| Component   | Prop        | Type        | Required | Description                             |
+| ----------- | ----------- | ----------- | -------- | --------------------------------------- |
+| `AppHeader` | `children`  | `ReactNode` | Yes      | The step navigation                     |
+| `BrandMark` | `className` | `string`    | No       | Size and layout classes, e.g. `size-10` |
 
 ## Usage
 
@@ -28,15 +28,15 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 ## Accessibility
 
 - **Role / semantics:** a `<header>` outside `main`, so it is the page's `banner` landmark. "Chip Ledger" is a paragraph, not a heading: each step's `h1` is the step's name (REQ-0002-24). The skip link still goes to `#main`.
-- **Brand mark:** decorative (`aria-hidden`); the wordmark beside it names the app.
+- **Brand mark:** three chips (blue, green, red) in a cluster; decorative (`aria-hidden`), since the wordmark beside it names the app.
 
 ## Design tokens
 
-`--color-accent` (chip body), `--color-bg` (spots and ring, so the mark reads in both themes), `--text-2xl`, `--leading-display`, `--tracking-display`, `--container-app`.
+`--color-chip-blue`, `--color-chip-green`, `--color-chip-red` (bodies), `--color-chip-spot` (spots and rings), `--color-bg` (each chip's outline, so overlaps read in both themes), `--text-2xl`, `--leading-display`, `--tracking-display`, `--container-app`.
 
 ## Assets
 
-`app/icon.svg` (favicon) and `app/apple-icon.png` (180 px home-screen icon) are the same chip in the light theme's colors, `#14573F` and `#E9EFEA`. Next.js links both from the page head (REQ-0002-29). Edit the SVG and `BrandMark` together.
+`app/icon.svg` (favicon) is the same three chips with white outlines, so it reads on light and dark browser tabs; `app/apple-icon.png` (180 px home-screen icon) puts it on the page color `#E9EFEA`. The icon's chip colors must match the tokens; a source check enforces it. Next.js links both from the page head (REQ-0002-29). Edit the SVG and `BrandMark` together.
 
 ## Testing
 

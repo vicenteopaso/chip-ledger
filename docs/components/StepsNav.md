@@ -25,7 +25,7 @@ The four-step navigation in the page header, drawn as a progress stepper. Any st
 
 ## Design tokens
 
-Circles: `--color-accent` and `--color-accent-ink` (done, current), a `--color-accent-soft` halo (current), `--color-border-control` on `--color-surface` (upcoming), all ≥ 3:1 on the page. Lines: `--color-accent` up to the current step, `--color-border-control` after it. Labels: `--text-md`, `--color-text` (current, bold) or `--color-text-muted`; hover `--color-surface-hover` (REQ-0002-27).
+Circles: `--color-accent` and `--color-accent-ink` (done, current), a `--color-accent-soft` halo (current), `--color-border-control` on `--color-surface` (upcoming), all ≥ 3:1 on the page. Lines: `--color-accent` up to the current step, `--color-border-control` after it. Labels: `--text-md`, `--color-text` (current, bold) or `--color-text-muted`; on hover the label is underlined and the circle gains the halo (done) or an accent outline (upcoming). Hover never draws a box, which the connecting line would cross (REQ-0002-27).
 
 ## Testing
 

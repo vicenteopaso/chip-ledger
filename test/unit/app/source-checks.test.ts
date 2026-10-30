@@ -42,9 +42,13 @@ describe("source checks", () => {
   it("AC-0002-29: ships a favicon and a home-screen icon drawn from the brand mark", () => {
     const icon = readFileSync(join(root, "app/icon.svg"), "utf8");
     expect(icon).toContain('viewBox="0 0 32 32"');
-    // The light theme's accent and page colors (styles/tokens.css).
-    expect(icon).toContain("#14573f");
-    expect(icon).toContain("#e9efea");
+    // The header mark's chip colors, taken from styles/tokens.css so they cannot drift.
+    const tokens = readFileSync(join(root, "styles/tokens.css"), "utf8");
+    for (const chip of ["blue", "green", "red"]) {
+      const value = new RegExp(`--color-chip-${chip}: (#[0-9a-f]{6});`).exec(tokens)?.[1];
+      expect(value).toBeDefined();
+      expect(icon).toContain(value);
+    }
     expect(existsSync(join(root, "app/apple-icon.png"))).toBe(true);
   });
 });

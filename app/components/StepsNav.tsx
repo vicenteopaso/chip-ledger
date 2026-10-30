@@ -9,10 +9,12 @@ const LABELS: Record<Screen, string> = {
 
 export type StepsNavProps = { current: Screen; onSelect: (screen: Screen) => void };
 
+// Hover marks the circle and the label only, never a box: the connecting line runs behind it.
 const DOT = {
-  done: "border-accent bg-accent text-accent-ink",
+  done: "border-accent bg-accent text-accent-ink group-hover:ring-4 group-hover:ring-accent-soft",
   current: "border-accent bg-accent text-accent-ink ring-4 ring-accent-soft",
-  upcoming: "border-border-control bg-surface text-text-muted",
+  upcoming:
+    "border-border-control bg-surface text-text-muted group-hover:border-accent group-hover:text-accent",
 } as const;
 
 function CheckMark() {
@@ -58,7 +60,7 @@ export function StepsNav({ current, onSelect }: StepsNavProps) {
               )}
               <button
                 type="button"
-                className={`relative flex min-h-11 w-full min-w-0 flex-col items-center gap-1.5 rounded-md border-0 bg-transparent px-0.5 pt-1 pb-1.5 text-md leading-tight hover:bg-surface-hover ${state === "current" ? "font-bold text-text" : "text-text-muted"}`}
+                className={`relative flex min-h-11 w-full min-w-0 flex-col items-center gap-1.5 group rounded-md border-0 bg-transparent px-0.5 pt-1 pb-1.5 text-md leading-tight ${state === "current" ? "font-bold text-text" : "text-text-muted"}`}
                 aria-current={state === "current" ? "step" : undefined}
                 // A done step shows a check mark, so its name adds the number and "(done)" to the
                 // visible label. Other steps are named by their visible number and label.
@@ -75,7 +77,9 @@ export function StepsNav({ current, onSelect }: StepsNavProps) {
                 >
                   {state === "done" ? <CheckMark /> : index + 1}
                 </span>{" "}
-                <span className="whitespace-nowrap">{LABELS[screen]}</span>
+                <span className="whitespace-nowrap underline-offset-4 group-hover:text-text group-hover:underline">
+                  {LABELS[screen]}
+                </span>
               </button>
             </li>
           );

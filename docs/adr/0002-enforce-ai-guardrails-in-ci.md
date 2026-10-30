@@ -1,12 +1,12 @@
 # ADR-0002: Enforce AI guardrails in CI
 
-|                |                                    |
-| -------------- | ---------------------------------- |
-| **Status**     | Accepted                           |
-| **Date**       | 2026-01-01                     |
-| **Deciders**   | vicenteopaso                   |
-| **Area**       | CI, quality assurance              |
-| **Related**    | ADR-0001                           |
+|              |                       |
+| ------------ | --------------------- |
+| **Status**   | Accepted              |
+| **Date**     | 2026-01-01            |
+| **Deciders** | vicenteopaso          |
+| **Area**     | CI, quality assurance |
+| **Related**  | ADR-0001              |
 
 ## Context and problem statement
 
