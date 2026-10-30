@@ -47,8 +47,9 @@ Legend: `[P]` can run in parallel with its neighbours.
   - Tests: e2e at 375 × 812 and 375 × 400
   - Done when: AC-0002-10 passes.
 
-- [ ] T-13a Close Phase 1: refresh visual baselines (macOS and Linux), run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`, and open the P1 PR.
+- [x] T-13a Close Phase 1: refresh visual baselines (macOS and Linux), run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`, and open the P1 PR.
   - Done when: all pass and the PR has before/after screenshots in both themes at mobile and desktop widths.
+  - Closed by #5.
 
 ## Phase 2: experience (P2)
 
@@ -68,8 +69,9 @@ Legend: `[P]` can run in parallel with its neighbours.
   - Tests: visual; e2e hover in the desktop project
   - Done when: AC-0002-16, -17, -18 pass.
 
-- [ ] T-18a Close Phase 2: refresh visual baselines and open the P2 PR, with the same checks as T-13a.
+- [x] T-18a Close Phase 2: refresh visual baselines and open the P2 PR, with the same checks as T-13a.
   - Done when: as T-13a.
+  - Closed by #6.
 
 ## Phase 3: consistency (P3)
 
