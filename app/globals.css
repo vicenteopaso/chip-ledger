@@ -219,9 +219,6 @@
 .action-bar > .action-bar-buttons > button {
   min-height: calc(var(--spacing) * 12);
 }
-.action-bar[data-compact="true"] {
-  padding-top: calc(var(--spacing) * 1);
-}
 .action-bar[data-compact="true"] > .action-bar-buttons > button {
   min-height: calc(var(--spacing) * 10);
   font-size: var(--text-body);
@@ -237,7 +234,7 @@
 }
 .app-header[data-compact="true"] .app-header-inner {
   padding-top: calc(var(--spacing) * 2);
-  padding-bottom: calc(var(--spacing) * 1);
+  padding-bottom: calc(var(--spacing) * 2);
 }
 .app-header[data-compact="true"] .app-header-brand {
   margin-bottom: calc(var(--spacing) * 1);
@@ -253,8 +250,8 @@
   white-space: nowrap;
 }
 .app-header[data-compact="true"] .app-header-inner nav button {
-  min-height: calc(var(--spacing) * 9);
-  padding-bottom: 0;
+  min-height: calc(var(--spacing) * 10);
+  padding-bottom: calc(var(--spacing) * 1);
 }
 .app-header[data-compact="true"] .app-header-title {
   font-size: var(--text-2xl);
