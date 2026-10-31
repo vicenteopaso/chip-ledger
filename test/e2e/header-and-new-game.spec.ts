@@ -17,9 +17,9 @@ test.describe("Header and a new game from a shared one", () => {
 
     await page.mouse.wheel(0, 600);
     await expect(banner).toHaveAttribute("data-compact", "true");
-    const box = await banner.boundingBox();
-    expect(box?.y).toBe(0);
-    expect(box?.height ?? tall).toBeLessThan(tall);
+    // The header shrinks over 150 ms, so wait for its final size.
+    await expect.poll(async () => (await banner.boundingBox())?.height ?? tall).toBeLessThan(tall);
+    expect((await banner.boundingBox())?.y).toBe(0);
     await expect(banner.getByText("Chip Ledger")).toBeVisible();
     await expect(banner.getByRole("button", { name: "Share" })).toHaveCount(0);
     await expect(banner.getByRole("navigation", { name: "Steps" })).toBeVisible();
@@ -34,13 +34,18 @@ test.describe("Header and a new game from a shared one", () => {
   }) => {
     await openFresh(page);
     await startGame(page);
-    const button = await page.locator(".action-bar-buttons button").last().boundingBox();
-    const footer = await page.locator(".action-bar-footer").boundingBox();
-    expect((footer?.y ?? 0) - ((button?.y ?? 0) + (button?.height ?? 0))).toBeGreaterThanOrEqual(4);
-    const bar = await page.locator(".action-bar").boundingBox();
-    expect(
-      (bar?.y ?? 0) + (bar?.height ?? 0) - ((footer?.y ?? 0) + (footer?.height ?? 0)),
-    ).toBeGreaterThanOrEqual(12);
+    const gaps = async () => {
+      const button = await page.locator(".action-bar-buttons button").last().boundingBox();
+      const footer = await page.locator(".action-bar-footer").boundingBox();
+      const bar = await page.locator(".action-bar").boundingBox();
+      return {
+        above: (footer?.y ?? 0) - ((button?.y ?? 0) + (button?.height ?? 0)),
+        below: (bar?.y ?? 0) + (bar?.height ?? 0) - ((footer?.y ?? 0) + (footer?.height ?? 0)),
+      };
+    };
+    // The bar settles over 150 ms, so wait for its final spacing.
+    await expect.poll(async () => (await gaps()).above).toBeGreaterThanOrEqual(4);
+    await expect.poll(async () => (await gaps()).below).toBeGreaterThanOrEqual(12);
   });
 
   test("AC-0003-13: New game, same players from a shared game starts a private game here and leaves the shared one alone", async ({
