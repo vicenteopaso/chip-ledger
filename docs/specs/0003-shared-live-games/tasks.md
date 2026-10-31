@@ -84,20 +84,20 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 - [x] T-23 Remote-change announcements, grouped _(REQ-0003-29)_
   - Tests: unit for sentences and grouping; component with `LiveAnnouncer`; AC-0003-23
   - Done when: one remote + gives exactly one announcement.
-- [ ] T-24 Close PR 4: `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
+- [x] T-24 Close PR 4: `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
 
 ## 5. Share sheet, QR and upgrade (PR 5)
 
-- [ ] T-25 Add the QR encoder dependency, chosen and justified in the PR description (license, size, no dependencies, release age) _(REQ-0003-02)_
+- [x] T-25 Add the QR encoder dependency, chosen and justified in the PR description (license, size, no dependencies, release age) _(REQ-0003-02)_ (`uqr` 0.1.3: MIT, no dependencies, about 79 KB unpacked, last published April 2026; approved by the owner on 2026-10-30.)
   - Tests: unit that a known link produces the expected module matrix
   - Done when: the owner approved the package in the PR (dependencies are ask-first).
-- [ ] T-26 `QrCode` component (inline SVG, text alternative) _(REQ-0003-28)_
+- [x] T-26 `QrCode` component (inline SVG, text alternative) _(REQ-0003-28)_
   - Tests: component; axe in both themes; forced colors
   - Done when: contrast of dark modules on light background holds in the dark theme too.
-- [ ] T-27 `ShareSheet`: dialog, focus handling, copy, native share, retention notice, switch last _(REQ-0003-02, -03, -22, -28)_
+- [x] T-27 `ShareSheet`: dialog, focus handling, copy, native share, retention notice, switch last _(REQ-0003-02, -03, -22, -28)_
   - Tests: component and e2e AC-0003-02, -17 and -22; keyboard-only run
   - Done when: AC-0003-02, -17 and -22 pass and the sheet works at 320 px and 200% zoom.
-- [ ] T-28 Edit-code block and the upgrade form for watchers _(REQ-0003-08, -09)_
+- [x] T-28 Edit-code block and the upgrade form for watchers _(REQ-0003-08, -09)_
   - Tests: component and e2e AC-0003-07 and -08
   - Done when: old, expired and wrong codes fail with the same message.
 - [ ] T-29 Close PR 5: visual baselines; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.

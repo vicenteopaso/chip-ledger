@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { forgetGame, JOINED_KEY, keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
+import {
+  forgetGame,
+  JOINED_KEY,
+  keyFor,
+  rememberKey,
+  watchKeyFor,
+} from "@/lib/infra/joined-games-storage";
 
 const ID = "abcdefghijklmnop";
 const KEY = "A".repeat(22);
@@ -65,5 +71,36 @@ describe("joined games storage (REQ-0003-04, -17)", () => {
     expect(() => {
       rememberKey(ID, KEY, broken);
     }).not.toThrow();
+  });
+});
+
+describe("the watch key a host keeps (SPEC-0003 REQ-0003-02)", () => {
+  const WATCH = "W".repeat(22);
+  const EDIT = "E".repeat(22);
+
+  it("is saved beside the key and found again", () => {
+    expect(watchKeyFor(ID)).toBeNull();
+    rememberKey(ID, EDIT, undefined, WATCH);
+    expect(keyFor(ID)).toBe(EDIT);
+    expect(watchKeyFor(ID)).toBe(WATCH);
+  });
+
+  it("opening your own watch link does not replace your edit key", () => {
+    rememberKey(ID, EDIT, undefined, WATCH);
+    rememberKey(ID, WATCH);
+    expect(keyFor(ID)).toBe(EDIT);
+  });
+
+  it("keeps the watch key when the key changes, as when a watcher becomes an editor", () => {
+    rememberKey(ID, WATCH);
+    rememberKey(ID, EDIT, undefined, WATCH);
+    expect(keyFor(ID)).toBe(EDIT);
+    expect(watchKeyFor(ID)).toBe(WATCH);
+  });
+
+  it("older saved entries, with no watch key, still load", () => {
+    localStorage.setItem(JOINED_KEY, JSON.stringify([{ id: ID, key: EDIT }]));
+    expect(keyFor(ID)).toBe(EDIT);
+    expect(watchKeyFor(ID)).toBeNull();
   });
 });

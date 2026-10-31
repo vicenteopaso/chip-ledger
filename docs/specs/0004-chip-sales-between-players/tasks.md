@@ -36,6 +36,6 @@ Legend: `[P]` can run in parallel with its neighbours. The whole feature ships a
 ## 3. Verification and close
 
 - [x] T-09 E2E: solo sale and settle; two devices; saved game reload; watcher _(AC-0004-02, -04, -06, -07, -08)_
-- [ ] T-10 Visual baselines (Linux via the `update-visual-baselines` label) and axe in both themes, mobile and desktop; real-browser screenshots in the PR
+- [x] T-10 Visual baselines (Linux via the `update-visual-baselines` label) and axe in both themes, mobile and desktop; real-browser screenshots in the PR
 - [x] T-11 Docs as listed in the plan; `node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs`
-- [ ] T-12 Set the spec to `implemented`, ADR-0006 to its final status, and update both indexes
+- [x] T-12 Set the spec to `implemented`, ADR-0006 to its final status, and update both indexes

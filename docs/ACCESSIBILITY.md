@@ -65,6 +65,11 @@ If a brand color cannot meet contrast in one theme, WCAG allows a **conforming a
 - Connection changes ("Reconnecting.", "You're offline…", "Live again.") and "The game has started." go through the page's one polite live region, in words.
 - The page for a game that cannot be opened is the same for every cause and has a title, a way on, and no color-only meaning.
 
+### Share sheet and edit codes (SPEC-0003)
+
+- The Share sheet is a labelled modal dialog: focus moves in, Tab stays inside (a radio group is one stop), `Esc` closes it and focus returns to **Share**. The QR code's text alternative points to the link written out below and to **Copy link**; the link and the edit code are text, and the code's name spells it letter by letter ([ShareSheet](./components/ShareSheet.md)).
+- The edit-code form for watchers has a visible label, one message for every failed code, and stays typeable on a read-only page ([EditCodeForm](./components/EditCodeForm.md)).
+
 ### Chip sales (SPEC-0004)
 
 - The "Sell chips" form has visible labels, moves focus to its first field on open and back to its button on close, closes with `Esc`, and explains a refusal in text ([SellChips](./components/SellChips.md)).

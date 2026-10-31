@@ -2,7 +2,7 @@ import { connection } from "next/server";
 
 import { ChipLedgerApp } from "@/app/ChipLedgerApp";
 import { SiteFooter } from "@/app/components/SiteFooter";
-import { getPhotoCountConfig } from "@/lib/infra/env";
+import { getPhotoCountConfig, isSharingEnabled } from "@/lib/infra/env";
 import { SITE } from "@/lib/seo";
 
 export default async function Home() {
@@ -13,6 +13,7 @@ export default async function Home() {
   return (
     <ChipLedgerApp
       photoCountingEnabled={enabled}
+      sharingEnabled={isSharingEnabled()}
       footer={<SiteFooter year={new Date().getFullYear()} holders={SITE.copyrightHolders} />}
     />
   );

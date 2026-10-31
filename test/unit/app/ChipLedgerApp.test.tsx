@@ -526,3 +526,27 @@ describe("ChipLedgerApp: SPEC-0002 phase 3 consistency", () => {
     expect(button("Settle up")).toBeInTheDocument();
   });
 });
+
+describe("ChipLedgerApp: Share (SPEC-0003 REQ-0003-01, -02, -27)", () => {
+  beforeEach(() => {
+    saved();
+  });
+
+  it("offers no Share button when sharing is not set up", () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(screen.queryByRole("button", { name: "Share" })).toBeNull();
+  });
+
+  it("offers Share on every step when it is, and sends nothing until the host asks", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    render(<ChipLedgerApp photoCountingEnabled={false} sharingEnabled />);
+    expect(await screen.findByRole("button", { name: "Share" })).toBeInTheDocument();
+    await userEvent.click(button("Start the game"));
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+    expect(screen.getByRole("dialog", { name: "Share this game" })).toBeInTheDocument();
+    expect(screen.getByText(/24 hours/)).toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+});

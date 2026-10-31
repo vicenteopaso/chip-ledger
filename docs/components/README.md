@@ -25,6 +25,8 @@ One-off page-private components do not need a doc.
 | `Notice`                                                               | Confirmation or note, with an icon                        | [Notice](./Notice.md)                     |
 | `Stepper`                                                              | − value + control                                         | [Stepper](./Stepper.md)                   |
 | `Select`, `FIELD`                                                      | Native select with an inset chevron; the shared field box | [Select](./Select.md)                     |
+| `ShareSheet`, `QrCode`                                                 | The Share dialog and its QR code                          | [ShareSheet](./ShareSheet.md)             |
+| `EditCodeForm`                                                         | A watcher enters the edit code to become an editor        | [EditCodeForm](./EditCodeForm.md)         |
 | `SellChips`                                                            | Inline form: one player sells chips to another            | [SellChips](./SellChips.md)               |
 | `ReadOnlyContext`                                                      | Look-but-don't-touch mode for a watched shared game       | [ReadOnly](./ReadOnly.md)                 |
 | `ConnectionStatus`, `WatchNotice`, `WaitingForHost`, `GameUnavailable` | The parts of a shared game's page                         | [Shared-game parts](./SharedGameParts.md) |

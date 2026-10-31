@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { enterCounts, openFresh, SHORT_COUNTS, startGame } from "../e2e/helpers";
-import { openShared, shareGame } from "../e2e/shared-helpers";
+import { asDevice, openAsHost, openShared, shareGame } from "../e2e/shared-helpers";
 
 /** Full-page snapshots of every step (REQ-0001-27), in both themes at phone and desktop widths. */
 const VIEWPORTS = { mobile: { width: 375, height: 812 }, desktop: { width: 1280, height: 900 } };
@@ -113,3 +113,59 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
   });
 }
+
+/**
+ * The Share sheet (SPEC-0003 AC-0003-24): before sharing and after, in both themes at phone,
+ * desktop and 320 px widths, and under forced colors. The code and link are random, so they are
+ * masked; their shape is what the picture checks.
+ */
+const SHEET_VIEWPORTS = { ...VIEWPORTS, narrow: { width: 320, height: 640 } };
+
+async function snapSheet(page: Page, name: string) {
+  await page.evaluate(() => document.fonts.ready);
+  const sheet = page.getByRole("dialog", { name: "Share this game" });
+  await expect.soft(page).toHaveScreenshot(`${name}.png`, {
+    fullPage: true,
+    mask: [sheet.getByRole("img"), sheet.getByTestId("share-link")],
+  });
+}
+
+for (const colorScheme of ["light", "dark"] as const) {
+  for (const [size, viewport] of Object.entries(SHEET_VIEWPORTS)) {
+    test.describe(`share sheet ${colorScheme} ${size}`, () => {
+      test.use({ colorScheme, viewport });
+
+      test("before and after sharing", async ({ page, request, baseURL }) => {
+        await asDevice(page);
+        await openFresh(page);
+        await startGame(page);
+        await page.getByRole("button", { name: "Share" }).click();
+        await expect(page.getByRole("dialog", { name: "Share this game" })).toBeVisible();
+        await snapSheet(page, `share-intro-${colorScheme}-${size}`);
+
+        const shared = await shareGame(request, baseURL ?? "");
+        const host = await page.context().newPage();
+        await host.setViewportSize(viewport);
+        await openAsHost(host, shared);
+        const sheet = host.getByRole("dialog", { name: "Share this game" });
+        await expect(sheet.getByRole("img")).toBeVisible();
+        await expect(host.getByText("Live · 1 here")).toBeVisible();
+        await snapSheet(host, `share-ready-${colorScheme}-${size}`);
+      });
+    });
+  }
+}
+
+test.describe("share sheet forced colors mobile", () => {
+  test.use({ forcedColors: "active", viewport: VIEWPORTS.mobile });
+
+  test("after sharing", async ({ page, request, baseURL }) => {
+    const shared = await shareGame(request, baseURL ?? "");
+    await openAsHost(page, shared);
+    await expect(
+      page.getByRole("dialog", { name: "Share this game" }).getByRole("img"),
+    ).toBeVisible();
+    await expect(page.getByText("Live · 1 here")).toBeVisible();
+    await snapSheet(page, "share-ready-forced-colors-mobile");
+  });
+});

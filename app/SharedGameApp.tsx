@@ -6,6 +6,7 @@ import { ActionBar } from "@/app/components/ActionBar";
 import { AppHeader } from "@/app/components/AppHeader";
 import { Button } from "@/app/components/Button";
 import { CashOutScreen } from "@/app/components/CashOutScreen";
+import { EditCodeForm } from "@/app/components/EditCodeForm";
 import { ConnectionStatus } from "@/app/components/ConnectionStatus";
 import { GameUnavailable } from "@/app/components/GameUnavailable";
 import { LiveAnnouncer } from "@/app/components/LiveAnnouncer";
@@ -19,6 +20,7 @@ import { StepTitleContext } from "@/app/components/Typography";
 import { Notice } from "@/app/components/Notice";
 import { WaitingForHost } from "@/app/components/WaitingForHost";
 import { WatchNotice } from "@/app/components/WatchNotice";
+import { ShareControl } from "@/app/ShareControl";
 import { useSharedEditor } from "@/app/useSharedEditor";
 import { useSharedGame } from "@/app/useSharedGame";
 import { canStartGame, type GameState, type Screen, STEP_TITLES } from "@/lib/game";
@@ -27,6 +29,7 @@ import { randomId } from "@/lib/ids";
 import { remoteChanges } from "@/lib/announcements";
 import { copyToClipboard } from "@/lib/infra/clipboard";
 import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
+import { upgradeWithCode } from "@/lib/infra/shared-game-client";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { moneyFormatter } from "@/lib/money";
 import { SITE } from "@/lib/seo";
@@ -69,6 +72,7 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
   const [copy, setCopy] = useState<CopyState>({ kind: "idle" });
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [message, setMessage] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
   const [seenStatus, setSeenStatus] = useState<Status>("live");
   const [seenStarted, setSeenStarted] = useState<boolean | null>(null);
   const [seenGame, setSeenGame] = useState<GameState | null>(null);
@@ -96,9 +100,18 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
       if (fromLink) setJoin({ checked: true, key: fromLink });
     };
     const first = takeKeyFromLink();
+    // The host arrives from "Create the link" with the sheet already asked for (REQ-0003-02).
+    const params = new URLSearchParams(window.location.search);
+    const openShare = params.get("share") === "1";
+    if (openShare) {
+      params.delete("share");
+      const rest = params.toString();
+      window.history.replaceState(null, "", window.location.pathname + (rest ? `?${rest}` : ""));
+    }
     // One-time read of an external system (the address bar and storage) after mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setJoin({ checked: true, key: first ?? keyFor(id) });
+    if (openShare) setShareOpen(true);
     setTheme(loadTheme());
     window.addEventListener("hashchange", onHashChange);
     return () => {
@@ -223,6 +236,17 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
         </Notice>
       )}
       <WatchNotice access={ready.snapshot.role} archived={ready.archived} />
+      {ready.snapshot.role === "watch" && !ready.archived && join.key && (
+        <EditCodeForm
+          onSubmit={(code) => upgradeWithCode({ id, key: join.key ?? "", code })}
+          onUpgraded={(editKey) => {
+            // This device now edits with its own key, and keeps the watch key it joined with.
+            rememberKey(id, editKey, undefined, join.key ?? undefined);
+            setJoin({ checked: true, key: editKey });
+            setMessage("You can now edit this game.");
+          }}
+        />
+      )}
     </>
   );
 
@@ -321,7 +345,29 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
   return (
     <StepTitleContext value={titleRef}>
       <LiveAnnouncer message={message} />
-      <AppHeader>{showGame ? <StepsNav current={screen} onSelect={go} /> : null}</AppHeader>
+      <AppHeader
+        action={
+          ready && join.key ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShareOpen(true);
+              }}
+            >
+              Share
+            </Button>
+          ) : null
+        }
+      >
+        {showGame ? <StepsNav current={screen} onSelect={go} /> : null}
+      </AppHeader>
+      {ready && join.key && (
+        <ShareControl
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          shared={{ id, role: ready.snapshot.role, key: join.key }}
+        />
+      )}
       <main id="main" className="mx-auto max-w-app px-4 pt-2 pb-(--bar-clearance) short:pb-4">
         {body}
       </main>

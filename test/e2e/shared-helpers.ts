@@ -53,3 +53,18 @@ export async function openShared(page: Page, id: string, key: string) {
   await asDevice(page);
   await page.goto(`/g/${id}#k=${key}`);
 }
+
+/** Opens a game the way the host's device does after "Create the link": both keys saved, sheet asked for. */
+export async function openAsHost(page: Page, shared: Shared) {
+  await asDevice(page);
+  await page.addInitScript(
+    ({ id, editKey, watchKey }) => {
+      localStorage.setItem(
+        "chip-ledger.joined.v1",
+        JSON.stringify([{ id, key: editKey, watchKey }]),
+      );
+    },
+    { id: shared.id, editKey: shared.editKey, watchKey: shared.watchKey },
+  );
+  await page.goto(`/g/${shared.id}?share=1`);
+}

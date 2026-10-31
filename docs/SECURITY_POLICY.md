@@ -67,6 +67,7 @@ The built-in scanner is a lightweight net, not a replacement for platform scanni
 
 - **Access is by possession of a key.** A watch key and one edit key per editor, each 128 random bits, carried in the URL fragment (never sent with the page request) and sent as a bearer token. The server stores only SHA-256 hashes and compares them in constant time.
 - **Edit codes** are 6 characters, salted and hashed, valid for 10 minutes, and replaced by the next one. Five wrong codes lock the game's upgrades for a minute for everybody. A device that upgrades receives its own new edit key; other editors keep theirs.
+- **Keys on the device.** A device keeps the key it joined with, and the host's device also keeps the watch key so it can show the watch link, in `localStorage` (never in a URL or a log). The Share sheet draws the QR code in the page from the link; the link is never sent to an image service. The retention notice is shown before anything is sent (SPEC-0003 REQ-0003-22).
 - **One answer for "not found".** An unknown id, a deleted game, a malformed key, and a wrong key all return the same 404.
 - **Edits are an allowlist** of the reducer's actions, applied on the server and checked with the saved-game rules. The browser's step and whole-game replacement are not accepted. Bodies are capped (8 KB for an edit, 32 KB for a game), and creation, edits, and codes are limited in the shared store so the limits hold across instances.
 - **No secrets in logs or answers.** Keys, codes, and hashes are never logged or returned; store failures answer a generic 503.

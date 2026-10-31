@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PHOTO_COUNT_API_BASE_URL, getPhotoCountConfig, getSiteUrl } from "@/lib/infra/env";
+import {
+  DEFAULT_PHOTO_COUNT_API_BASE_URL,
+  getPhotoCountConfig,
+  getSiteUrl,
+  isSharingEnabled,
+} from "@/lib/infra/env";
 
 describe("getSiteUrl", () => {
   it("defaults to localhost and strips a trailing slash", () => {
@@ -52,5 +57,23 @@ describe("getPhotoCountConfig", () => {
         PHOTO_COUNT_API_BASE_URL: "nope",
       }),
     ).toThrow("PHOTO_COUNT_API_BASE_URL must be an http(s) URL.");
+  });
+});
+
+describe("isSharingEnabled (SPEC-0003 REQ-0003-27)", () => {
+  it("is off with no store variables", () => {
+    expect(isSharingEnabled({})).toBe(false);
+  });
+
+  it("is on with the store variables, or the in-memory store off Vercel", () => {
+    expect(
+      isSharingEnabled({ KV_REST_API_URL: "https://store.example", KV_REST_API_TOKEN: "t" }),
+    ).toBe(true);
+    expect(isSharingEnabled({ GAME_STORE_MEMORY: "true" })).toBe(true);
+  });
+
+  it("counts a half-set configuration as off instead of breaking the page", () => {
+    expect(isSharingEnabled({ KV_REST_API_URL: "https://store.example" })).toBe(false);
+    expect(isSharingEnabled({ GAME_STORE_MEMORY: "true", VERCEL_ENV: "production" })).toBe(false);
   });
 });
