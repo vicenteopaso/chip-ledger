@@ -107,6 +107,7 @@ Use visual tests to catch layout and theme regressions, not to assert behavior.
 - Mask or freeze dynamic regions (dates, ads, charts with live data) and disable animations globally.
 - Keep a small tolerance (`maxDiffPixelRatio`) to absorb anti-aliasing noise; never raise it to hide a real diff.
 - Baselines are committed per platform (`*-linux.png` for CI, `*-darwin.png` for local runs on macOS). Update them only for intentional changes, in the same PR, and review the image diff. Linux baselines must come from CI's pinned browser: other Chromium builds wrap text differently at mobile widths. Add the `update-visual-baselines` label to the pull request, and `.github/workflows/update-visual-baselines.yml` regenerates them, commits only `*-linux.png` (pushing needs the `VISUAL_BASELINES_TOKEN` secret, see [Deployment](./DEPLOYMENT.md); otherwise it uploads a `linux-baselines` artifact), removes the label, and comments the result or the command to apply it. The fallback is to copy the actual images from a failed run's `playwright-report` artifact.
+- Shared games run in the e2e, accessibility and visual suites against the in-memory store (`GAME_STORE_MEMORY=true`, set in `playwright.config.ts` and refused on Vercel), so tests and CI never send a command to the real Redis plan. Random keys, codes and links are masked in pictures, and every picture is taken at the top of the page with the full header, since the header shrinks once scrolled.
 - Suppress third-party widgets (analytics toolbars, consent banners) in test mode.
 
 ## 7. Accessibility tests

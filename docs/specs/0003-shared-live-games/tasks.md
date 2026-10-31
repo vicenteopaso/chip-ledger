@@ -113,11 +113,11 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 - [x] T-32 Archived state, **Duplicate into a new game**, delete with `ConfirmInline` _(REQ-0003-19 to -21)_
   - Tests: component; e2e with a test clock hook; AC-0003-15 and -16
   - Done when: an open device keeps a game from archiving.
-- [ ] T-33 Close PR 6: visual baselines; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
+- [x] T-33 Close PR 6: visual baselines; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
 
 ## 7. Verification and close
 
-- [ ] T-34 Real-device check on a Vercel preview: three phones, one QR, edits both ways, airplane-mode test, screen-reader pass on a watcher; notes and screenshots in the PR _(AC-0003-24)_
-- [ ] T-35 Docs, `sdd.yaml`, `.env.example` as listed in plan §7; `node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs`
-- [ ] T-36 Set the spec to `implemented`, ADR-0005 to its final status, and update `docs/specs/README.md`
-- [ ] T-37 File follow-up issues for anything deferred (editor revocation, in-app QR scanning, history)
+- [ ] T-34 Real-device check (the checklist is [verification.md](./verification.md); it needs the owner and real phones) on a Vercel preview: three phones, one QR, edits both ways, airplane-mode test, screen-reader pass on a watcher; notes and screenshots in the PR _(AC-0003-24)_
+- [x] T-35 Docs, `sdd.yaml`, `.env.example` as listed in plan §7; `node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs`
+- [x] T-36 Set the spec to `implemented`, ADR-0005 to its final status, and update `docs/specs/README.md`
+- [x] T-37 File follow-up issues for anything deferred (editor revocation, in-app QR scanning, history). Issues are turned off for this repository, so they are items 4 to 10 in [docs/ROADMAP.md](../../ROADMAP.md).

@@ -133,12 +133,16 @@ Appended after measuring on a Vercel preview; the decision above stands, with th
 
 ## Follow-ups
 
-- [ ] Run the SPEC-0003 spike (T-03) and record the result in Validation
-- [ ] Update `sdd.yaml`: `security.external-services` (Upstash and what it receives), the stateless-handler note
-- [ ] Update ADR-0004's status to "Accepted; superseded in part by ADR-0005"
-- [ ] Update reference docs: Architecture, Security Policy, API Patterns, Configuration, Error Handling, Accessibility
+- [x] Run the SPEC-0003 spike (T-03) and record the result in Validation
+- [x] Update `sdd.yaml`: `security.external-services` (Upstash and what it receives), the stateless-handler note
+- [x] Update ADR-0004's status to "Accepted; superseded in part by ADR-0005"
+- [x] Update reference docs: Architecture, Security Policy, API Patterns, Configuration, Error Handling, Accessibility
 - [ ] Decide on adopting `OPT-PRIVACY` in the Constitution (separate amendment)
 - [ ] Revisit editor revocation and in-app QR scanning after real use
+
+## Implementation note (2026-10-31)
+
+Built as decided, polling first: 2 s for 60 s after a change, then 5 s, a heartbeat every 45 s, no server-sent events. Polling met the targets and the free Upstash plan's budget, so SSE is a follow-up only if it is ever needed. The record is stored with the game's hashed keys, a code, and per-editor key hashes, and the store adapter is the one place that talks to Redis. Chip sales between players added one optional field per player to the game (see [ADR-0006](./0006-chip-sales-as-a-per-player-net-amount.md)). A device that joined without the watch key cannot show the watch link, because only hashes are stored; a route to mint another watch link is a follow-up.
 
 ## References
 

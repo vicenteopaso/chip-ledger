@@ -4,7 +4,7 @@
 | ------ | ----------------------------------------------------------------------- |
 | Spec   | [spec.md](./spec.md)                                                    |
 | ADR    | [ADR-0005](../../adr/0005-shared-live-games-architecture.md) (accepted) |
-| Status | approved (owner, 2026-10-30)                                            |
+| Status | implemented (approved by the owner, 2026-10-30)                         |
 
 ## 1. Approach
 
@@ -163,10 +163,10 @@ The database is on a free Upstash plan limited to 500,000 commands a month (conf
 
 ## 7. Documentation to update
 
-- [ ] Reference docs: `ARCHITECTURE.md` (sharing flow, store), `SECURITY_POLICY.md` (key and code model, retention), `API_PATTERNS.md` (SSE note), `ERROR_HANDLING.md`, `ACCESSIBILITY.md` (sheet, status, remote announcements), `DESIGN_SYSTEM.md` (new patterns)
-- [ ] `sdd.yaml`: `security.external-services` (Upstash), a note on stateless handlers, coverage paths if needed
-- [ ] ADR-0004: add "Superseded in part by ADR-0005" to its status line
-- [ ] `.env.example` and `docs/CONFIGURATION.md`: store variables and the in-memory fallback
-- [ ] Component docs in `docs/components/`: `ShareSheet`, `QrCode`, `GamesList`, `ConnectionStatus`
-- [ ] `docs/specs/0001-chip-ledger/spec.md` and `docs/specs/0002-a11y-ux-polish/spec.md`: pointers from REQ-0001-24 and REQ-0002-11, -12 to REQ-0003-16
-- [ ] `docs/ROADMAP.md`: nothing to remove (this was not a roadmap item)
+- [x] Reference docs: `ARCHITECTURE.md` (sharing flow, store), `SECURITY_POLICY.md` (key and code model, retention), `API_PATTERNS.md` (SSE note), `ERROR_HANDLING.md`, `ACCESSIBILITY.md` (sheet, status, remote announcements), `DESIGN_SYSTEM.md` (new patterns)
+- [x] `sdd.yaml`: `security.external-services` (Upstash), a note on stateless handlers, coverage paths if needed
+- [x] ADR-0004: add "Superseded in part by ADR-0005" to its status line
+- [x] `.env.example` and `docs/CONFIGURATION.md`: store variables and the in-memory fallback
+- [x] Component docs in `docs/components/`: `ShareSheet`, `QrCode`, `GamesList`, `ConnectionStatus`
+- [x] `docs/specs/0001-chip-ledger/spec.md` and `docs/specs/0002-a11y-ux-polish/spec.md`: pointers from REQ-0001-24 and REQ-0002-11, -12 to REQ-0003-16
+- [x] `docs/ROADMAP.md`: nothing to remove (this was not a roadmap item)
