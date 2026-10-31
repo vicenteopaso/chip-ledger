@@ -4,7 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SharedGameApp } from "@/app/SharedGameApp";
 import { copyToClipboard } from "@/lib/infra/clipboard";
-import { keyFor, rememberKey, watchKeyFor } from "@/lib/infra/joined-games-storage";
+import {
+  keyFor,
+  listGames,
+  rememberKey,
+  stepFor,
+  updateGame,
+  watchKeyFor,
+} from "@/lib/infra/joined-games-storage";
 import {
   type FetchOutcome,
   fetchGame,
@@ -591,6 +598,72 @@ describe("SharedGameApp: a new game from a shared one (SPEC-0003 REQ-0003-16)", 
       screen: string;
     };
     expect(saved.screen).toBe("setup");
+    expect(navigate).toHaveBeenCalledWith("/");
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("SharedGameApp: the Games list and archived games (SPEC-0003 REQ-0003-17 to -20)", () => {
+  it("records what the Games list shows: the players, what this device can do, and when", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    await open();
+    const [entry] = listGames();
+    expect(entry).toMatchObject({ id: ID, role: "edit", title: "Game with 4 players" });
+    expect(entry?.visited).toBeGreaterThan(0);
+  });
+
+  it("remembers the step on this device and opens the game there again (REQ-0003-18)", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "watch" }) });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const first = await open();
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    expect(stepFor(ID)).toBe("cashout");
+    first.unmount();
+    rememberKey(ID, KEY);
+    await open();
+    expect(heading()).toHaveTextContent("Cash out");
+  });
+
+  it("opens a game at the step it was last on, from a fresh visit", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "watch" }) });
+    rememberKey(ID, KEY);
+    updateGame(ID, { step: "settle" });
+    await open({ hash: false });
+    expect(heading()).toHaveTextContent("Settle up");
+  });
+
+  it("has a Games button that lists this game", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Games" }));
+    const dialog = screen.getByRole("dialog", { name: "Games" });
+    expect(dialog).toHaveTextContent("Game with 4 players");
+    expect(dialog).toHaveTextContent("Can edit · Open now");
+    expect(screen.getByRole("button", { name: "Delete for everyone" })).toBeInTheDocument();
+  });
+
+  it("an archived game is read-only for everyone and can be duplicated into a new private game", async () => {
+    fetchMock.mockResolvedValue({
+      kind: "snapshot",
+      snapshot: sharedSnapshot({ role: "watch", archived: true }),
+    });
+    const navigate = vi.fn();
+    window.history.replaceState(null, "", `/g/${ID}#k=${KEY}`);
+    render(<SharedGameApp id={ID} footer={<span>footer</span>} navigate={navigate} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    expect(screen.getByText(/This game is archived/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Add a buy-in/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Duplicate into a new game" }));
+    const saved = JSON.parse(localStorage.getItem("chip-ledger.v1") ?? "null") as {
+      screen: string;
+      players: { buyins: number }[];
+    };
+    expect(saved.screen).toBe("table");
+    expect(saved.players.every((p) => p.buyins === 1)).toBe(true);
     expect(navigate).toHaveBeenCalledWith("/");
     expect(sendMock).not.toHaveBeenCalled();
   });

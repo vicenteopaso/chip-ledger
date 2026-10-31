@@ -70,6 +70,11 @@ If a brand color cannot meet contrast in one theme, WCAG allows a **conforming a
 - The Share sheet is a labelled modal dialog: focus moves in, Tab stays inside (a radio group is one stop), `Esc` closes it and focus returns to **Share**. The QR code's text alternative points to the link written out below and to **Copy link**; the link and the edit code are text, and the code's name spells it letter by letter ([ShareSheet](./components/ShareSheet.md)).
 - The edit-code form for watchers has a visible label, one message for every failed code, and stays typeable on a read-only page ([EditCodeForm](./components/EditCodeForm.md)).
 
+### Games and archived games (SPEC-0003)
+
+- The Games sheet is a labelled modal dialog like the Share sheet; each button names its game ("Open Ana, Ben", "Leave Ana, Ben"), what you can do and which game is open are words, and leaving or deleting asks first in words that say who is affected ([GamesSheet](./components/GamesSheet.md)).
+- An archived game says so in text and offers **Duplicate into a new game**; **Games** and **Share** are icon-only on a phone and keep their names for screen readers.
+
 ### Chip sales (SPEC-0004)
 
 - The "Sell chips" form has visible labels, moves focus to its first field on open and back to its button on close, closes with `Esc`, and explains a refusal in text ([SellChips](./components/SellChips.md)).

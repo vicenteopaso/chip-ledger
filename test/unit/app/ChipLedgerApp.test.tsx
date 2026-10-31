@@ -616,3 +616,22 @@ describe("ChipLedgerApp: Share results", () => {
     ),
   );
 });
+
+describe("ChipLedgerApp: Games (SPEC-0003 REQ-0003-17)", () => {
+  beforeEach(() => {
+    saved();
+  });
+
+  it("has no Games button when sharing is not set up", () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(screen.queryByRole("button", { name: "Games" })).toBeNull();
+  });
+
+  it("lists this device's own game as the one open when sharing is set up", async () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} sharingEnabled />);
+    await userEvent.click(await screen.findByRole("button", { name: "Games" }));
+    const dialog = screen.getByRole("dialog", { name: "Games" });
+    expect(dialog).toHaveTextContent("This device's own game. Open now.");
+    expect(within(dialog).queryByRole("button", { name: "Delete for everyone" })).toBeNull();
+  });
+});

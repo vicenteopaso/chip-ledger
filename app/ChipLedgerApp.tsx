@@ -4,6 +4,8 @@ import { type ReactNode, useEffect, useMemo, useReducer, useRef, useState } from
 
 import { ActionBar } from "@/app/components/ActionBar";
 import { AppHeader } from "@/app/components/AppHeader";
+import { GamesControl } from "@/app/GamesControl";
+import { HeaderButton } from "@/app/components/HeaderButton";
 import { ShareControl } from "@/app/ShareControl";
 import { Button } from "@/app/components/Button";
 import { CashOutScreen } from "@/app/components/CashOutScreen";
@@ -34,6 +36,7 @@ import {
   photoErrorStatus,
   photoResultStatus,
 } from "@/lib/photo-count";
+import { gameTitle } from "@/lib/games-list";
 import { settle } from "@/lib/settlement";
 import { SharedGameBodySchema } from "@/lib/shared-game";
 import { SITE } from "@/lib/seo";
@@ -95,6 +98,7 @@ export function ChipLedgerApp({
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [message, setMessage] = useState("");
   const [shareOpen, setShareOpen] = useState(false);
+  const [gamesOpen, setGamesOpen] = useState(false);
   const [seen, setSeen] = useState<{ game: GameState; hydrated: boolean; summary?: string }>(
     () => ({ game, hydrated }),
   );
@@ -260,19 +264,35 @@ export function ChipLedgerApp({
       <AppHeader
         action={
           sharingEnabled && hydrated ? (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShareOpen(true);
-              }}
-            >
-              Share
-            </Button>
+            <div className="flex items-center gap-2">
+              <HeaderButton
+                label="Games"
+                icon="games"
+                onClick={() => {
+                  setGamesOpen(true);
+                }}
+              />
+              <HeaderButton
+                label="Share"
+                icon="share"
+                onClick={() => {
+                  setShareOpen(true);
+                }}
+              />
+            </div>
           ) : null
         }
       >
         <StepsNav current={game.screen} onSelect={go} />
       </AppHeader>
+      {sharingEnabled && hydrated && (
+        <GamesControl
+          open={gamesOpen}
+          onOpenChange={setGamesOpen}
+          current={null}
+          ownTitle={gameTitle(game)}
+        />
+      )}
       {sharingEnabled && hydrated && (
         <ShareControl
           open={shareOpen}

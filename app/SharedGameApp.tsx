@@ -20,6 +20,8 @@ import { StepTitleContext } from "@/app/components/Typography";
 import { Notice } from "@/app/components/Notice";
 import { WaitingForHost } from "@/app/components/WaitingForHost";
 import { WatchNotice } from "@/app/components/WatchNotice";
+import { GamesControl } from "@/app/GamesControl";
+import { HeaderButton } from "@/app/components/HeaderButton";
 import { ShareControl } from "@/app/ShareControl";
 import { useSharedEditor } from "@/app/useSharedEditor";
 import { useSharedGame } from "@/app/useSharedGame";
@@ -30,7 +32,8 @@ import { remoteChanges } from "@/lib/announcements";
 import { copyToClipboard } from "@/lib/infra/clipboard";
 import { canShare, shareText } from "@/lib/infra/web-share";
 import { saveGame } from "@/lib/infra/game-storage";
-import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
+import { keyFor, rememberKey, stepFor, updateGame } from "@/lib/infra/joined-games-storage";
+import { gameTitle } from "@/lib/games-list";
 import { upgradeWithCode } from "@/lib/infra/shared-game-client";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { moneyFormatter } from "@/lib/money";
@@ -81,6 +84,7 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [message, setMessage] = useState("");
   const [shareOpen, setShareOpen] = useState(false);
+  const [gamesOpen, setGamesOpen] = useState(false);
   const [resetConfirming, setResetConfirming] = useState(false);
   const [seenStatus, setSeenStatus] = useState<Status>("live");
   const [seenStarted, setSeenStarted] = useState<boolean | null>(null);
@@ -120,6 +124,9 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
     // One-time read of an external system (the address bar and storage) after mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setJoin({ checked: true, key: first ?? keyFor(id) });
+    // A game opens at the step this device was last on (REQ-0003-18).
+    const lastStep = stepFor(id);
+    if (lastStep) setScreen(lastStep);
     if (openShare) setShareOpen(true);
     setTheme(loadTheme());
     window.addEventListener("hashchange", onHashChange);
@@ -192,6 +199,14 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
     [send],
   );
 
+  // The Games list names this game by its players and remembers what this device can do in it.
+  const listTitle = game ? gameTitle(game) : null;
+  const listRole = ready ? ready.snapshot.role : null;
+  useEffect(() => {
+    if (listTitle === null || listRole === null) return;
+    updateGame(id, { title: listTitle, role: listRole, visited: Date.now() });
+  }, [id, listTitle, listRole]);
+
   const go = (next: Screen) => {
     setCopy({ kind: "idle" });
     if (next === screen) {
@@ -201,6 +216,7 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
       focusTitle.current = true;
     }
     setScreen(next);
+    updateGame(id, { step: next });
   };
 
   /** "Start the game" stays focusable when it can't be used and leads to the problem (REQ-0002-08). */
@@ -268,7 +284,11 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
           </Button>
         </Notice>
       )}
-      <WatchNotice access={ready.snapshot.role} archived={ready.archived} />
+      <WatchNotice
+        access={ready.snapshot.role}
+        archived={ready.archived}
+        onDuplicate={newGameSamePlayers}
+      />
       {ready.snapshot.role === "watch" && !ready.archived && join.key && (
         <EditCodeForm
           onSubmit={(code) => upgradeWithCode({ id, key: join.key ?? "", code })}
@@ -388,20 +408,34 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
       <LiveAnnouncer message={message} />
       <AppHeader
         action={
-          ready && join.key ? (
-            <Button
-              variant="secondary"
+          <div className="flex items-center gap-2">
+            <HeaderButton
+              label="Games"
+              icon="games"
               onClick={() => {
-                setShareOpen(true);
+                setGamesOpen(true);
               }}
-            >
-              Share
-            </Button>
-          ) : null
+            />
+            {ready && join.key && (
+              <HeaderButton
+                label="Share"
+                icon="share"
+                onClick={() => {
+                  setShareOpen(true);
+                }}
+              />
+            )}
+          </div>
         }
       >
         {showGame ? <StepsNav current={screen} onSelect={go} /> : null}
       </AppHeader>
+      <GamesControl
+        open={gamesOpen}
+        onOpenChange={setGamesOpen}
+        current={join.key ? { id, key: join.key, role: ready?.snapshot.role ?? "watch" } : null}
+        navigate={navigate}
+      />
       {ready && join.key && (
         <ShareControl
           open={shareOpen}
