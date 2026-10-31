@@ -33,7 +33,7 @@
     "*.{css,json,md,yml,yaml}": "prettier --write"
   },
   "dependencies": {
-    "next": "16.4.2",
+    "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "uqr": "0.1.3",
@@ -53,14 +53,14 @@
     "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.3",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "jsdom": "^30.1.3",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.72.0",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^5.0.5"
   }
 }
