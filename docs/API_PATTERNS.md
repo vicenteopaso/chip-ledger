@@ -89,6 +89,16 @@ One shape for every error (modeled on RFC 9457 problem details):
 - Clients retry only idempotent calls, with exponential backoff and jitter.
 - Set timeouts on every outbound call; fail fast and degrade gracefully.
 
+### Shared-game routes (SPEC-0003)
+
+`/api/games` follows the same handler structure with these specifics ([ADR-0005](./adr/0005-shared-live-games-architecture.md)):
+
+- The key is a capability sent as `Authorization: Bearer <key>`, never in a URL or a log. Only SHA-256 hashes are stored and compared in constant time.
+- An unknown id, a deleted game, a malformed key and a wrong key all answer the same `404`, so nobody can learn whether a game exists.
+- State changes are `POST` with a client `actionId`, so a retried edit is applied once; `DELETE /api/games/{id}` answers `204` and is idempotent (an already-deleted game counts as deleted).
+- Clients poll `GET /api/games/{id}?rev=N`, which answers a short "unchanged" reply when nothing moved, and add `connection=` once every 45 s as a heartbeat. Server-sent events were measured and deferred: polling met the budget on the free store plan.
+- Limits live in the shared store, not in memory, so they hold across serverless instances: game creation, edits, and wrong edit codes.
+
 ## 6. Security checklist
 
 - [ ] Authentication and authorization derived server-side
