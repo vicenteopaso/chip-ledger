@@ -11,7 +11,9 @@ const VIEWPORTS = { mobile: { width: 375, height: 812 }, desktop: { width: 1280,
  * scrolled before it was taken (the header shrinks once the page is scrolled).
  */
 async function atTheTop(page: Page) {
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
   const header = page.locator(".app-header");
   if ((await header.count()) > 0) await expect(header).toHaveAttribute("data-compact", "false");
 }
