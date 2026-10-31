@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createSharedGame,
+  deleteSharedGame,
   fetchGame,
   requestEditCode,
   sendEdit,
@@ -255,5 +256,40 @@ describe("sharing calls (SPEC-0003 REQ-0003-01, -08, -09)", () => {
     expect(
       (await upgradeWithCode({ id: created.id, key: KEY, code: "ABC234" }, offline)).kind,
     ).toBe("error");
+  });
+});
+
+describe("deleteSharedGame (SPEC-0003 REQ-0003-21)", () => {
+  const empty = (status: number) => vi.fn(() => Promise.resolve(new Response(null, { status })));
+
+  it("deletes with the key in a header, never in the address", async () => {
+    const send = empty(204);
+    expect(await deleteSharedGame({ id: "abcdefghijklmnop", key: KEY }, send)).toEqual({
+      kind: "deleted",
+    });
+    const [url, init] = send.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("/api/games/abcdefghijklmnop");
+    expect(init.method).toBe("DELETE");
+    expect(url).not.toContain(KEY);
+    expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${KEY}`);
+  });
+
+  it("counts a game that is already gone as deleted", async () => {
+    expect((await deleteSharedGame({ id: "abcdefghijklmnop", key: KEY }, empty(404))).kind).toBe(
+      "deleted",
+    );
+  });
+
+  it("says when only an editor may do it, and when it did not work", async () => {
+    expect((await deleteSharedGame({ id: "abcdefghijklmnop", key: KEY }, empty(403))).kind).toBe(
+      "forbidden",
+    );
+    expect((await deleteSharedGame({ id: "abcdefghijklmnop", key: KEY }, empty(500))).kind).toBe(
+      "error",
+    );
+    const offline = vi.fn(() => Promise.reject(new TypeError("offline")));
+    expect((await deleteSharedGame({ id: "abcdefghijklmnop", key: KEY }, offline)).kind).toBe(
+      "error",
+    );
   });
 });

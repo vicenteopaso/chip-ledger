@@ -4,7 +4,10 @@ import {
   forgetGame,
   JOINED_KEY,
   keyFor,
+  listGames,
   rememberKey,
+  stepFor,
+  updateGame,
   watchKeyFor,
 } from "@/lib/infra/joined-games-storage";
 
@@ -102,5 +105,57 @@ describe("the watch key a host keeps (SPEC-0003 REQ-0003-02)", () => {
     localStorage.setItem(JOINED_KEY, JSON.stringify([{ id: ID, key: EDIT }]));
     expect(keyFor(ID)).toBe(EDIT);
     expect(watchKeyFor(ID)).toBeNull();
+  });
+});
+
+describe("the Games list on this device (SPEC-0003 REQ-0003-17, -18)", () => {
+  const A = "aaaaaaaaaaaaaaaa";
+  const B = "bbbbbbbbbbbbbbbb";
+
+  it("lists the joined games, the one opened last first", () => {
+    rememberKey(A, "A".repeat(22));
+    rememberKey(B, "B".repeat(22));
+    updateGame(A, { visited: 10 });
+    updateGame(B, { visited: 20 });
+    expect(listGames().map((game) => game.id)).toEqual([B, A]);
+    updateGame(A, { visited: 30 });
+    expect(listGames().map((game) => game.id)).toEqual([A, B]);
+  });
+
+  it("keeps a game's name, role and step, and does not invent an entry", () => {
+    rememberKey(A, "A".repeat(22));
+    updateGame(A, { title: "Ana, Ben", role: "watch", step: "settle" });
+    updateGame(B, { title: "Nobody" });
+    expect(listGames()).toHaveLength(1);
+    expect(listGames()[0]).toMatchObject({ title: "Ana, Ben", role: "watch", step: "settle" });
+    expect(stepFor(A)).toBe("settle");
+    expect(stepFor(B)).toBeNull();
+  });
+
+  it("keeps what it knows about a game when the key changes (a watcher becomes an editor)", () => {
+    rememberKey(A, "W".repeat(22));
+    updateGame(A, { title: "Ana, Ben", step: "cashout" });
+    rememberKey(A, "E".repeat(22), undefined, "W".repeat(22));
+    expect(listGames()[0]).toMatchObject({
+      key: "E".repeat(22),
+      watchKey: "W".repeat(22),
+      title: "Ana, Ben",
+      step: "cashout",
+    });
+  });
+
+  it("leaving a game removes it from the list on this device only", () => {
+    rememberKey(A, "A".repeat(22));
+    rememberKey(B, "B".repeat(22));
+    forgetGame(A);
+    expect(listGames().map((game) => game.id)).toEqual([B]);
+  });
+
+  it("ignores a stored step it does not know", () => {
+    localStorage.setItem(
+      JOINED_KEY,
+      JSON.stringify([{ id: A, key: "A".repeat(22), step: "nope" }]),
+    );
+    expect(listGames()).toEqual([]);
   });
 });

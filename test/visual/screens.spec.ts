@@ -144,6 +144,12 @@ async function snapSheet(page: Page, name: string) {
   });
 }
 
+async function snapGames(page: Page, name: string) {
+  await atTheTop(page);
+  await page.evaluate(() => document.fonts.ready);
+  await expect.soft(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+}
+
 for (const colorScheme of ["light", "dark"] as const) {
   for (const [size, viewport] of Object.entries(SHEET_VIEWPORTS)) {
     test.describe(`share sheet ${colorScheme} ${size}`, () => {
@@ -165,6 +171,14 @@ for (const colorScheme of ["light", "dark"] as const) {
         await expect(sheet.getByRole("img")).toBeVisible();
         await expect(host.getByText("Live · 1 here")).toBeVisible();
         await snapSheet(host, `share-ready-${colorScheme}-${size}`);
+      });
+
+      test("the Games sheet", async ({ page }) => {
+        await asDevice(page);
+        await openFresh(page);
+        await page.getByRole("button", { name: "Games" }).click();
+        await expect(page.getByRole("dialog", { name: "Games" })).toBeVisible();
+        await snapGames(page, `games-${colorScheme}-${size}`);
       });
     });
   }

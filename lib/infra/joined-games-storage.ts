@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { logError, logWarning } from "@/lib/error-logging";
+import { type Screen, SCREENS } from "@/lib/game";
 import { GameIdSchema, KeySchema } from "@/lib/shared-game";
 
 /**
@@ -19,6 +20,14 @@ const JoinedSchema = z.array(
     key: KeySchema,
     /** The watch key, kept by the device that created the game so it can still offer a watch link. */
     watchKey: KeySchema.optional(),
+    /** What the Games list calls it: the players' names (REQ-0003-17). */
+    title: z.string().max(80).optional(),
+    /** What this device can do in it, as last seen. */
+    role: z.enum(["watch", "edit"]).optional(),
+    /** The step this device was last on, so the game opens there again (REQ-0003-18). */
+    step: z.enum(SCREENS).optional(),
+    /** When this device last opened it, to put the newest first. */
+    visited: z.number().optional(),
   }),
 );
 type Joined = z.infer<typeof JoinedSchema>;
@@ -93,7 +102,38 @@ export function rememberKey(
   if (existing?.watchKey === key) return;
   const kept = watchKey ?? existing?.watchKey;
   const others = joined.filter((entry) => entry.id !== id);
-  save([...others, { id, key, ...(kept ? { watchKey: kept } : {}) }].slice(-MAX_GAMES), storage);
+  // What this device knows about the game (its name, role and step) survives a change of key.
+  const rest = existing ? { ...existing, key, ...(kept ? { watchKey: kept } : {}) } : { id, key };
+  save([...others, { ...rest, ...(kept ? { watchKey: kept } : {}) }].slice(-MAX_GAMES), storage);
+}
+
+export type JoinedGame = Joined[number];
+
+/** Every game this device has joined or created, the one opened last first (REQ-0003-17). */
+export function listGames(storage: Storage | undefined = browserStorage()): JoinedGame[] {
+  return load(storage).toSorted((a, b) => (b.visited ?? 0) - (a.visited ?? 0));
+}
+
+/** Records what the Games list shows and where to reopen the game. No effect for an unknown game. */
+export function updateGame(
+  id: string,
+  patch: Partial<Pick<JoinedGame, "title" | "role" | "step" | "visited">>,
+  storage: Storage | undefined = browserStorage(),
+): void {
+  const joined = load(storage);
+  if (!joined.some((entry) => entry.id === id)) return;
+  save(
+    joined.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)),
+    storage,
+  );
+}
+
+/** The step this device was last on in a game, or `null` for a game never opened here. */
+export function stepFor(
+  id: string,
+  storage: Storage | undefined = browserStorage(),
+): Screen | null {
+  return load(storage).find((entry) => entry.id === id)?.step ?? null;
 }
 
 export function forgetGame(id: string, storage: Storage | undefined = browserStorage()): void {

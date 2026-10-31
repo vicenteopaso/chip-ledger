@@ -1,6 +1,6 @@
 # ShareSheet
 
-The dialog behind the **Share** button (SPEC-0003). It shows a QR code, the same link as text, **Copy link**, the device's share menu where there is one, what the server keeps and for how long, an edit code for editors, and last the **Watch only | Can edit** switch. It is presentational: `app/ShareControl.tsx` owns the requests and the keys.
+The dialog (the shared `Dialog`, also used by [GamesSheet](./GamesSheet.md)) behind the **Share** button (SPEC-0003). It shows a QR code, the same link as text, **Copy link**, the device's share menu where there is one, what the server keeps and for how long, an edit code for editors, and last the **Watch only | Can edit** switch. It is presentational: `app/ShareControl.tsx` owns the requests and the keys.
 
 | Field    | Value                                                                                 |
 | -------- | ------------------------------------------------------------------------------------- |
