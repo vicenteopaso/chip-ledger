@@ -38,7 +38,7 @@ export function AppHeader({ children, action }: AppHeaderProps) {
       data-compact={compact}
       className="app-header sticky top-0 z-30 border-b border-transparent bg-bg short:static"
     >
-      <div className="mx-auto max-w-app px-4 pt-5 pb-2">
+      <div className="app-header-inner mx-auto max-w-app px-4 pt-5 pb-2">
         {/* Sized to balance the step title below it (REQ-0002-28). */}
         <div className="app-header-brand mb-6 flex items-center justify-between gap-3">
           <p className="app-header-title flex items-center gap-3 text-4xl leading-display font-extrabold tracking-display">

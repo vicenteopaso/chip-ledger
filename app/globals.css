@@ -211,7 +211,8 @@
 .app-header,
 .app-header-brand,
 .app-header-title,
-.app-header-mark {
+.app-header-mark,
+.app-header-inner {
   transition-property: padding, min-height, font-size, margin, width, height, border-color;
   transition-duration: 150ms;
 }
@@ -234,8 +235,26 @@
 .app-header[data-compact="true"] {
   border-bottom-color: var(--color-border);
 }
+.app-header[data-compact="true"] .app-header-inner {
+  padding-top: calc(var(--spacing) * 2);
+  padding-bottom: calc(var(--spacing) * 1);
+}
 .app-header[data-compact="true"] .app-header-brand {
-  margin-bottom: calc(var(--spacing) * 2);
+  margin-bottom: calc(var(--spacing) * 1);
+}
+/* While small, the steps keep their numbered circles and line and lose the written names, which
+   stay for screen readers: the circles are what saves the way, the words cost the height. */
+.app-header[data-compact="true"] .step-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.app-header[data-compact="true"] .app-header-inner nav button {
+  min-height: calc(var(--spacing) * 9);
+  padding-bottom: 0;
 }
 .app-header[data-compact="true"] .app-header-title {
   font-size: var(--text-2xl);
@@ -251,7 +270,8 @@
   .app-header,
   .app-header-brand,
   .app-header-title,
-  .app-header-mark {
+  .app-header-mark,
+  .app-header-inner {
     transition: none;
   }
 }

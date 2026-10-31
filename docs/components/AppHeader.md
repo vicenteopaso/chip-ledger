@@ -1,6 +1,6 @@
 # AppHeader
 
-The page header on every step: the brand mark and "Chip Ledger", then the step navigation. Because it is the same on every step, the content below it starts at the same height and never jumps when the step changes. It stays at the top while the page scrolls and shrinks once it is scrolled: a smaller mark and wordmark, a rule under it, and the `action` (Share) left out, so the brand stays in view and the content keeps the room.
+The page header on every step: the brand mark and "Chip Ledger", then the step navigation. Because it is the same on every step, the content below it starts at the same height and never jumps when the step changes. It stays at the top while the page scrolls and shrinks once it is scrolled: a smaller mark and wordmark, a rule under it, the `action` (Share) left out, and the step names hidden (the numbered circles and line stay, and the names stay for screen readers), so the brand stays in view and the content keeps the room.
 
 | Field    | Value                                                                |
 | -------- | -------------------------------------------------------------------- |

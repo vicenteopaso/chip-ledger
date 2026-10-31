@@ -22,11 +22,18 @@ test.describe("Header and a new game from a shared one", () => {
     expect((await banner.boundingBox())?.y).toBe(0);
     await expect(banner.getByText("Chip Ledger")).toBeVisible();
     await expect(banner.getByRole("button", { name: "Share" })).toHaveCount(0);
+    // The numbered circles and line stay; the written names go (they stay for screen readers).
     await expect(banner.getByRole("navigation", { name: "Steps" })).toBeVisible();
+    const stepButton = banner.getByRole("button", { name: /^2 Table/ });
+    await expect(stepButton).toBeVisible();
+    const label = stepButton.locator(".step-label");
+    await expect.poll(async () => (await label.boundingBox())?.width ?? 0).toBeLessThanOrEqual(1);
+    await expect.poll(async () => (await banner.boundingBox())?.height ?? tall).toBeLessThan(110);
 
     await page.mouse.wheel(0, -1000);
     await expect(banner).toHaveAttribute("data-compact", "false");
     await expect(banner.getByRole("button", { name: "Share" })).toBeVisible();
+    await expect.poll(async () => (await label.boundingBox())?.width ?? 0).toBeGreaterThan(20);
   });
 
   test("the bottom bar footer has room: the copyright is not squeezed against the buttons", async ({
