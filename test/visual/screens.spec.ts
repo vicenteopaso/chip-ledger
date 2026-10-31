@@ -6,7 +6,18 @@ import { asDevice, openAsHost, openShared, shareGame } from "../e2e/shared-helpe
 /** Full-page snapshots of every step (REQ-0001-27), in both themes at phone and desktop widths. */
 const VIEWPORTS = { mobile: { width: 375, height: 812 }, desktop: { width: 1280, height: 900 } };
 
+/**
+ * Back at the top with the full header, so a picture never depends on how far the page was
+ * scrolled before it was taken (the header shrinks once the page is scrolled).
+ */
+async function atTheTop(page: Page) {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const header = page.locator(".app-header");
+  if ((await header.count()) > 0) await expect(header).toHaveAttribute("data-compact", "false");
+}
+
 async function snap(page: Page, name: string) {
+  await atTheTop(page);
   await page.evaluate(() => document.fonts.ready);
   // Soft: a stale baseline must not hide the steps after it, so one CI run lists every image to refresh.
   await expect.soft(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
@@ -122,6 +133,7 @@ for (const colorScheme of ["light", "dark"] as const) {
 const SHEET_VIEWPORTS = { ...VIEWPORTS, narrow: { width: 320, height: 640 } };
 
 async function snapSheet(page: Page, name: string) {
+  await atTheTop(page);
   await page.evaluate(() => document.fonts.ready);
   const sheet = page.getByRole("dialog", { name: "Share this game" });
   await expect.soft(page).toHaveScreenshot(`${name}.png`, {
