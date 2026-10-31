@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useMemo, useReducer, useRef, useState } from
 
 import { ActionBar } from "@/app/components/ActionBar";
 import { AppHeader } from "@/app/components/AppHeader";
+import { ShareControl } from "@/app/ShareControl";
 import { Button } from "@/app/components/Button";
 import { CashOutScreen } from "@/app/components/CashOutScreen";
 import { LiveAnnouncer } from "@/app/components/LiveAnnouncer";
@@ -34,9 +35,11 @@ import {
   photoResultStatus,
 } from "@/lib/photo-count";
 import { settle } from "@/lib/settlement";
+import { SharedGameBodySchema } from "@/lib/shared-game";
 import { SITE } from "@/lib/seo";
 import { countCheckSummary, resultsText, setupSummary } from "@/lib/summaries";
 import { copyToClipboard } from "@/lib/infra/clipboard";
+import { canShare, shareText } from "@/lib/infra/web-share";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { loadSavedGame, saveGame } from "@/lib/infra/game-storage";
@@ -69,6 +72,8 @@ function stepSummary(game: GameState, money: MoneyFormatter) {
 
 export type ChipLedgerAppProps = {
   photoCountingEnabled: boolean;
+  /** The sharing service is set up, so Share is offered (SPEC-0003 REQ-0003-27). */
+  sharingEnabled?: boolean;
   /** Rendered by the page (it needs the request time) and shown inside the bottom bar. */
   footer?: ReactNode;
 };
@@ -77,7 +82,11 @@ export type ChipLedgerAppProps = {
  * Owns the game state and wires browser adapters (storage, clipboard, photo counting) to the
  * presentational screens. The only component that talks to `lib/infra`.
  */
-export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppProps) {
+export function ChipLedgerApp({
+  photoCountingEnabled,
+  sharingEnabled = false,
+  footer,
+}: ChipLedgerAppProps) {
   const [game, dispatch] = useReducer(gameReducer, undefined, defaultGame);
   const [hydrated, setHydrated] = useState(false);
   const [photos, setPhotos] = useState<Record<string, PhotoState>>({});
@@ -85,6 +94,7 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   const [resetConfirming, setResetConfirming] = useState(false);
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [message, setMessage] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
   const [seen, setSeen] = useState<{ game: GameState; hydrated: boolean; summary?: string }>(
     () => ({ game, hydrated }),
   );
@@ -208,6 +218,14 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
     setMessage(`${name}: ${status.text}`);
   };
 
+  const shareResults = async () => {
+    const text = resultsText(settlement, money, new Date().toLocaleDateString());
+    const outcome = await shareText({ title: "Poker night results", text });
+    if (outcome === "shared") setMessage("Results shared.");
+    // The menu would not open (not a cancel): copy instead, so the results are not lost.
+    if (outcome === "failed") await copyResults();
+  };
+
   const copyResults = async () => {
     const text = resultsText(settlement, money, new Date().toLocaleDateString());
     const copied = await copyToClipboard(text);
@@ -239,9 +257,33 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
   return (
     <StepTitleContext value={titleRef}>
       <LiveAnnouncer message={message} />
-      <AppHeader>
+      <AppHeader
+        action={
+          sharingEnabled && hydrated ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShareOpen(true);
+              }}
+            >
+              Share
+            </Button>
+          ) : null
+        }
+      >
         <StepsNav current={game.screen} onSelect={go} />
       </AppHeader>
+      {sharingEnabled && hydrated && (
+        <ShareControl
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          shared={null}
+          makeRequest={() => ({
+            started: game.screen !== "setup",
+            game: SharedGameBodySchema.parse(game),
+          })}
+        />
+      )}
       <main id="main" className="mx-auto max-w-app px-4 pt-2 pb-(--bar-clearance) short:pb-4">
         {game.screen === "setup" && (
           <SetupScreen
@@ -287,6 +329,13 @@ export function ChipLedgerApp({ photoCountingEnabled, footer }: ChipLedgerAppPro
             onCopy={() => {
               void copyResults();
             }}
+            {...(canShare()
+              ? {
+                  onShare: () => {
+                    void shareResults();
+                  },
+                }
+              : {})}
             onBackToSetup={() => {
               go("setup");
             }}

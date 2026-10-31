@@ -1,20 +1,21 @@
 # AppHeader
 
-The page header on every step: the brand mark and "Chip Ledger", then the step navigation. Because it is the same on every step, the content below it starts at the same height and never jumps when the step changes.
+The page header on every step: the brand mark and "Chip Ledger", then the step navigation. Because it is the same on every step, the content below it starts at the same height and never jumps when the step changes. It stays at the top while the page scrolls and shrinks once it is scrolled: a smaller mark and wordmark, a rule under it, the `action` (Share) left out, and the step names hidden (the numbered circles and line stay, and the names stay for screen readers), so the brand stays in view and the content keeps the room.
 
-| Field    | Value                                                          |
-| -------- | -------------------------------------------------------------- |
-| Location | `app/components/AppHeader.tsx`, `app/components/BrandMark.tsx` |
-| Type     | Server-compatible components                                   |
-| Status   | stable                                                         |
-| Spec     | SPEC-0002 (REQ-0002-24, REQ-0002-28, REQ-0002-29)              |
+| Field    | Value                                                                |
+| -------- | -------------------------------------------------------------------- |
+| Location | `app/components/AppHeader.tsx`, `app/components/BrandMark.tsx`       |
+| Type     | `AppHeader` client component (scroll); `BrandMark` server-compatible |
+| Status   | stable                                                               |
+| Spec     | SPEC-0002 (REQ-0002-24, REQ-0002-28, REQ-0002-29)                    |
 
 ## Props
 
-| Component   | Prop        | Type        | Required | Description                             |
-| ----------- | ----------- | ----------- | -------- | --------------------------------------- |
-| `AppHeader` | `children`  | `ReactNode` | Yes      | The step navigation                     |
-| `BrandMark` | `className` | `string`    | No       | Size and layout classes, e.g. `size-12` |
+| Component   | Prop        | Type        | Required | Description                                                                     |
+| ----------- | ----------- | ----------- | -------- | ------------------------------------------------------------------------------- |
+| `AppHeader` | `children`  | `ReactNode` | Yes      | The step navigation                                                             |
+| `AppHeader` | `action`    | `ReactNode` | No       | A control at the end of the brand row (Share); hidden while the header is small |
+| `BrandMark` | `className` | `string`    | No       | Size and layout classes, e.g. `size-12`                                         |
 
 ## Usage
 

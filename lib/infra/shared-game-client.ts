@@ -1,9 +1,15 @@
+import { z } from "zod";
+
 import { logWarning } from "@/lib/error-logging";
 import {
+  CodeSchema,
+  type CreateGameRequest,
   type EditEnvelope,
   type EditFailure,
+  GameIdSchema,
   type GameSnapshot,
   GameReplySchema,
+  KeySchema,
   SnapshotSchema,
 } from "@/lib/shared-game";
 
@@ -136,4 +142,115 @@ export async function sendEdit(
     return { kind: "rejected", reason: REJECTIONS[type] ?? "invalid" };
   }
   return { kind: "retry" };
+}
+
+const CreatedSchema = z.object({ id: GameIdSchema, watchKey: KeySchema, editKey: KeySchema });
+
+export type CreateOutcome =
+  | { kind: "created"; id: string; watchKey: string; editKey: string }
+  /** Sharing is not set up on this server (REQ-0003-27). */
+  | { kind: "off" }
+  /** Slow down or try later: too many games from this client, or the service is busy (REQ-0003-25). */
+  | { kind: "busy" }
+  | { kind: "error" };
+
+/** Shares a game: stores it and returns its id with the watch key and the edit key (REQ-0003-01). */
+export async function createSharedGame(
+  request: CreateGameRequest,
+  send: typeof fetch = fetch,
+): Promise<CreateOutcome> {
+  let response: Response;
+  try {
+    response = await send("/api/games", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+      cache: "no-store",
+    });
+  } catch {
+    return { kind: "error" };
+  }
+  if (response.status === 404) return { kind: "off" };
+  if (response.status === 429 || response.status === 503) return { kind: "busy" };
+  if (!response.ok) return { kind: "error" };
+  const parsed = CreatedSchema.safeParse(await readJsonBody(response));
+  if (!parsed.success) {
+    logWarning("Created game reply failed validation", { context: "shared-game-client.create" });
+    return { kind: "error" };
+  }
+  return { kind: "created", ...parsed.data };
+}
+
+const CodeReplySchema = z.object({ code: CodeSchema, expiresAt: z.number().int() });
+
+export type CodeOutcome =
+  | { kind: "issued"; code: string; expiresAt: number }
+  | { kind: "unavailable" }
+  | { kind: "busy" }
+  | { kind: "error" };
+
+/** Asks for a new edit code. It replaces the previous one (REQ-0003-08). */
+export async function requestEditCode(
+  options: { id: string; key: string },
+  send: typeof fetch = fetch,
+): Promise<CodeOutcome> {
+  let response: Response;
+  try {
+    response = await send(`/api/games/${options.id}/code`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${options.key}` },
+      cache: "no-store",
+    });
+  } catch {
+    return { kind: "error" };
+  }
+  if (response.status === 404) return { kind: "unavailable" };
+  if (response.status === 429 || response.status === 503) return { kind: "busy" };
+  if (!response.ok) return { kind: "error" };
+  const parsed = CodeReplySchema.safeParse(await readJsonBody(response));
+  if (!parsed.success) return { kind: "error" };
+  return { kind: "issued", ...parsed.data };
+}
+
+const UpgradeReplySchema = z.object({ editKey: KeySchema });
+
+export type UpgradeOutcome =
+  | { kind: "upgraded"; editKey: string }
+  /** Wrong, expired, or replaced: one answer for all three (REQ-0003-09). */
+  | { kind: "refused" }
+  /** Too many wrong codes: the game refuses every attempt for a minute (REQ-0003-09). */
+  | { kind: "locked" }
+  | { kind: "error" };
+
+/** Trades the current edit code for this device's own edit key. */
+export async function upgradeWithCode(
+  options: { id: string; key: string; code: string },
+  send: typeof fetch = fetch,
+): Promise<UpgradeOutcome> {
+  let response: Response;
+  try {
+    response = await send(`/api/games/${options.id}/upgrade`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${options.key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ code: options.code }),
+      cache: "no-store",
+    });
+  } catch {
+    return { kind: "error" };
+  }
+  if (response.status === 429) return { kind: "locked" };
+  if (response.status === 403 || response.status === 400 || response.status === 404) {
+    return { kind: "refused" };
+  }
+  if (!response.ok) return { kind: "error" };
+  const parsed = UpgradeReplySchema.safeParse(await readJsonBody(response));
+  return parsed.success ? { kind: "upgraded", editKey: parsed.data.editKey } : { kind: "error" };
+}
+
+async function readJsonBody(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }

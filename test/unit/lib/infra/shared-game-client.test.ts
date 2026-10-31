@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { fetchGame, sendEdit } from "@/lib/infra/shared-game-client";
+import {
+  createSharedGame,
+  fetchGame,
+  requestEditCode,
+  sendEdit,
+  upgradeWithCode,
+} from "@/lib/infra/shared-game-client";
 import { SharedGameBodySchema } from "@/lib/shared-game";
 import { defaultGame } from "@/test/unit/fixtures";
 
@@ -145,5 +151,109 @@ describe("sendEdit (REQ-0003-10, -14, -23)", () => {
     expect(await sendEdit(options, sender({ type: "not_found" }, 404))).toEqual({
       kind: "unavailable",
     });
+  });
+});
+
+describe("sharing calls (SPEC-0003 REQ-0003-01, -08, -09)", () => {
+  const request = { started: true, game: SharedGameBodySchema.parse(defaultGame()) };
+  const created = {
+    id: "abcdefghijklmnop",
+    watchKey: "W".repeat(22),
+    editKey: "E".repeat(22),
+    rev: 1,
+  };
+
+  it("createSharedGame posts the game and returns the id with both keys", async () => {
+    const send = sender(created, 201);
+    expect(await createSharedGame(request, send)).toEqual({
+      kind: "created",
+      id: created.id,
+      watchKey: created.watchKey,
+      editKey: created.editKey,
+    });
+    const [url, init] = send.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("/api/games");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual(JSON.parse(JSON.stringify(request)));
+  });
+
+  it.each([
+    [404, "off"],
+    [429, "busy"],
+    [503, "busy"],
+    [500, "error"],
+  ])("createSharedGame maps %i to %s", async (status, kind) => {
+    expect((await createSharedGame(request, sender({}, status))).kind).toBe(kind);
+  });
+
+  it("createSharedGame treats a bad reply or no network as an error", async () => {
+    expect((await createSharedGame(request, sender({ id: 1 }, 201))).kind).toBe("error");
+    const offline = vi.fn(() => Promise.reject(new TypeError("offline")));
+    expect((await createSharedGame(request, offline)).kind).toBe("error");
+  });
+
+  it("requestEditCode sends the key in a header and returns the code", async () => {
+    const send = sender({ code: "ABC234", expiresAt: 1234 });
+    expect(await requestEditCode({ id: created.id, key: KEY }, send)).toEqual({
+      kind: "issued",
+      code: "ABC234",
+      expiresAt: 1234,
+    });
+    const [url, init] = send.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`/api/games/${created.id}/code`);
+    expect(url).not.toContain(KEY);
+    expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${KEY}`);
+  });
+
+  it.each([
+    [404, "unavailable"],
+    [429, "busy"],
+    [403, "error"],
+  ])("requestEditCode maps %i to %s", async (status, kind) => {
+    expect((await requestEditCode({ id: created.id, key: KEY }, sender({}, status))).kind).toBe(
+      kind,
+    );
+  });
+
+  it("requestEditCode rejects a malformed code in the reply", async () => {
+    const send = sender({ code: "nope", expiresAt: 1 });
+    expect((await requestEditCode({ id: created.id, key: KEY }, send)).kind).toBe("error");
+  });
+
+  it("upgradeWithCode sends the code and returns the new edit key", async () => {
+    const send = sender({ editKey: "N".repeat(22) });
+    expect(await upgradeWithCode({ id: created.id, key: KEY, code: "ABC234" }, send)).toEqual({
+      kind: "upgraded",
+      editKey: "N".repeat(22),
+    });
+    const [, init] = send.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({ code: "ABC234" });
+  });
+
+  it.each([
+    [403, "refused"],
+    [400, "refused"],
+    [404, "refused"],
+    [429, "locked"],
+    [500, "error"],
+  ])(
+    "upgradeWithCode maps %i to %s (a wrong, old and replaced code look the same)",
+    async (status, kind) => {
+      const outcome = await upgradeWithCode(
+        { id: created.id, key: KEY, code: "ABC234" },
+        sender({}, status),
+      );
+      expect(outcome.kind).toBe(kind);
+    },
+  );
+
+  it("upgradeWithCode reports an error for a bad reply or no network", async () => {
+    expect(
+      (await upgradeWithCode({ id: created.id, key: KEY, code: "ABC234" }, sender({}))).kind,
+    ).toBe("error");
+    const offline = vi.fn(() => Promise.reject(new TypeError("offline")));
+    expect(
+      (await upgradeWithCode({ id: created.id, key: KEY, code: "ABC234" }, offline)).kind,
+    ).toBe("error");
   });
 });

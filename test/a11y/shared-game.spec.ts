@@ -1,7 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
-import { asDevice, openShared, shareGame } from "../e2e/shared-helpers";
+import { openFresh, startGame } from "../e2e/helpers";
+import { asDevice, openAsHost, openShared, shareGame } from "../e2e/shared-helpers";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -57,6 +58,46 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expect(
         page.getByRole("heading", { level: 1, name: "Waiting for the host" }),
       ).toBeVisible();
+      await expectNoViolations(page);
+    });
+
+    test("the Share sheet before sharing, and after, with an edit code (REQ-0003-28, -30)", async ({
+      page,
+      request,
+      baseURL,
+    }) => {
+      await asDevice(page);
+      await openFresh(page);
+      await startGame(page);
+      await page.getByRole("button", { name: "Share" }).click();
+      await expect(page.getByRole("dialog", { name: "Share this game" })).toBeVisible();
+      await expectNoViolations(page);
+      await page.keyboard.press("Escape");
+
+      const shared = await shareGame(request, baseURL ?? "");
+      const host = await page.context().newPage();
+      await openAsHost(host, shared);
+      const sheet = host.getByRole("dialog", { name: "Share this game" });
+      await expect(sheet.getByRole("img")).toBeVisible();
+      await expectNoViolations(host);
+      await sheet.getByRole("button", { name: "Show edit code" }).click();
+      await expect(sheet.locator("[aria-label^='Edit code:']")).toBeVisible();
+      await sheet.getByRole("radio", { name: /Can edit/ }).check();
+      await expectNoViolations(host);
+    });
+
+    test("a watcher's edit code form, with its message (REQ-0003-09)", async ({
+      page,
+      request,
+      baseURL,
+    }) => {
+      const shared = await shareGame(request, baseURL ?? "");
+      await openShared(page, shared.id, shared.watchKey);
+      await page.getByRole("button", { name: "I have an edit code" }).click();
+      await expectNoViolations(page);
+      await page.getByRole("textbox", { name: "Edit code" }).fill("ABCDEF");
+      await page.getByRole("button", { name: "Join as editor" }).click();
+      await expect(page.getByText("That code didn't work.")).toBeVisible();
       await expectNoViolations(page);
     });
 

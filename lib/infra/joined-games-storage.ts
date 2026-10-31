@@ -13,7 +13,14 @@ import { GameIdSchema, KeySchema } from "@/lib/shared-game";
 export const JOINED_KEY = "chip-ledger.joined.v1"; // gitleaks:allow
 const MAX_GAMES = 20;
 
-const JoinedSchema = z.array(z.object({ id: GameIdSchema, key: KeySchema }));
+const JoinedSchema = z.array(
+  z.object({
+    id: GameIdSchema,
+    key: KeySchema,
+    /** The watch key, kept by the device that created the game so it can still offer a watch link. */
+    watchKey: KeySchema.optional(),
+  }),
+);
 type Joined = z.infer<typeof JoinedSchema>;
 
 function browserStorage(): Storage | undefined {
@@ -62,14 +69,31 @@ export function keyFor(id: string, storage: Storage | undefined = browserStorage
   return load(storage).find((entry) => entry.id === id)?.key ?? null;
 }
 
-/** Remembers a key, replacing an older one for the same game and keeping the newest 20. */
+/** The watch key saved for a game, or `null` when this device was not given one. */
+export function watchKeyFor(
+  id: string,
+  storage: Storage | undefined = browserStorage(),
+): string | null {
+  return load(storage).find((entry) => entry.id === id)?.watchKey ?? null;
+}
+
+/**
+ * Remembers a key, replacing an older one for the same game and keeping the newest 20. A device
+ * that holds the game's watch key keeps its stronger key when it opens its own watch link, and a
+ * watch key given with a new key is saved beside it so the device can still offer a watch link.
+ */
 export function rememberKey(
   id: string,
   key: string,
   storage: Storage | undefined = browserStorage(),
+  watchKey?: string,
 ): void {
-  const others = load(storage).filter((entry) => entry.id !== id);
-  save([...others, { id, key }].slice(-MAX_GAMES), storage);
+  const joined = load(storage);
+  const existing = joined.find((entry) => entry.id === id);
+  if (existing?.watchKey === key) return;
+  const kept = watchKey ?? existing?.watchKey;
+  const others = joined.filter((entry) => entry.id !== id);
+  save([...others, { id, key, ...(kept ? { watchKey: kept } : {}) }].slice(-MAX_GAMES), storage);
 }
 
 export function forgetGame(id: string, storage: Storage | undefined = browserStorage()): void {

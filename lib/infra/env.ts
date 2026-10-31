@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { logError } from "@/lib/error-logging";
+
 /**
  * Validated access to environment variables (docs/CONFIGURATION.md). Server-side only: the
  * photo-count key must never reach the browser. Errors name the variable, never its value.
@@ -80,4 +82,18 @@ export function getGameStoreConfig(env: Env = process.env): GameStoreConfig {
     return { enabled: true, kind: "memory", namespace: namespace.data };
   }
   return { enabled: false };
+}
+
+/**
+ * Whether the Share button is offered: the store is configured. A half-set configuration is
+ * logged and counts as off, so a mistake in the settings hides sharing instead of breaking the
+ * page (SPEC-0003 REQ-0003-27).
+ */
+export function isSharingEnabled(env: Env = process.env): boolean {
+  try {
+    return getGameStoreConfig(env).enabled;
+  } catch (error) {
+    logError(error, { context: "env.isSharingEnabled" });
+    return false;
+  }
 }

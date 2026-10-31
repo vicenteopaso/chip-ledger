@@ -90,7 +90,7 @@ export function StepsNav({ current, onSelect }: StepsNavProps) {
                 >
                   {state === "done" ? <CheckMark /> : index + 1}
                 </span>{" "}
-                <span className="whitespace-nowrap underline-offset-4 group-hover:text-text group-hover:underline">
+                <span className="step-label whitespace-nowrap underline-offset-4 group-hover:text-text group-hover:underline">
                   {LABELS[screen]}
                 </span>
               </button>

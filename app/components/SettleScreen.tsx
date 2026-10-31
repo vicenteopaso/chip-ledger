@@ -22,11 +22,17 @@ export type SettleScreenProps = {
   onScaleChange: (scale: boolean) => void;
   onSpreadByChange: (spreadBy: SpreadBy) => void;
   onCopy: () => void;
+  /** Present only where the device has a share menu: sends the results to another app. */
+  onShare?: () => void;
   onBackToSetup: () => void;
   onResetConfirmingChange: (open: boolean) => void;
   onReset: () => void;
-  /** False where starting over is not offered, such as a shared game (SPEC-0003 PR 6). */
+  /** False where starting over is not offered. */
   allowReset?: boolean;
+  /** What "Start over" asks, where it means more than erasing this screen's game (a shared game). */
+  resetMessage?: string;
+  /** A line above the buttons, such as what "New game" does to a shared game (REQ-0003-16). */
+  newGameNote?: string;
 };
 
 function signedMoney(money: MoneyFormatter, minor: number, currency: Currency): string {
@@ -49,10 +55,13 @@ export function SettleScreen({
   onScaleChange,
   onSpreadByChange,
   onCopy,
+  onShare,
   onBackToSetup,
   onResetConfirmingChange,
   onReset,
   allowReset = true,
+  resetMessage = "Erase everything? Names, chips, and buy-ins will be cleared.",
+  newGameNote,
 }: SettleScreenProps) {
   const readOnly = useReadOnly();
   const difference = Math.abs(settlement.difference);
@@ -174,6 +183,11 @@ export function SettleScreen({
       </ul>
 
       <div className="mt-6 flex flex-col gap-2.5">
+        {onShare && (
+          <Button variant="secondary" onClick={onShare}>
+            Share results
+          </Button>
+        )}
         <Button variant="secondary" onClick={onCopy}>
           {copy.kind === "copied" ? "Copied" : "Copy results"}
         </Button>
@@ -193,10 +207,12 @@ export function SettleScreen({
         <Button variant="secondary" onClick={onBackToSetup}>
           Back to Setup
         </Button>
-        {!readOnly && allowReset && (
+        {/* The note sits with the button it describes. */}
+        {newGameNote && allowReset && <Hint>{newGameNote}</Hint>}
+        {allowReset && (
           <ConfirmInline
             triggerLabel="Start over from scratch"
-            message="Erase everything? Names, chips, and buy-ins will be cleared."
+            message={resetMessage}
             confirmLabel="Erase everything"
             open={resetConfirming}
             onOpenChange={onResetConfirmingChange}

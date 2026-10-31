@@ -526,3 +526,93 @@ describe("ChipLedgerApp: SPEC-0002 phase 3 consistency", () => {
     expect(button("Settle up")).toBeInTheDocument();
   });
 });
+
+describe("ChipLedgerApp: Share (SPEC-0003 REQ-0003-01, -02, -27)", () => {
+  beforeEach(() => {
+    saved();
+  });
+
+  it("offers no Share button when sharing is not set up", () => {
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(screen.queryByRole("button", { name: "Share" })).toBeNull();
+  });
+
+  it("offers Share on every step when it is, and sends nothing until the host asks", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    render(<ChipLedgerApp photoCountingEnabled={false} sharingEnabled />);
+    expect(await screen.findByRole("button", { name: "Share" })).toBeInTheDocument();
+    await userEvent.click(button("Start the game"));
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+    expect(screen.getByRole("dialog", { name: "Share this game" })).toBeInTheDocument();
+    expect(screen.getByText(/24 hours/)).toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+});
+
+describe("ChipLedgerApp: Share results", () => {
+  const withShare =
+    (share: ((data: ShareData) => Promise<void>) | undefined, run: () => Promise<void>) =>
+    async () => {
+      if (share) Object.defineProperty(navigator, "share", { value: share, configurable: true });
+      try {
+        await run();
+      } finally {
+        Reflect.deleteProperty(navigator, "share");
+      }
+    };
+
+  async function toSettle() {
+    saved({ screen: "settle" });
+    render(<ChipLedgerApp photoCountingEnabled={false} />);
+    expect(await screen.findByRole("heading", { level: 1, name: "Settle up" })).toBeInTheDocument();
+  }
+
+  it("is not offered where the device has no share menu", async () => {
+    await toSettle();
+    expect(screen.queryByRole("button", { name: "Share results" })).toBeNull();
+  });
+
+  it(
+    "opens the device's share menu with the results text and says so",
+    withShare(
+      vi.fn(() => Promise.resolve()),
+      async () => {
+        await toSettle();
+        await userEvent.click(screen.getByRole("button", { name: "Share results" }));
+        const call = vi.mocked(navigator.share).mock.calls[0]?.[0];
+        expect(call?.title).toBe("Poker night results");
+        expect(call?.text).toContain("Pot");
+        expect(screen.getByRole("status")).toHaveTextContent("Results shared.");
+      },
+    ),
+  );
+
+  it(
+    "says nothing and copies nothing when the menu is closed",
+    withShare(
+      vi.fn(() => Promise.reject(new DOMException("closed", "AbortError"))),
+      async () => {
+        await toSettle();
+        await userEvent.click(screen.getByRole("button", { name: "Share results" }));
+        expect(copy).not.toHaveBeenCalled();
+        expect(screen.getByRole("status")).not.toHaveTextContent("Results shared.");
+      },
+    ),
+  );
+
+  it(
+    "copies the results instead when the menu will not open",
+    withShare(
+      vi.fn(() => Promise.reject(new DOMException("no", "NotAllowedError"))),
+      async () => {
+        copy.mockResolvedValue(true);
+        await toSettle();
+        await userEvent.click(screen.getByRole("button", { name: "Share results" }));
+        expect(copy).toHaveBeenCalledOnce();
+        expect(screen.getByRole("status")).toHaveTextContent("Results copied.");
+      },
+    ),
+  );
+});

@@ -37,6 +37,10 @@
   --color-danger-soft-hover: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
   --color-success-bg: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
 
+  /* QR code: dark modules on a light plate in every theme, because scanners need that contrast. */
+  --color-qr-ink: #000000;
+  --color-qr-paper: #ffffff;
+
   /* Chip artwork: body and edge-spot colors, the same in every theme. */
   --color-chip-white: #ecebe4;
   --color-chip-white-spot: #2b5bb8;
@@ -88,7 +92,9 @@
   /* Comfortable line length for intro text (REQ-0002-26). */
   --container-lede: 40ch;
   /* Room kept under the content for the fixed bottom bar; also its scroll padding (REQ-0002-10). */
-  --bar-clearance: calc(var(--spacing) * 36);
+  --bar-clearance: calc(var(--spacing) * 40);
+  /* Room kept under the sticky header when something scrolls into view. */
+  --header-clearance: calc(var(--spacing) * 24);
 }
 
 @layer theme {

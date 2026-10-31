@@ -59,7 +59,10 @@ test.describe("SPEC-0003 shared games: watching", () => {
     await page.getByRole("button", { name: "Settle up" }).click();
     await expect(title(page, "Settle up")).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy results" })).toBeEnabled();
-    await expect(page.getByRole("button", { name: /start over|new game/i })).toHaveCount(0);
+    // A new game from here only opens a private game on this device (REQ-0003-16), so a watcher
+    // may start one; nothing in the shared game can be changed.
+    await expect(page.getByRole("button", { name: "New game, same players" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start over from scratch" })).toBeVisible();
   });
 
   test("REQ-0003-06: the server refuses an edit a watcher forges", async ({ request, baseURL }) => {

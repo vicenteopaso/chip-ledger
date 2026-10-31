@@ -88,7 +88,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 - REQ-0001-21: Results MUST list each player's net (with a + sign for gains), money put in, and amount cashed out.
 - REQ-0001-22: "Copy results" MUST copy a plain-text summary (date, pot, each net, payments) to the clipboard and change to "Copied"; if the clipboard is unavailable it MUST show the text in a read-only field with "Select the text above and copy it."
 - REQ-0001-23: "New game with the same players" MUST reset buy-ins to 1, clear all counts, photos, and statuses, keep names and chip setup, and open Table.
-- REQ-0001-24: "Start over from scratch" MUST ask for a second tap ("Tap again to erase everything") before resetting everything to defaults and opening Setup. Leaving the step MUST disarm it. _Amended by SPEC-0002 REQ-0002-11: the second tap is replaced by an inline confirmation ("Erase everything?" with Cancel and "Erase everything")._
+- REQ-0001-24: "Start over from scratch" MUST ask for a second tap ("Tap again to erase everything") before resetting everything to defaults and opening Setup. Leaving the step MUST disarm it. _Amended by SPEC-0002 REQ-0002-11: the second tap is replaced by an inline confirmation ("Erase everything?" with Cancel and "Erase everything"). In a shared game it opens a new private game on this device instead and leaves the shared game as it is, see SPEC-0003 REQ-0003-16._
 
 ### Persistence
 
@@ -99,6 +99,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 
 - REQ-0001-31: Every step MUST end with a footer reading "© <year> Jason Johnson and Vicente Opaso", where <year> is the current year when the page is served (not fixed at build time). The footer MUST sit inside the fixed bottom bar, centered directly under the step's buttons, so it is visible on every step without scrolling. It MUST be a `contentinfo` landmark (so the bottom bar sits outside `<main>`) and meet the same contrast as other muted text.
 - REQ-0001-32: The footer row MUST also hold a theme button, on the right, that cycles System → Light → Dark → System and whose icon shows the current choice (a half-filled circle for System, a sun for Light, a moon for Dark) and whose accessible name states it ("Theme: System", "Theme: Light", "Theme: Dark"). System MUST follow the device's color scheme; Light and Dark MUST force that theme. The choice MUST be saved in the browser (`chip-ledger.theme`, separate from the game), applied before the first paint so a reload does not flash the other theme, and MUST NOT be erased by "Start over from scratch". An unreadable or invalid saved choice MUST fall back to System. The button MUST be at least 44 × 44 px.
+- REQ-0001-33: Where the device has a share menu (`navigator.share`), Settle MUST offer "Share results" beside "Copy results", which opens that menu with the same plain-text summary so it can be sent to another app (messages, WhatsApp, and so on). Closing the menu without choosing MUST do nothing; if the menu will not open, the results MUST be copied instead. Where there is no share menu, the button MUST NOT be shown.
 - REQ-0001-27: The look MUST match the prototype — colors, type (Bricolage Grotesque), spacing, chip artwork, fixed bottom bar — in light and dark themes, following the system color scheme and honoring a `data-theme` attribute on the root element.
 
 ## 5. Acceptance criteria
@@ -121,6 +122,7 @@ A working prototype exists as one self-contained HTML file (`chip-ledger.html`).
 - AC-0001-10 (REQ-0001-24): When the host taps "Start over from scratch" once, then the label becomes "Tap again to erase everything" and nothing is erased; a second tap resets to defaults on Setup.
 - AC-0001-11 (REQ-0001-25, -26): Given a game in progress on Table, when the page reloads, then Table is shown with the same buy-ins; given `chip-ledger.v1` holds `{"players":"oops"}`, then the defaults load (10 EUR).
 - AC-0001-12 (REQ-0001-22): Given clipboard write rejects, when the host taps "Copy results", then a read-only field shows the results text.
+- AC-0001-20 (REQ-0001-33): Given a device with a share menu, when the host taps "Share results", then the menu opens with the results text, and "Results shared." is announced once it is chosen; given a device without one, then there is no "Share results" button.
 - AC-0001-13 (REQ-0001-14, -27): Using only the keyboard, the host can complete Setup → Table → Cash out → Settle (with photo counting on, the photo control is focusable); axe reports no WCAG 2.1 A/AA violations on any step in light or dark theme.
 
 ## 6. Cross-cutting concerns

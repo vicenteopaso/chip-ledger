@@ -4,15 +4,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SharedGameApp } from "@/app/SharedGameApp";
 import { copyToClipboard } from "@/lib/infra/clipboard";
-import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
-import { type FetchOutcome, fetchGame, sendEdit } from "@/lib/infra/shared-game-client";
+import { keyFor, rememberKey, watchKeyFor } from "@/lib/infra/joined-games-storage";
+import {
+  type FetchOutcome,
+  fetchGame,
+  sendEdit,
+  upgradeWithCode,
+} from "@/lib/infra/shared-game-client";
 import { sharedSnapshot } from "@/test/unit/fixtures";
 
-vi.mock("@/lib/infra/shared-game-client", () => ({ fetchGame: vi.fn(), sendEdit: vi.fn() }));
+vi.mock("@/lib/infra/shared-game-client", () => ({
+  fetchGame: vi.fn(),
+  sendEdit: vi.fn(),
+  upgradeWithCode: vi.fn(),
+  requestEditCode: vi.fn(),
+  createSharedGame: vi.fn(),
+}));
 vi.mock("@/lib/infra/clipboard", () => ({ copyToClipboard: vi.fn() }));
 
 const fetchMock = vi.mocked(fetchGame);
 const sendMock = vi.mocked(sendEdit);
+const upgradeMock = vi.mocked(upgradeWithCode);
 const copy = vi.mocked(copyToClipboard);
 const ID = "abcdefghijklmnop";
 const KEY = "K".repeat(22);
@@ -163,7 +175,7 @@ describe("SharedGameApp: watching", () => {
     expect(heading()).toHaveTextContent("Cash out");
     await user.click(screen.getByRole("button", { name: "Settle up" }));
     expect(heading()).toHaveTextContent("Settle up");
-    expect(screen.queryByRole("button", { name: "New game, same players" })).toBeNull();
+    expect(screen.getByRole("button", { name: "New game, same players" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Back to Cash out" }));
     expect(heading()).toHaveTextContent("Cash out");
     await user.click(screen.getByRole("button", { name: "Back to Table" }));
@@ -346,7 +358,7 @@ describe("SharedGameApp: editing (REQ-0003-07, -10, -14)", () => {
     });
   });
 
-  it("Settle: an editor can change how the difference is shared, but cannot start over yet", async () => {
+  it("Settle: an editor can change how the difference is shared, and can start a new game on this device", async () => {
     fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
     sendMock.mockResolvedValue({
       kind: "saved",
@@ -356,8 +368,8 @@ describe("SharedGameApp: editing (REQ-0003-07, -10, -14)", () => {
     await open();
     await user.click(screen.getByRole("button", { name: "Cash out" }));
     await user.click(screen.getByRole("button", { name: "Settle up" }));
-    expect(screen.queryByRole("button", { name: /start over/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: "New game, same players" })).toBeNull();
+    expect(screen.getByRole("button", { name: /start over from scratch/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New game, same players" })).toBeInTheDocument();
     await user.click(screen.getByRole("radio", { name: /Equally/ }));
     await tick(0);
     expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toEqual({
@@ -464,5 +476,122 @@ describe("SharedGameApp: setting up and starting (REQ-0003-15)", () => {
     await open();
     expect(heading()).toHaveTextContent("Waiting for the host");
     expect(screen.queryByRole("button", { name: "Start the game" })).toBeNull();
+  });
+});
+
+describe("SharedGameApp: sharing and edit codes (SPEC-0003 REQ-0003-02, -09)", () => {
+  it("has a Share button on every step that opens the sheet for this game", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "watch" }) });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "Share" }));
+    expect(screen.getByRole("dialog", { name: "Share this game" })).toBeInTheDocument();
+    expect(screen.getByTestId("share-link")).toHaveTextContent(`/g/${ID}#k=${KEY}`);
+  });
+
+  it("opens the sheet by itself when the host arrives from Create the link, and tidies the address", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    window.history.replaceState(null, "", `/g/${ID}?share=1`);
+    rememberKey(ID, KEY, undefined, "W".repeat(22));
+    const view = render(<SharedGameApp id={ID} footer={<span>footer</span>} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(view.container).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Share this game" })).toBeInTheDocument();
+    expect(window.location.search).toBe("");
+  });
+
+  it("does not offer Share while the game cannot be opened", async () => {
+    fetchMock.mockResolvedValue({ kind: "unavailable" });
+    await open();
+    expect(screen.queryByRole("button", { name: "Share" })).toBeNull();
+  });
+
+  it("a watcher can enter the edit code and become an editor on this device", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "watch" }) });
+    upgradeMock.mockResolvedValue({ kind: "upgraded", editKey: "N".repeat(22) });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    expect(screen.queryByRole("button", { name: "Sell chips" })).toBeNull();
+    fetchMock.mockResolvedValue({
+      kind: "snapshot",
+      snapshot: sharedSnapshot({ role: "edit", rev: 2 }),
+    });
+    await user.click(screen.getByRole("button", { name: "I have an edit code" }));
+    await user.type(screen.getByRole("textbox", { name: "Edit code" }), "abc234");
+    await user.click(screen.getByRole("button", { name: "Join as editor" }));
+    expect(upgradeMock).toHaveBeenCalledWith({ id: ID, key: KEY, code: "ABC234" });
+    await tick(0);
+    expect(keyFor(ID)).toBe("N".repeat(22));
+    expect(watchKeyFor(ID)).toBe(KEY);
+    expect(announced()).toContain("You can now edit this game.");
+    expect(await screen.findByRole("button", { name: "Sell chips" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "I have an edit code" })).toBeNull();
+  });
+
+  it("a wrong code leaves the person a watcher and says so", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "watch" }) });
+    upgradeMock.mockResolvedValue({ kind: "refused" });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await open();
+    await user.click(screen.getByRole("button", { name: "I have an edit code" }));
+    await user.type(screen.getByRole("textbox", { name: "Edit code" }), "ABC234");
+    await user.click(screen.getByRole("button", { name: "Join as editor" }));
+    expect(await screen.findByText("That code didn't work.")).toBeInTheDocument();
+    expect(keyFor(ID)).toBe(KEY);
+  });
+
+  it("an editor, or an archived game, is not offered the code form", async () => {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
+    await open();
+    expect(screen.queryByRole("button", { name: "I have an edit code" })).toBeNull();
+  });
+});
+
+describe("SharedGameApp: a new game from a shared one (SPEC-0003 REQ-0003-16)", () => {
+  async function openWithNavigate(role: "watch" | "edit") {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role }) });
+    const navigate = vi.fn();
+    window.history.replaceState(null, "", `/g/${ID}#k=${KEY}`);
+    render(<SharedGameApp id={ID} footer={<span>footer</span>} navigate={navigate} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    return navigate;
+  }
+
+  it("New game, same players saves a fresh private game with the same names and leaves the shared one alone", async () => {
+    const navigate = await openWithNavigate("watch");
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    await user.click(screen.getByRole("button", { name: "Settle up" }));
+    await user.click(screen.getByRole("button", { name: "New game, same players" }));
+    const saved = JSON.parse(localStorage.getItem("chip-ledger.v1") ?? "null") as {
+      screen: string;
+      players: { buyins: number; moved: number; counts: object }[];
+    };
+    expect(saved.screen).toBe("table");
+    expect(saved.players.every((p) => p.buyins === 1 && p.moved === 0)).toBe(true);
+    expect(navigate).toHaveBeenCalledWith("/");
+    expect(sendMock).not.toHaveBeenCalled();
+    expect(keyFor(ID)).toBe(KEY);
+  });
+
+  it("Start over from scratch asks first, then saves a blank game on this device", async () => {
+    const navigate = await openWithNavigate("edit");
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    await user.click(screen.getByRole("button", { name: "Settle up" }));
+    await user.click(screen.getByRole("button", { name: "Start over from scratch" }));
+    expect(screen.getByText(/Leave this game and start from scratch/)).toBeInTheDocument();
+    expect(navigate).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Erase everything" }));
+    const saved = JSON.parse(localStorage.getItem("chip-ledger.v1") ?? "null") as {
+      screen: string;
+    };
+    expect(saved.screen).toBe("setup");
+    expect(navigate).toHaveBeenCalledWith("/");
+    expect(sendMock).not.toHaveBeenCalled();
   });
 });

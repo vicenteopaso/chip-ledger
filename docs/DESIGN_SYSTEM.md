@@ -46,7 +46,7 @@ Pairs that carry meaning are checked against `styles/tokens.css` by `test/unit/s
 
 Contrast fixes against the prototype: text-field borders use `--color-border-control` (the prototype's `#CFDAD2` was 1.2:1), and the busy photo status uses `--color-warn-ink` instead of the focus gold (3.9:1 as text).
 
-Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes, and always paired with a text label.
+Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes, and always paired with a text label. The QR code uses `--color-qr-ink` and `--color-qr-paper`, also identical in both themes: scanners need dark modules on a light plate.
 
 ### Typography
 

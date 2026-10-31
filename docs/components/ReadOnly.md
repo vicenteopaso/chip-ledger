@@ -21,13 +21,13 @@ The default is `false`, so a component outside the provider behaves as before.
 
 ## What changes inside it
 
-| Control                                                                        | Read-only behavior                                                                         |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `Stepper`                                                                      | Only the number is shown; the − and + buttons are not rendered                             |
-| `DraftInput`, Setup name fields                                                | `readOnly` and `aria-readonly="true"`: focusable, selectable, announced                    |
-| `Select`, Setup and Settle checkboxes                                          | `disabled`                                                                                 |
-| Settle "Share it" radio group                                                  | Replaced by a sentence ("Shared equally. …"), because disabled radios hide which one is on |
-| Setup "Fill the chips", "Add a chip color", chip "Remove"; Settle "Start over" | Not rendered                                                                               |
+| Control                                                   | Read-only behavior                                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `Stepper`                                                 | Only the number is shown; the − and + buttons are not rendered                             |
+| `DraftInput`, Setup name fields                           | `readOnly` and `aria-readonly="true"`: focusable, selectable, announced                    |
+| `Select`, Setup and Settle checkboxes                     | `disabled`                                                                                 |
+| Settle "Share it" radio group                             | Replaced by a sentence ("Shared equally. …"), because disabled radios hide which one is on |
+| Setup "Fill the chips", "Add a chip color", chip "Remove" | Not rendered                                                                               |
 
 Buttons that only move around or copy ("Back to Setup", "Copy results", the bottom bar) are not affected.
 
