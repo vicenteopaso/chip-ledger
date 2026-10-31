@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
 import { openFresh, startGame } from "../e2e/helpers";
-import { asDevice, openAsHost, openShared, shareGame } from "../e2e/shared-helpers";
+import { asDevice, holdGames, openAsHost, openShared, shareGame } from "../e2e/shared-helpers";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -84,6 +84,32 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expect(sheet.locator("[aria-label^='Edit code:']")).toBeVisible();
       await sheet.getByRole("radio", { name: /Can edit/ }).check();
       await expectNoViolations(host);
+    });
+
+    test("the Games sheet, with a question about leaving, and the delete question (REQ-0003-17, -21)", async ({
+      page,
+      request,
+      baseURL,
+    }) => {
+      const first = await shareGame(request, baseURL ?? "");
+      const second = await shareGame(request, baseURL ?? "");
+      await holdGames(page, [first, second]);
+      await page.goto(`/g/${first.id}`);
+      await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
+      await page.getByRole("button", { name: "Games" }).click();
+      const sheet = page.getByRole("dialog", { name: "Games" });
+      await expect(sheet).toBeVisible();
+      await expectNoViolations(page);
+      await sheet
+        .getByRole("button", { name: /^Leave / })
+        .last()
+        .click();
+      await expect(sheet.getByText(/It stays for everyone else/)).toBeVisible();
+      await expectNoViolations(page);
+      await sheet.getByRole("button", { name: "Cancel" }).click();
+      await sheet.getByRole("button", { name: "Delete for everyone" }).click();
+      await expect(sheet.getByText(/nobody can open it again/)).toBeVisible();
+      await expectNoViolations(page);
     });
 
     test("a watcher's edit code form, with its message (REQ-0003-09)", async ({

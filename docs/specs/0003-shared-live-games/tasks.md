@@ -104,13 +104,13 @@ Legend: `[P]` can run in parallel with its neighbours. Each numbered group ships
 
 ## 6. Several games and lifecycle (PR 6)
 
-- [ ] T-30 `joined-games-storage` and `GamesList`: switch, leave _(REQ-0003-17, -18)_
+- [x] T-30 `joined-games-storage` and `GamesList`: switch, leave _(REQ-0003-17, -18)_
   - Tests: unit for storage with invalid data; component; e2e AC-0003-14
   - Done when: leaving removes access from this device only.
 - [x] T-31 Fork on new game and reset in shared games; solo behaviour unchanged _(REQ-0003-16)_ (Done with PR 5 at the owner's request: Settle in a shared game has the same primary "New game, same players" and "Start over from scratch" as a solo game. Both save a new private game on this device and leave the shared one for everyone else; the old game opens again from its link.)
   - Tests: unit; e2e AC-0003-13
   - Done when: the second device still shows the original game, and the REQ-0001-24 and REQ-0002-11, -12 pointers are in place.
-- [ ] T-32 Archived state, **Duplicate into a new game**, delete with `ConfirmInline` _(REQ-0003-19 to -21)_
+- [x] T-32 Archived state, **Duplicate into a new game**, delete with `ConfirmInline` _(REQ-0003-19 to -21)_
   - Tests: component; e2e with a test clock hook; AC-0003-15 and -16
   - Done when: an open device keeps a game from archiving.
 - [ ] T-33 Close PR 6: visual baselines; `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.

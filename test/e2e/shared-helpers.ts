@@ -68,3 +68,16 @@ export async function openAsHost(page: Page, shared: Shared) {
   );
   await page.goto(`/g/${shared.id}?share=1`);
 }
+
+/** A device that already holds these games, as after sharing or joining them (both keys saved). */
+export async function holdGames(page: Page, games: Shared[]) {
+  await asDevice(page);
+  await page.addInitScript((list) => {
+    // Only the first time: later page loads keep what the app saved (names, steps).
+    if (localStorage.getItem("chip-ledger.joined.v1")) return;
+    localStorage.setItem(
+      "chip-ledger.joined.v1",
+      JSON.stringify(list.map((g) => ({ id: g.id, key: g.editKey, watchKey: g.watchKey }))),
+    );
+  }, games);
+}

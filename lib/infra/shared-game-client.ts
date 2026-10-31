@@ -254,3 +254,29 @@ async function readJsonBody(response: Response): Promise<unknown> {
     return null;
   }
 }
+
+export type DeleteOutcome =
+  | { kind: "deleted" }
+  /** Only someone who can edit may delete (REQ-0003-21). */
+  | { kind: "forbidden" }
+  | { kind: "error" };
+
+/** Deletes a game for everyone. A game that is already gone counts as deleted. */
+export async function deleteSharedGame(
+  options: { id: string; key: string },
+  send: typeof fetch = fetch,
+): Promise<DeleteOutcome> {
+  let response: Response;
+  try {
+    response = await send(`/api/games/${options.id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${options.key}` },
+      cache: "no-store",
+    });
+  } catch {
+    return { kind: "error" };
+  }
+  if (response.ok || response.status === 404) return { kind: "deleted" };
+  if (response.status === 403) return { kind: "forbidden" };
+  return { kind: "error" };
+}
