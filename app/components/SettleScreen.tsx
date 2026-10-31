@@ -25,8 +25,12 @@ export type SettleScreenProps = {
   onBackToSetup: () => void;
   onResetConfirmingChange: (open: boolean) => void;
   onReset: () => void;
-  /** False where starting over is not offered, such as a shared game (SPEC-0003 PR 6). */
+  /** False where starting over is not offered. */
   allowReset?: boolean;
+  /** What "Start over" asks, where it means more than erasing this screen's game (a shared game). */
+  resetMessage?: string;
+  /** A line above the buttons, such as what "New game" does to a shared game (REQ-0003-16). */
+  newGameNote?: string;
 };
 
 function signedMoney(money: MoneyFormatter, minor: number, currency: Currency): string {
@@ -53,6 +57,8 @@ export function SettleScreen({
   onResetConfirmingChange,
   onReset,
   allowReset = true,
+  resetMessage = "Erase everything? Names, chips, and buy-ins will be cleared.",
+  newGameNote,
 }: SettleScreenProps) {
   const readOnly = useReadOnly();
   const difference = Math.abs(settlement.difference);
@@ -189,14 +195,15 @@ export function SettleScreen({
             <Hint>Select the text above and copy it.</Hint>
           </>
         )}
+        {newGameNote && <Hint>{newGameNote}</Hint>}
         {/* "New game, same players" is the bottom bar's primary action (REQ-0002-12). */}
         <Button variant="secondary" onClick={onBackToSetup}>
           Back to Setup
         </Button>
-        {!readOnly && allowReset && (
+        {allowReset && (
           <ConfirmInline
             triggerLabel="Start over from scratch"
-            message="Erase everything? Names, chips, and buy-ins will be cleared."
+            message={resetMessage}
             confirmLabel="Erase everything"
             open={resetConfirming}
             onOpenChange={onResetConfirmingChange}

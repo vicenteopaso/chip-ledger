@@ -23,11 +23,12 @@ import { WatchNotice } from "@/app/components/WatchNotice";
 import { ShareControl } from "@/app/ShareControl";
 import { useSharedEditor } from "@/app/useSharedEditor";
 import { useSharedGame } from "@/app/useSharedGame";
-import { canStartGame, type GameState, type Screen, STEP_TITLES } from "@/lib/game";
-import type { GameAction } from "@/lib/game-reducer";
+import { canStartGame, createGame, type GameState, type Screen, STEP_TITLES } from "@/lib/game";
+import { type GameAction, gameReducer } from "@/lib/game-reducer";
 import { randomId } from "@/lib/ids";
 import { remoteChanges } from "@/lib/announcements";
 import { copyToClipboard } from "@/lib/infra/clipboard";
+import { saveGame } from "@/lib/infra/game-storage";
 import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
 import { upgradeWithCode } from "@/lib/infra/shared-game-client";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
@@ -54,6 +55,12 @@ export type SharedGameAppProps = {
   id: string;
   /** Rendered by the page (it needs the request time) and shown inside the bottom bar. */
   footer?: ReactNode;
+  /** Where "New game" goes after saving the new game; the browser's own navigation by default. */
+  navigate?: (url: string) => void;
+};
+
+const goTo = (url: string) => {
+  window.location.assign(url);
 };
 
 /**
@@ -63,7 +70,7 @@ export type SharedGameAppProps = {
  * is sent in the background, kept and retried while offline (REQ-0003-10, -14). Everyone else
  * watches, with the same screens read-only (REQ-0003-06).
  */
-export function SharedGameApp({ id, footer }: SharedGameAppProps) {
+export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProps) {
   const [join, setJoin] = useState<{ checked: boolean; key: string | null }>({
     checked: false,
     key: null,
@@ -73,6 +80,7 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [message, setMessage] = useState("");
   const [shareOpen, setShareOpen] = useState(false);
+  const [resetConfirming, setResetConfirming] = useState(false);
   const [seenStatus, setSeenStatus] = useState<Status>("live");
   const [seenStarted, setSeenStarted] = useState<boolean | null>(null);
   const [seenGame, setSeenGame] = useState<GameState | null>(null);
@@ -214,6 +222,21 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
     );
   };
 
+  /**
+   * A new game from a shared one is a separate game on this device; the shared game is left as it
+   * is for everyone else and can be opened again from its link (SPEC-0003 REQ-0003-16).
+   */
+  const leaveForNewGame = (next: GameState) => {
+    saveGame(next);
+    navigate("/");
+  };
+  const newGameSamePlayers = () => {
+    if (game) leaveForNewGame(gameReducer(game, { type: "newGameSamePlayers" }));
+  };
+  const startOverOnThisDevice = () => {
+    leaveForNewGame(createGame(randomId));
+  };
+
   const changeTheme = (next: Theme) => {
     setTheme(next);
     applyTheme(next);
@@ -318,8 +341,9 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
             settlement={settlement}
             money={money}
             copy={copy}
-            resetConfirming={false}
-            allowReset={false}
+            resetConfirming={resetConfirming}
+            resetMessage="Leave this game and start from scratch on this device? The shared game stays as it is for everyone else."
+            newGameNote="A new game opens on this device. The shared game stays as it is for everyone else, and you can open it again from its link."
             onScaleChange={(scale) => {
               dispatch({ type: "setScale", scale });
             }}
@@ -332,8 +356,8 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
             onBackToSetup={() => {
               go("setup");
             }}
-            onResetConfirmingChange={noop}
-            onReset={noop}
+            onResetConfirmingChange={setResetConfirming}
+            onReset={startOverOnThisDevice}
           />
         )}
       </ReadOnlyContext>
@@ -436,12 +460,18 @@ export function SharedGameApp({ id, footer }: SharedGameAppProps) {
           </>
         )}
         {showGame && screen === "settle" && (
-          <BackButton
-            step="Cash out"
-            onClick={() => {
-              go("cashout");
-            }}
-          />
+          <>
+            <BackButton
+              step="Cash out"
+              onClick={() => {
+                go("cashout");
+              }}
+            />
+            {/* The likely next step at the end of a night, as in a solo game (REQ-0002-12). */}
+            <Button variant="primary" onClick={newGameSamePlayers}>
+              New game, same players
+            </Button>
+          </>
         )}
       </ActionBar>
     </StepTitleContext>

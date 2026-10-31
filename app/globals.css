@@ -12,7 +12,8 @@
   }
 
   html {
-    scroll-padding-top: env(safe-area-inset-top, 0px);
+    /* A field scrolled into view stops below the sticky header (REQ-0002-10). */
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + var(--header-clearance));
     /* A field scrolled into view on focus stops above the fixed bottom bar (REQ-0002-10). */
     scroll-padding-bottom: var(--bar-clearance);
     -webkit-text-size-adjust: 100%;
@@ -20,6 +21,7 @@
 
   @media (max-height: 30rem) {
     html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
       scroll-padding-bottom: 0;
     }
   }
@@ -197,7 +199,7 @@
 
 @layer components {
   .action-bar {
-    padding-bottom: calc(var(--spacing) * 1 + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--spacing) * 3 + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -205,8 +207,12 @@
    (compact buttons, tighter footer row) and the content keeps more of the screen. */
 .action-bar,
 .action-bar-buttons > button,
-.action-bar-footer {
-  transition-property: padding, min-height, font-size;
+.action-bar-footer,
+.app-header,
+.app-header-brand,
+.app-header-title,
+.app-header-mark {
+  transition-property: padding, min-height, font-size, margin, width, height, border-color;
   transition-duration: 150ms;
 }
 .action-bar > .action-bar-buttons > button {
@@ -220,13 +226,32 @@
   font-size: var(--text-body);
 }
 .action-bar[data-compact="true"] .action-bar-footer {
-  min-height: calc(var(--spacing) * 6);
+  min-height: calc(var(--spacing) * 7);
   font-size: var(--text-sm);
+}
+/* The header stays at the top and shrinks once the page is scrolled: a smaller brand row and no
+   action, with a rule under it so the content scrolls beneath a clear edge. */
+.app-header[data-compact="true"] {
+  border-bottom-color: var(--color-border);
+}
+.app-header[data-compact="true"] .app-header-brand {
+  margin-bottom: calc(var(--spacing) * 2);
+}
+.app-header[data-compact="true"] .app-header-title {
+  font-size: var(--text-2xl);
+}
+.app-header[data-compact="true"] .app-header-mark {
+  width: calc(var(--spacing) * 8);
+  height: calc(var(--spacing) * 8);
 }
 @media (prefers-reduced-motion: reduce) {
   .action-bar,
   .action-bar-buttons > button,
-  .action-bar-footer {
+  .action-bar-footer,
+  .app-header,
+  .app-header-brand,
+  .app-header-title,
+  .app-header-mark {
     transition: none;
   }
 }

@@ -31,7 +31,7 @@ export function ActionBar({ children, footer }: ActionBarProps) {
     >
       <div className="action-bar-buttons mx-auto flex max-w-app gap-2.5">{children}</div>
       {footer && (
-        <div className="action-bar-footer mx-auto flex min-h-7 max-w-app items-center justify-between gap-2">
+        <div className="action-bar-footer mx-auto mt-1 flex min-h-8 max-w-app items-center justify-between gap-2">
           {footer}
         </div>
       )}

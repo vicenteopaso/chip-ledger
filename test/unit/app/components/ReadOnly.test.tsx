@@ -126,7 +126,7 @@ describe("read-only controls (REQ-0003-06)", () => {
     expect(screen.getByText(/^Shared equally\./)).toBeInTheDocument();
   });
 
-  it("Settle: the sharing choices are disabled, there is no reset, and copying still works", () => {
+  it("Settle: the sharing choices are disabled, starting over is still offered, and copying still works", () => {
     const game = gameWith({ scale: true });
     render(
       watching(
@@ -150,7 +150,8 @@ describe("read-only controls (REQ-0003-06)", () => {
     // Disabled radios hide which choice is on, so the choice is said in words.
     expect(screen.queryByRole("radio")).toBeNull();
     expect(screen.getByText(/^Shared in proportion to chips\./)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /start over/i })).toBeNull();
+    // Starting over only opens a new private game on this device, so a watcher may do it too.
+    expect(screen.getByRole("button", { name: /start over/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy results" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Back to Setup" })).toBeEnabled();
   });

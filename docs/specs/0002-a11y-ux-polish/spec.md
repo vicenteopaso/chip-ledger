@@ -61,7 +61,7 @@ Hosts use this app on a phone, often one-handed, in low light, with others readi
 
 ### Experience (P2)
 
-- REQ-0002-11: "Start over from scratch" MUST open an inline confirmation in place of the button. It MUST read "Erase everything? Names, chips, and buy-ins will be cleared.", MUST offer "Cancel" and "Erase everything" (danger style), and MUST move focus to "Cancel". `Esc` or Cancel MUST close it and return focus to "Start over from scratch". Leaving the step MUST close it. _Amends REQ-0001-24._
+- REQ-0002-11: "Start over from scratch" MUST open an inline confirmation in place of the button. It MUST read "Erase everything? Names, chips, and buy-ins will be cleared.", MUST offer "Cancel" and "Erase everything" (danger style), and MUST move focus to "Cancel". `Esc` or Cancel MUST close it and return focus to "Start over from scratch". Leaving the step MUST close it. _Amends REQ-0001-24. In a shared game its message says it leaves that game for a new private one on this device (SPEC-0003 REQ-0003-16)._
 - REQ-0002-12: Settle's bottom bar MUST offer a secondary "‹ Cash out" and the primary "New game, same players", which behaves as REQ-0001-23. The content area MUST keep "Copy results", "Back to Setup" (secondary), and "Start over from scratch". _Amends REQ-0001-02._
 - REQ-0002-13: On Table, a player's − button MUST be unavailable at 0 buy-ins, matching the Setup player-count stepper. Both steppers MUST mark their limit with `aria-disabled` rather than `disabled`, so keyboard focus stays on the button that reached it.
 - REQ-0002-14: A count mismatch in "Check the count" MUST be visible as text ("<n> short" or "<n> over") in addition to color and weight.

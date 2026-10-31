@@ -175,7 +175,7 @@ describe("SharedGameApp: watching", () => {
     expect(heading()).toHaveTextContent("Cash out");
     await user.click(screen.getByRole("button", { name: "Settle up" }));
     expect(heading()).toHaveTextContent("Settle up");
-    expect(screen.queryByRole("button", { name: "New game, same players" })).toBeNull();
+    expect(screen.getByRole("button", { name: "New game, same players" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Back to Cash out" }));
     expect(heading()).toHaveTextContent("Cash out");
     await user.click(screen.getByRole("button", { name: "Back to Table" }));
@@ -358,7 +358,7 @@ describe("SharedGameApp: editing (REQ-0003-07, -10, -14)", () => {
     });
   });
 
-  it("Settle: an editor can change how the difference is shared, but cannot start over yet", async () => {
+  it("Settle: an editor can change how the difference is shared, and can start a new game on this device", async () => {
     fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
     sendMock.mockResolvedValue({
       kind: "saved",
@@ -368,8 +368,8 @@ describe("SharedGameApp: editing (REQ-0003-07, -10, -14)", () => {
     await open();
     await user.click(screen.getByRole("button", { name: "Cash out" }));
     await user.click(screen.getByRole("button", { name: "Settle up" }));
-    expect(screen.queryByRole("button", { name: /start over/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: "New game, same players" })).toBeNull();
+    expect(screen.getByRole("button", { name: /start over from scratch/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New game, same players" })).toBeInTheDocument();
     await user.click(screen.getByRole("radio", { name: /Equally/ }));
     await tick(0);
     expect(sendMock.mock.calls.at(-1)?.[0].envelope.action).toEqual({
@@ -546,5 +546,52 @@ describe("SharedGameApp: sharing and edit codes (SPEC-0003 REQ-0003-02, -09)", (
     fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role: "edit" }) });
     await open();
     expect(screen.queryByRole("button", { name: "I have an edit code" })).toBeNull();
+  });
+});
+
+describe("SharedGameApp: a new game from a shared one (SPEC-0003 REQ-0003-16)", () => {
+  async function openWithNavigate(role: "watch" | "edit") {
+    fetchMock.mockResolvedValue({ kind: "snapshot", snapshot: sharedSnapshot({ role }) });
+    const navigate = vi.fn();
+    window.history.replaceState(null, "", `/g/${ID}#k=${KEY}`);
+    render(<SharedGameApp id={ID} footer={<span>footer</span>} navigate={navigate} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    return navigate;
+  }
+
+  it("New game, same players saves a fresh private game with the same names and leaves the shared one alone", async () => {
+    const navigate = await openWithNavigate("watch");
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    await user.click(screen.getByRole("button", { name: "Settle up" }));
+    await user.click(screen.getByRole("button", { name: "New game, same players" }));
+    const saved = JSON.parse(localStorage.getItem("chip-ledger.v1") ?? "null") as {
+      screen: string;
+      players: { buyins: number; moved: number; counts: object }[];
+    };
+    expect(saved.screen).toBe("table");
+    expect(saved.players.every((p) => p.buyins === 1 && p.moved === 0)).toBe(true);
+    expect(navigate).toHaveBeenCalledWith("/");
+    expect(sendMock).not.toHaveBeenCalled();
+    expect(keyFor(ID)).toBe(KEY);
+  });
+
+  it("Start over from scratch asks first, then saves a blank game on this device", async () => {
+    const navigate = await openWithNavigate("edit");
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole("button", { name: "Cash out" }));
+    await user.click(screen.getByRole("button", { name: "Settle up" }));
+    await user.click(screen.getByRole("button", { name: "Start over from scratch" }));
+    expect(screen.getByText(/Leave this game and start from scratch/)).toBeInTheDocument();
+    expect(navigate).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Erase everything" }));
+    const saved = JSON.parse(localStorage.getItem("chip-ledger.v1") ?? "null") as {
+      screen: string;
+    };
+    expect(saved.screen).toBe("setup");
+    expect(navigate).toHaveBeenCalledWith("/");
+    expect(sendMock).not.toHaveBeenCalled();
   });
 });
