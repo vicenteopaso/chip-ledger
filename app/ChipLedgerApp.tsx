@@ -39,6 +39,7 @@ import { SharedGameBodySchema } from "@/lib/shared-game";
 import { SITE } from "@/lib/seo";
 import { countCheckSummary, resultsText, setupSummary } from "@/lib/summaries";
 import { copyToClipboard } from "@/lib/infra/clipboard";
+import { canShare, shareText } from "@/lib/infra/web-share";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { loadSavedGame, saveGame } from "@/lib/infra/game-storage";
@@ -217,6 +218,14 @@ export function ChipLedgerApp({
     setMessage(`${name}: ${status.text}`);
   };
 
+  const shareResults = async () => {
+    const text = resultsText(settlement, money, new Date().toLocaleDateString());
+    const outcome = await shareText({ title: "Poker night results", text });
+    if (outcome === "shared") setMessage("Results shared.");
+    // The menu would not open (not a cancel): copy instead, so the results are not lost.
+    if (outcome === "failed") await copyResults();
+  };
+
   const copyResults = async () => {
     const text = resultsText(settlement, money, new Date().toLocaleDateString());
     const copied = await copyToClipboard(text);
@@ -320,6 +329,13 @@ export function ChipLedgerApp({
             onCopy={() => {
               void copyResults();
             }}
+            {...(canShare()
+              ? {
+                  onShare: () => {
+                    void shareResults();
+                  },
+                }
+              : {})}
             onBackToSetup={() => {
               go("setup");
             }}

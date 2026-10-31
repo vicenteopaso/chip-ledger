@@ -28,6 +28,7 @@ import { type GameAction, gameReducer } from "@/lib/game-reducer";
 import { randomId } from "@/lib/ids";
 import { remoteChanges } from "@/lib/announcements";
 import { copyToClipboard } from "@/lib/infra/clipboard";
+import { canShare, shareText } from "@/lib/infra/web-share";
 import { saveGame } from "@/lib/infra/game-storage";
 import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
 import { upgradeWithCode } from "@/lib/infra/shared-game-client";
@@ -212,6 +213,15 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
     (game.buyIn <= 0 ? buyInRef : firstChipRef).current?.focus();
   };
 
+  const shareResults = async () => {
+    if (!settlement) return;
+    const text = resultsText(settlement, money, new Date().toLocaleDateString());
+    const outcome = await shareText({ title: "Poker night results", text });
+    if (outcome === "shared") setMessage("Results shared.");
+    // The menu would not open (not a cancel): copy instead, so the results are not lost.
+    if (outcome === "failed") await copyResults();
+  };
+
   const copyResults = async () => {
     if (!settlement) return;
     const text = resultsText(settlement, money, new Date().toLocaleDateString());
@@ -353,6 +363,13 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
             onCopy={() => {
               void copyResults();
             }}
+            {...(canShare()
+              ? {
+                  onShare: () => {
+                    void shareResults();
+                  },
+                }
+              : {})}
             onBackToSetup={() => {
               go("setup");
             }}

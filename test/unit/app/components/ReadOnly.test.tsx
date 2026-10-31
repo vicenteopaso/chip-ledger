@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -179,5 +180,46 @@ describe("Settle without a reset", () => {
     expect(screen.queryByRole("button", { name: /start over/i })).toBeNull();
     expect(screen.getAllByRole("radio").length).toBeGreaterThan(0);
     for (const radio of screen.getAllByRole("radio")) expect(radio).toBeEnabled();
+  });
+});
+
+describe("Settle: Share results and the new-game note", () => {
+  const view = (extra: Partial<Parameters<typeof SettleScreen>[0]> = {}) => {
+    const game = gameWith({ scale: true });
+    return (
+      <SettleScreen
+        game={game}
+        settlement={settle(game)}
+        money={usd}
+        copy={{ kind: "idle" }}
+        resetConfirming={false}
+        onScaleChange={noop}
+        onSpreadByChange={noop}
+        onCopy={noop}
+        onBackToSetup={noop}
+        onResetConfirmingChange={noop}
+        onReset={noop}
+        {...extra}
+      />
+    );
+  };
+
+  it("offers Share results only where the device can share, beside Copy results", async () => {
+    const onShare = vi.fn();
+    const { rerender } = render(view());
+    expect(screen.queryByRole("button", { name: "Share results" })).toBeNull();
+    rerender(view({ onShare }));
+    await userEvent.click(screen.getByRole("button", { name: "Share results" }));
+    expect(onShare).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Copy results" })).toBeInTheDocument();
+  });
+
+  it("puts the new-game note just above Start over, not above Back to Setup", () => {
+    render(view({ newGameNote: "A new game opens on this device." }));
+    const back = screen.getByRole("button", { name: "Back to Setup" });
+    const note = screen.getByText("A new game opens on this device.");
+    const startOver = screen.getByRole("button", { name: "Start over from scratch" });
+    expect(back.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(note.compareDocumentPosition(startOver) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

@@ -22,6 +22,8 @@ export type SettleScreenProps = {
   onScaleChange: (scale: boolean) => void;
   onSpreadByChange: (spreadBy: SpreadBy) => void;
   onCopy: () => void;
+  /** Present only where the device has a share menu: sends the results to another app. */
+  onShare?: () => void;
   onBackToSetup: () => void;
   onResetConfirmingChange: (open: boolean) => void;
   onReset: () => void;
@@ -53,6 +55,7 @@ export function SettleScreen({
   onScaleChange,
   onSpreadByChange,
   onCopy,
+  onShare,
   onBackToSetup,
   onResetConfirmingChange,
   onReset,
@@ -180,6 +183,11 @@ export function SettleScreen({
       </ul>
 
       <div className="mt-6 flex flex-col gap-2.5">
+        {onShare && (
+          <Button variant="secondary" onClick={onShare}>
+            Share results
+          </Button>
+        )}
         <Button variant="secondary" onClick={onCopy}>
           {copy.kind === "copied" ? "Copied" : "Copy results"}
         </Button>
@@ -195,11 +203,12 @@ export function SettleScreen({
             <Hint>Select the text above and copy it.</Hint>
           </>
         )}
-        {newGameNote && <Hint>{newGameNote}</Hint>}
         {/* "New game, same players" is the bottom bar's primary action (REQ-0002-12). */}
         <Button variant="secondary" onClick={onBackToSetup}>
           Back to Setup
         </Button>
+        {/* The note sits with the button it describes. */}
+        {newGameNote && allowReset && <Hint>{newGameNote}</Hint>}
         {allowReset && (
           <ConfirmInline
             triggerLabel="Start over from scratch"
