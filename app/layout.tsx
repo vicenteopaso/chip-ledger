@@ -5,7 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, THEME_COLORS } from "@/lib/seo";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { getSiteUrl } from "@/lib/infra/env";
 
@@ -23,6 +23,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: THEME_COLORS,
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

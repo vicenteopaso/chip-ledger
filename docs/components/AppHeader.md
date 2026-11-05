@@ -37,7 +37,17 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 
 ## Assets
 
-`app/icon.svg` (favicon) is the same chip in the dark theme's brass on a rounded square of the dark room color, so it reads on light and dark browser tabs; `app/apple-icon.png` (180 px home-screen icon) is the same drawing, rendered from that SVG. The icon's colors must match the dark tokens; a source check enforces it. Next.js links both from the page head (REQ-0005-11). Edit the SVG and `BrandMark` together.
+All drawn from the same chip, in the dark theme's brass (`#CDAA63`) on the dark room color (`#0D0E10`) (SPEC-0005 REQ-0005-11, -16, -19):
+
+| File                                 | Use                                           | Drawing                                       |
+| ------------------------------------ | --------------------------------------------- | --------------------------------------------- |
+| `app/icon.svg`                       | Favicon in current browsers, bookmarks        | Rounded square, chip at 80 %                  |
+| `app/favicon.ico`                    | Older browsers and tools that ask for it      | Same, 16, 32, and 48 px PNG frames            |
+| `app/apple-icon.png`                 | iPhone and iPad home screen, Safari bookmarks | Full square, chip centered (180 px)           |
+| `public/icons/icon-192.png`, `-512`  | Installed app (manifest, `purpose: any`)      | Rounded square, chip at 80 %                  |
+| `public/icons/icon-maskable-512.png` | Android adaptive icon (`purpose: maskable`)   | Full bleed, chip at 55 % (in the safe circle) |
+
+The PNG and ICO files are rendered from the SVG drawing; edit `BrandMark`, `app/icon.svg`, and these files together. A source check keeps the SVG's colors equal to the tokens and the PNGs at their sizes; Next.js links the favicons, the Apple icon, and the manifest from the page head. The link-preview image (`app/opengraph-image.tsx`) uses the same mark.
 
 ## Testing
 

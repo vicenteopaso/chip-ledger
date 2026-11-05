@@ -54,4 +54,19 @@ describe("source checks", () => {
     expect(icon.match(/<circle/g)).toHaveLength(3);
     expect(existsSync(join(root, "app/apple-icon.png"))).toBe(true);
   });
+
+  it("AC-0005-14, REQ-0005-16, -19: ships favicon.ico and the manifest's icons at their sizes", () => {
+    // PNG width and height are big-endian at bytes 16 and 20.
+    const pngSize = (path: string) => {
+      const png = readFileSync(join(root, path));
+      return [png.readUInt32BE(16), png.readUInt32BE(20)];
+    };
+    expect(pngSize("public/icons/icon-192.png")).toEqual([192, 192]);
+    expect(pngSize("public/icons/icon-512.png")).toEqual([512, 512]);
+    expect(pngSize("public/icons/icon-maskable-512.png")).toEqual([512, 512]);
+    // An ICO header: reserved 0, type 1 (icon), then the frame count; frames are 16, 32, 48 px.
+    const ico = readFileSync(join(root, "app/favicon.ico"));
+    expect([ico.readUInt16LE(0), ico.readUInt16LE(2), ico.readUInt16LE(4)]).toEqual([0, 1, 3]);
+    expect([0, 1, 2].map((i) => ico.readUInt8(6 + 16 * i))).toEqual([16, 32, 48]);
+  });
 });

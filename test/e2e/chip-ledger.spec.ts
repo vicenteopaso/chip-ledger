@@ -386,6 +386,46 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     expect(png.headers()["content-type"]).toBe("image/png");
   });
 
+  test("AC-0005-14 … -17: favicon.ico, an installable manifest, theme colors, and a link-preview image", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/");
+    const ico = page.locator('link[rel="icon"][type="image/x-icon"]');
+    await expect(ico).toHaveCount(1);
+    expect(
+      (await request.get((await ico.getAttribute("href")) ?? "")).headers()["content-type"],
+    ).toBe("image/x-icon");
+
+    const manifestHref = await page.locator('link[rel="manifest"]').getAttribute("href");
+    const manifest = await request.get(manifestHref ?? "");
+    expect(manifest.headers()["content-type"]).toContain("application/manifest+json");
+    const { icons } = (await manifest.json()) as { icons: { src: string }[] };
+    for (const icon of icons) {
+      expect((await request.get(icon.src)).headers()["content-type"]).toBe("image/png");
+    }
+
+    await expect(page.locator('meta[name="theme-color"]')).toHaveCount(2);
+    await expect(
+      page.locator('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]'),
+    ).toHaveAttribute("content", "#0d0e10");
+
+    await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute(
+      "content",
+      "1200",
+    );
+    await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
+      "content",
+      /^Chip Ledger: /,
+    );
+    // The image's address uses the configured site URL; fetch the same path from this server.
+    const og = new URL(
+      (await page.locator('meta[property="og:image"]').getAttribute("content")) ?? "",
+    );
+    const image = await request.get(og.pathname + og.search);
+    expect(image.headers()["content-type"]).toBe("image/png");
+  });
+
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Chip Ledger");

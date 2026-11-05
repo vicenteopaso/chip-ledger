@@ -66,6 +66,9 @@ Values from the canvas, corrected where the token test needs it. As built: the l
 - **New:**
   - `app/components/Avatar.tsx` (decorative initial; hidden at 320 px when `optional`)
   - `initialOf` in `lib/game.ts`, `rankByNet` in `lib/settlement.ts`, `withoutCurrency` in `lib/money.ts` (existing modules)
+  - `app/manifest.ts` and `webManifest()`, `ROOM_COLORS`, `THEME_COLORS` in `lib/seo.ts` (REQ-0005-16, -17)
+  - `app/opengraph-image.tsx`: built at build time by `next/og`, which ships with Next.js and uses Geist (REQ-0005-18)
+  - `app/favicon.ico` and `public/icons/` (192, 512, maskable 512), rendered once from the chip drawing (REQ-0005-16, -19)
 - **Removed:** none.
 - **Data model and contracts:** unchanged.
 

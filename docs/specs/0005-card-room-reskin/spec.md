@@ -65,6 +65,15 @@ The design direction "B · Card Room" was chosen by the owner on 2026-11-05 from
 - REQ-0005-14: Buttons MUST be rounded rectangles (`--radius-lg`, 14 px) instead of pills. Primary is brass-filled; secondary is the panel color with the panel border, as in the canvas (fields keep the 3:1 control border, so a button never looks like a field; a button is identified by its label); danger keeps a soft danger tint. Notices keep REQ-0002-31 (tinted panel, 4 px colored rule on the left). (Changes the button shapes of REQ-0002-31.)
 - REQ-0005-15: The Table −/+ keys MUST be 44 px circles: − outlined in the control border, + brass-filled. (Today both are 40 px circles in the soft accent tint.)
 
+### 4.4 Bookmarks, installing, and link previews (owner approval 2026-11-05)
+
+Added after review: before this spec the app had only an SVG favicon and an Apple home-screen icon.
+
+- REQ-0005-16: The app MUST serve a web app manifest linked from every page, with the name "Chip Ledger", `start_url` "/", `display` "standalone", the dark room color as background and theme color, and 192 px and 512 px icons plus a 512 px maskable icon, all drawn from the brass chip mark. The manifest MUST NOT claim offline support (that is a separate roadmap item).
+- REQ-0005-17: Every page MUST set a theme color per system theme: the light page color under `prefers-color-scheme: light` and the dark one under `dark`, equal to `--color-bg` in each theme.
+- REQ-0005-18: Every page MUST have a 1200 × 630 Open Graph image with alt text, used as a large card for Twitter/X too. It MUST show the brand, the app's description, and a sample pot and payments in the Card Room look, and MUST NOT show data from a real game (a shared game's link previews the same image).
+- REQ-0005-19: The app MUST serve `/favicon.ico` with 16, 32, and 48 px frames of the favicon drawing, for browsers and tools that ask for it.
+
 ## 5. Acceptance criteria
 
 - AC-0005-01 (REQ-0005-01, -04): The token test reports every listed text pair ≥ 4.5:1 and every control, state, focus, and step-bar color ≥ 3:1 against its background in both themes.
@@ -79,6 +88,10 @@ The design direction "B · Card Room" was chosen by the owner on 2026-11-05 from
 - AC-0005-10 (REQ-0005-12): After scrolling past 48 px, each step button's height is ≥ 44 px.
 - AC-0005-11 (REQ-0005-13): Given Table, the navigation is a list of four buttons named "1 Setup (done)", "2 Table", "3 Cash out", "4 Settle"; button 2 has `aria-current="step"`; activating button 4 opens Settle. The forced-colors snapshot shows the three states.
 - AC-0005-12 (REQ-0005-14, -15): Component tests find `rounded-lg` and no `rounded-full` on every button variant, `border-l-4` on notices, and `size-11 rounded-full` on the Table −/+ keys.
+- AC-0005-14 (REQ-0005-16, -19): The page links `/manifest.webmanifest` (`application/manifest+json`); every icon it lists is served as a PNG of its stated size; `/favicon.ico` is served as `image/x-icon` with three frames.
+- AC-0005-15 (REQ-0005-17): The page has two `theme-color` metas, `#f3f1ec` for light and `#0d0e10` for dark, and a unit test finds them equal to the tokens.
+- AC-0005-16 (REQ-0005-18): `og:image` is a 1200 × 630 PNG with `og:image:alt` starting "Chip Ledger: ", and `twitter:card` is `summary_large_image`.
+- AC-0005-17 (REQ-0005-18): The image's sample names and amounts are fixed in code; `/g/<id>` pages use the same image.
 - AC-0005-13: `pnpm test:a11y` reports no axe violations in either theme, and every visual baseline is refreshed in the same PR.
 
 ## 6. Cross-cutting concerns
@@ -89,7 +102,7 @@ The design direction "B · Card Room" was chosen by the owner on 2026-11-05 from
 - **Performance:** Geist and Geist Mono replace Bricolage Grotesque: two font families instead of one, both subset to Latin by `next/font`. Lighthouse budgets in `sdd.yaml` (performance ≥ 90) must still pass.
 - **Error states:** The error and not-found pages take the new tokens only; their content does not change.
 - **i18n / localization:** N/A: not adopted.
-- **SEO:** N/A: metadata unchanged. The icons change (REQ-0005-11).
+- **SEO:** The icons change (REQ-0005-11). Pages gain a manifest, theme colors, and an Open Graph image shown as a large card (REQ-0005-16 … -19); title, description, canonical, and robots are unchanged. The preview image never shows real game data.
 
 ## 7. Open questions
 

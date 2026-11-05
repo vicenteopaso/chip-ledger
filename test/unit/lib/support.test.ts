@@ -4,7 +4,18 @@ import { problemBody } from "@/lib/api-problem";
 import { logError, logWarning } from "@/lib/error-logging";
 import { clientKey, isSameOrigin } from "@/lib/request-guards";
 import { contentSecurityPolicy, SECURITY_HEADERS } from "@/lib/security-headers";
-import { pageMetadata, robotsRules, SITE, sitemapEntries } from "@/lib/seo";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import {
+  pageMetadata,
+  ROOM_COLORS,
+  robotsRules,
+  SITE,
+  sitemapEntries,
+  THEME_COLORS,
+  webManifest,
+} from "@/lib/seo";
 
 describe("problemBody", () => {
   it("includes the request id only when there is one", () => {
@@ -96,5 +107,41 @@ describe("seo", () => {
       rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/g/"] }],
       sitemap: "https://chips.example/sitemap.xml",
     });
+  });
+});
+
+describe("installable app and link previews (SPEC-0005)", () => {
+  const tokens = readFileSync(join(process.cwd(), "styles/tokens.css"), "utf8");
+  const bg = (block: string) => new RegExp(`--color-bg: (#[0-9a-f]{6});`).exec(block)?.[1];
+
+  it("REQ-0005-17: the theme colors are the page color of each theme", () => {
+    expect(ROOM_COLORS.light).toBe(bg(tokens.slice(tokens.indexOf("@theme"))));
+    expect(ROOM_COLORS.dark).toBe(bg(tokens.slice(tokens.indexOf(':root[data-theme="dark"]'))));
+    expect(THEME_COLORS).toEqual([
+      { media: "(prefers-color-scheme: light)", color: ROOM_COLORS.light },
+      { media: "(prefers-color-scheme: dark)", color: ROOM_COLORS.dark },
+    ]);
+  });
+
+  it("AC-0005-14, REQ-0005-16: the manifest names the app, opens it standalone, and lists its icons", () => {
+    const manifest = webManifest();
+    expect(manifest).toMatchObject({
+      name: "Chip Ledger",
+      short_name: "Chip Ledger",
+      start_url: "/",
+      display: "standalone",
+      background_color: ROOM_COLORS.dark,
+      theme_color: ROOM_COLORS.dark,
+    });
+    expect(manifest.icons.map((icon) => [icon.src, icon.sizes, icon.purpose])).toEqual([
+      ["/icons/icon-192.png", "192x192", "any"],
+      ["/icons/icon-512.png", "512x512", "any"],
+      ["/icons/icon-maskable-512.png", "512x512", "maskable"],
+    ]);
+  });
+
+  it("REQ-0005-18: links use the large preview card", () => {
+    const meta = pageMetadata({ siteUrl: "https://chips.example", path: "/" });
+    expect(meta.twitter.card).toBe("summary_large_image");
   });
 });
