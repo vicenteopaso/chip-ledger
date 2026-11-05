@@ -12,7 +12,7 @@ export type AppHeaderProps = {
 };
 
 /**
- * The page's banner on every step: the chip mark and "Chip Ledger", then the steps. It sits in
+ * The page's banner on every step: the brass chip mark and "Chip Ledger", then the steps. It sits in
  * the same place on every step, so step changes don't shift the content (REQ-0002-28). It stays at
  * the top of the screen while the page scrolls, and shrinks once the page is scrolled so the brand
  * stays in view and the content keeps the room; the action (Share) is left out while it is small.
@@ -40,9 +40,9 @@ export function AppHeader({ children, action }: AppHeaderProps) {
     >
       <div className="app-header-inner mx-auto max-w-app px-4 pt-5 pb-2">
         {/* Sized to balance the step title below it (REQ-0002-28). */}
-        <div className="app-header-brand mb-6 flex items-center justify-between gap-3">
-          <p className="app-header-title flex items-center gap-3 text-4xl leading-display font-extrabold tracking-display">
-            <BrandMark className="app-header-mark size-12 flex-none" />
+        <div className="app-header-brand mb-5 flex items-center justify-between gap-3">
+          <p className="app-header-title flex items-center gap-2.5 text-2xl leading-display font-semibold tracking-display">
+            <BrandMark className="app-header-mark size-9 flex-none" />
             Chip Ledger
           </p>
           {!compact && action}

@@ -37,3 +37,35 @@ export function ListRow({
     </Tag>
   );
 }
+
+/**
+ * A panel of list rows (Table players, Settle results): one surface with dividers between the
+ * rows and none under the last one.
+ */
+export function ListPanel({
+  as: Tag = "div",
+  className = "",
+  children,
+  ...aria
+}: SurfaceProps & { as?: "div" | "ul" }) {
+  return (
+    <Tag
+      className={`rounded-xl border border-border bg-surface px-4 *:last:border-b-0 ${className}`}
+      {...aria}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+/**
+ * The felt panel behind a screen's most important number, at most once per screen (REQ-0005-03).
+ * The same deep green in both themes, with its own text colors.
+ */
+export function FeltPanel({ className = "", children, ...aria }: SurfaceProps) {
+  return (
+    <section className={`rounded-2xl bg-felt px-5 py-4.5 text-felt-ink ${className}`} {...aria}>
+      {children}
+    </section>
+  );
+}

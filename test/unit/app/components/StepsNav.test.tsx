@@ -20,36 +20,41 @@ describe("StepsNav", () => {
     expect(onSelect).toHaveBeenCalledWith("settle");
   });
 
-  it("AC-0002-04: marks earlier steps done in text, not only by color", () => {
+  it("AC-0002-04, REQ-0005-13: marks earlier steps done in text, not only by color", () => {
     render(<StepsNav current="cashout" onSelect={vi.fn()} />);
-    const done = ["1 Setup (done)", "2 Table (done)"];
-    for (const name of done) {
-      // The check mark replaces the number, so 15 px labels fit at 320 px (REQ-0002-16).
+    for (const name of ["1 Setup (done)", "2 Table (done)"]) {
       const step = screen.getByRole("button", { name });
+      // The visible text is the name alone, with a check mark beside it.
       expect(step).toHaveTextContent(/^Setup$|^Table$/);
-      expect(step.querySelector(".step-dot svg")).not.toBeNull();
+      expect(step.querySelector(".step-label svg")).not.toBeNull();
     }
-    expect(screen.getByRole("button", { name: "3 Cash out" })).toHaveTextContent(/^3 Cash out$/);
+    // The number is in the name, not on screen.
+    expect(screen.getByRole("button", { name: "3 Cash out" })).toHaveTextContent(/^Cash out$/);
     expect(screen.getByRole("button", { name: "4 Settle" })).not.toHaveTextContent("done");
+    expect(screen.getByRole("button", { name: "4 Settle" }).querySelector("svg")).toBeNull();
   });
 
-  it("AC-0002-27: is an ordered list of circles on a line that fills up to the current step", () => {
+  it("AC-0005-11, REQ-0005-13: is an ordered list of bars that fill up to the current step", () => {
     const { container } = render(<StepsNav current="table" onSelect={vi.fn()} />);
     const items = within(screen.getByRole("list")).getAllByRole("listitem");
     expect(items).toHaveLength(4);
-    const dots = [...container.querySelectorAll(".step-dot")];
-    expect(dots.map((dot) => dot.textContent)).toEqual(["", "2", "3", "4"]);
-    expect(dots[0]?.querySelector("svg")).not.toBeNull();
-    // The current circle has a halo; later ones are outlined, not filled.
-    expect(dots[1]).toHaveClass("bg-accent", "ring-4");
-    expect(dots[2]).toHaveClass("bg-surface", "border-border-control");
-    // One track, and a fill up to the current step (the second of four).
-    const lines = [...container.querySelectorAll(".step-line")];
-    expect(lines).toHaveLength(2);
-    expect(container.querySelector(".step-progress")).toHaveAttribute("data-step", "1");
-    expect(container.querySelector(".step-progress")).toHaveClass("bg-accent");
-    for (const decoration of [dots[0], ...lines]) {
-      expect(decoration).toHaveAttribute("aria-hidden", "true");
-    }
+    expect(
+      within(screen.getByRole("list"))
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["1 Setup (done)", "2 Table", "3 Cash out", "4 Settle"]);
+    const bars = [...container.querySelectorAll(".step-bar")];
+    expect(bars.map((bar) => bar.getAttribute("data-state"))).toEqual([
+      "done",
+      "current",
+      "upcoming",
+      "upcoming",
+    ]);
+    // Brass up to the current step, which is thicker; the control border after it.
+    expect(bars[0]).toHaveClass("bg-accent", "h-0.75");
+    expect(bars[1]).toHaveClass("bg-accent", "h-1");
+    expect(bars[2]).toHaveClass("bg-border-control");
+    for (const bar of bars) expect(bar).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByRole("button", { name: "2 Table" })).toHaveClass("font-semibold");
   });
 });

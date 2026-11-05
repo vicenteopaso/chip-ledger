@@ -14,6 +14,7 @@ import {
   parseMoney,
   toMinor,
   typicalBuyIn,
+  withoutCurrency,
 } from "@/lib/money";
 
 describe("moneyFormatter", () => {
@@ -93,5 +94,14 @@ describe("typing numbers only", () => {
   it("moneyText keeps thousands separators where the currency has no decimals (REQ-0001-30)", () => {
     expect(moneyText("10.000", "CLP")).toBe("10.000");
     expect(moneyText("1,0a00", "CLP")).toBe("1,000");
+  });
+});
+
+describe("withoutCurrency", () => {
+  it("AC-0005-08, REQ-0005-10: keeps the digits and separators of any locale", () => {
+    expect(withoutCurrency(moneyFormatter("EUR", "en-US")(20))).toBe("20.00");
+    expect(withoutCurrency(moneyFormatter("EUR", "de-DE")(22.8))).toBe("22,80");
+    expect(withoutCurrency(moneyFormatter("USD", "en-US")(-10))).toBe("-10.00");
+    expect(withoutCurrency(moneyFormatter("CLP", "es-CL")(10000))).toBe("10.000");
   });
 });

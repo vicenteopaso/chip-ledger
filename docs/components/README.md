@@ -17,7 +17,8 @@ One-off page-private components do not need a doc.
 | `AppHeader`, `BrandMark`                                               | Page header with the brand, on every step                     | [AppHeader](./AppHeader.md)               |
 | `Button`                                                               | Native button with primary/secondary/danger/link variants     | [Button](./Button.md)                     |
 | `ConfirmInline`                                                        | Destructive action confirmed in place                         | [ConfirmInline](./ConfirmInline.md)       |
-| `Card`, `ListRow`                                                      | The two surfaces: grouped content and list rows               | [Surfaces](./Surfaces.md)                 |
+| `Card`, `ListRow`, `ListPanel`, `FeltPanel`                            | Surfaces: grouped content, list rows, the pot on felt         | [Surfaces](./Surfaces.md)                 |
+| `Avatar`                                                               | Decorative initial beside a player's name                     | [Avatar](./Avatar.md)                     |
 | `Chip`                                                                 | Decorative chip artwork per color                             | [Chip](./Chip.md)                         |
 | `DraftInput`                                                           | Text input bound to a parsed value                            | [DraftInput](./DraftInput.md)             |
 | `LiveAnnouncer`                                                        | The page's single polite live region                          | [LiveAnnouncer](./LiveAnnouncer.md)       |

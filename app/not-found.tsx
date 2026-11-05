@@ -10,7 +10,7 @@ export default function NotFound() {
     <main id="main" className="mx-auto max-w-app px-4 pt-3.5">
       <PageTitle>Page not found</PageTitle>
       <p className="mb-6 text-text-muted">
-        <Link href="/" className="font-semibold text-accent underline">
+        <Link href="/" className="font-semibold text-accent-text underline">
           Go to Chip Ledger
         </Link>
       </p>

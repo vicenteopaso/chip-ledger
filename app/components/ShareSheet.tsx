@@ -163,7 +163,7 @@ function EditCodeBlock({ state, onShow }: { state: EditCodeState; onShow: () => 
       </p>
       {state.kind === "shown" && (
         <p
-          className="mb-2 text-4xl font-extrabold tracking-widest"
+          className="mb-2 text-4xl font-semibold tracking-widest"
           aria-label={`Edit code: ${spaced(state.code)}`}
         >
           {state.code}

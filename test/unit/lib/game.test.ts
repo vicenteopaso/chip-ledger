@@ -8,6 +8,7 @@ import {
   countedChips,
   countedValue,
   createGame,
+  initialOf,
   GameStateSchema,
   issuedChips,
   playerName,
@@ -163,5 +164,18 @@ describe("selectors", () => {
     expect(
       canStartGame(gameWith({ chips: [{ id: "red", color: "red", count: 0, value: 1 }] })),
     ).toBe(false);
+  });
+});
+
+describe("initialOf", () => {
+  it("AC-0005-04, REQ-0005-06: is the first letter, upper-cased", () => {
+    expect(initialOf("ana")).toBe("A");
+    expect(initialOf("  Alex ")).toBe("A");
+    expect(initialOf("élodie")).toBe("É");
+  });
+
+  it("REQ-0005-06: keeps a whole character and is empty for a blank name", () => {
+    expect(initialOf("🂡 Ace")).toBe("🂡");
+    expect(initialOf("   ")).toBe("");
   });
 });

@@ -39,16 +39,19 @@ describe("source checks", () => {
     expect(offending).toEqual([]);
   });
 
-  it("AC-0002-29: ships a favicon and a home-screen icon drawn from the brand mark", () => {
+  it("AC-0005-09, REQ-0005-11: ships a favicon and a home-screen icon drawn from the brass chip mark", () => {
     const icon = readFileSync(join(root, "app/icon.svg"), "utf8");
     expect(icon).toContain('viewBox="0 0 32 32"');
-    // The header mark's chip colors, taken from styles/tokens.css so they cannot drift.
+    // The dark theme's brass and room colors, taken from styles/tokens.css so they cannot drift.
     const tokens = readFileSync(join(root, "styles/tokens.css"), "utf8");
-    for (const chip of ["blue", "green", "red"]) {
-      const value = new RegExp(`--color-chip-${chip}: (#[0-9a-f]{6});`).exec(tokens)?.[1];
+    const dark = tokens.slice(tokens.indexOf(':root[data-theme="dark"]'));
+    for (const token of ["accent", "bg"]) {
+      const value = new RegExp(`--color-${token}: (#[0-9a-f]{6});`).exec(dark)?.[1];
       expect(value).toBeDefined();
       expect(icon).toContain(value);
     }
+    // One chip: one rim, one ring of edge spots, one center.
+    expect(icon.match(/<circle/g)).toHaveLength(3);
     expect(existsSync(join(root, "app/apple-icon.png"))).toBe(true);
   });
 });

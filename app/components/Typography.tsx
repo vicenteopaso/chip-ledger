@@ -17,7 +17,7 @@ export function PageTitle({ children }: TextProps) {
     <h1
       ref={ref}
       tabIndex={-1}
-      className="mt-7 mb-2 text-5xl leading-display font-extrabold tracking-display"
+      className="mt-7 mb-2 text-5xl leading-display font-semibold tracking-display"
     >
       {children}
     </h1>

@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
     <html lang="en">
       <body>
         <main className="mx-auto max-w-app px-4 pt-3.5">
-          <h1 className="mt-2.5 mb-1.5 text-5xl font-extrabold">Something went wrong</h1>
+          <h1 className="mt-2.5 mb-1.5 text-5xl font-semibold">Something went wrong</h1>
           <p className="mb-6 text-text-muted">Try again in a moment.</p>
           <button
             type="button"

@@ -121,22 +121,6 @@
       );
   }
 
-  /* Setup chip row: swatch, color, count, ×, value, remove. */
-  /* The steps' progress line: from the first circle's center (2rem in from both ends) to the
-     current one's, in thirds for the four steps (REQ-0002-27). */
-  .step-progress {
-    width: 0;
-  }
-  .step-progress[data-step="1"] {
-    width: calc((100% - 2rem) / 3);
-  }
-  .step-progress[data-step="2"] {
-    width: calc((100% - 2rem) * 2 / 3);
-  }
-  .step-progress[data-step="3"] {
-    width: calc(100% - 2rem);
-  }
-
   /* Swatch, color, count, ×, value, remove. The color takes what is left. */
   .chip-row {
     grid-template-columns:
@@ -162,29 +146,30 @@
   }
 }
 
+/* At 320 px a decorative initial gives its room to the name and amount beside it, which say the
+   same thing (REQ-0005-06). Unlayered, so it beats the avatar's display utility. */
+@media (max-width: 22rem) {
+  .avatar-optional {
+    display: none;
+  }
+}
+
 /* Windows High Contrast and other forced-colors modes (REQ-0002-09). System colors replace the
    theme, so state shown by border color needs system colors too, and chip artwork keeps its own
    colors because it is identified by them next to its text label. */
 @media (forced-colors: active) {
-  /* Step circles: outlined when upcoming, filled when done, Highlight when current. Opted out
-     of forcing, which would put a Canvas backplate behind the number; these are system colors. */
-  .step-dot {
+  /* Step bars: text color when done, Highlight when current, GrayText when later. Opted out of
+     forcing so the bars keep these system colors; the check mark and "(done)" also mark done
+     steps (REQ-0005-13). */
+  .step-bar {
     forced-color-adjust: none;
-    border-color: CanvasText;
-    background: Canvas;
-    color: CanvasText;
+    background: GrayText;
   }
-  .step-dot[data-state="done"] {
+  .step-bar[data-state="done"] {
     background: CanvasText;
-    color: Canvas;
   }
-  .step-dot[data-state="current"] {
-    border-color: Highlight;
+  .step-bar[data-state="current"] {
     background: Highlight;
-    color: HighlightText;
-  }
-  .step-line {
-    background: CanvasText;
   }
   .chip {
     forced-color-adjust: none;
@@ -239,8 +224,8 @@
 .app-header[data-compact="true"] .app-header-brand {
   margin-bottom: calc(var(--spacing) * 1);
 }
-/* While small, the steps keep their numbered circles and line and lose the written names, which
-   stay for screen readers: the circles are what saves the way, the words cost the height. */
+/* While small, the steps keep their bars and lose the written names, which stay for screen
+   readers: the bars show the way, the words cost the height (REQ-0005-13). */
 .app-header[data-compact="true"] .step-label {
   position: absolute;
   width: 1px;
@@ -249,16 +234,17 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+/* Still a 44 px target while small (REQ-0005-12): the bar sits at the top of the button. */
 .app-header[data-compact="true"] .app-header-inner nav button {
-  min-height: calc(var(--spacing) * 10);
-  padding-bottom: calc(var(--spacing) * 1);
+  min-height: calc(var(--spacing) * 11);
+  padding-bottom: 0;
 }
 .app-header[data-compact="true"] .app-header-title {
-  font-size: var(--text-2xl);
+  font-size: var(--text-base);
 }
 .app-header[data-compact="true"] .app-header-mark {
-  width: calc(var(--spacing) * 8);
-  height: calc(var(--spacing) * 8);
+  width: calc(var(--spacing) * 6);
+  height: calc(var(--spacing) * 6);
 }
 @media (prefers-reduced-motion: reduce) {
   .action-bar,

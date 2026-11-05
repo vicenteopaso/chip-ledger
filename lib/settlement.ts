@@ -59,6 +59,14 @@ function matchPayments(debtors: Balance[], creditors: Balance[]): Payment[] {
 const byAmountDescending = (a: Balance, b: Balance) => b.minor - a.minor;
 
 /**
+ * Results ranked by net, biggest winner first; equal nets keep seating order (REQ-0005-07).
+ * Settle and the copied results both use this order.
+ */
+export function rankByNet(rows: readonly SettlementRow[]): SettlementRow[] {
+  return rows.toSorted((a, b) => b.netMinor - a.netMinor);
+}
+
+/**
  * Nets, spreading, rounding residue, and payments for the Settle step (REQ-0001-18 … -20).
  * Spreading shares the pot difference so the payments balance: by chips scales every cash-out
  * by pot ÷ counted, so bigger stacks take a bigger share; equally adds the same amount to every

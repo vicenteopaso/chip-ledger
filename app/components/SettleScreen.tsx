@@ -1,12 +1,13 @@
+import { Avatar } from "@/app/components/Avatar";
 import { Button } from "@/app/components/Button";
 import { ConfirmInline } from "@/app/components/ConfirmInline";
 import { Notice } from "@/app/components/Notice";
 import { useReadOnly } from "@/app/components/ReadOnly";
-import { Card, ListRow } from "@/app/components/Surfaces";
+import { Card, ListPanel, ListRow } from "@/app/components/Surfaces";
 import { Hint, PageTitle, SectionTitle } from "@/app/components/Typography";
 import type { GameState, SpreadBy } from "@/lib/game";
-import { type Currency, fromMinor, type MoneyFormatter } from "@/lib/money";
-import type { Settlement } from "@/lib/settlement";
+import { type Currency, fromMinor, type MoneyFormatter, withoutCurrency } from "@/lib/money";
+import { rankByNet, type Settlement } from "@/lib/settlement";
 import { hasPotMismatch } from "@/lib/summaries";
 
 /** `copied` after a successful copy; `fallback` holds text to show when the clipboard failed. */
@@ -45,6 +46,54 @@ function netTone(minor: number): string {
   return "";
 }
 
+/**
+ * A player's net as a bar from the middle: right in the gain color, left in the loss color, as
+ * long as the net is against the largest one (REQ-0005-08). Decorative: the net is in the text.
+ */
+function NetBar({ netMinor, largestMinor }: { netMinor: number; largestMinor: number }) {
+  const length = largestMinor === 0 ? 0 : (Math.abs(netMinor) / largestMinor) * 100;
+  return (
+    <svg
+      className="net-bar col-span-2 mt-2 block h-1.5 w-full"
+      viewBox="0 0 200 6"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="99.5" y="0" width="1" height="6" className="fill-border-control" />
+      {netMinor !== 0 && (
+        <rect
+          data-net={netMinor > 0 ? "gain" : "loss"}
+          x={netMinor > 0 ? 100 : 100 - length}
+          y="1"
+          width={length}
+          height="4"
+          rx="2"
+          className={netMinor > 0 ? "fill-success" : "fill-danger"}
+        />
+      )}
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      className="size-4 flex-none text-success"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m3.5 8.5 3 3 6-7" />
+    </svg>
+  );
+}
+
 /** Step 4: payments, results, and end-of-game actions (REQ-0001-18 … -24). */
 export function SettleScreen({
   game,
@@ -81,6 +130,12 @@ export function SettleScreen({
     },
   ];
   const chosen = spreadOptions.find((option) => option.value === game.spreadBy);
+  const ranked = rankByNet(settlement.rows);
+  const largestMinor = Math.max(0, ...settlement.rows.map((row) => Math.abs(row.netMinor)));
+  const cashedOut = settlement.rows.reduce((sum, row) => sum + row.cashedOut, 0);
+  // The cash-outs used for the payments add up to the money in (REQ-0005-09).
+  const balanced =
+    settlement.rows.length > 0 && settlement.rows.reduce((sum, row) => sum + row.netMinor, 0) === 0;
   return (
     <>
       <PageTitle>Settle up</PageTitle>
@@ -147,11 +202,19 @@ export function SettleScreen({
               key={`${payment.from}-${payment.to}-${String(index)}`}
               className="my-2.5 flex items-center gap-3"
             >
-              <div className="flex-1 text-lg">
-                <b>{payment.from}</b> <span className="text-text-muted">pays</span>{" "}
-                <b>{payment.to}</b>
+              {/* The payer, then the payee in brass, overlapping (REQ-0005-06). */}
+              <span aria-hidden="true" className="flex flex-none">
+                <Avatar name={payment.from} />
+                <span className="-ml-2 rounded-full ring-2 ring-surface">
+                  <Avatar name={payment.to} tone="brass" />
+                </span>
+              </span>
+              <div className="min-w-0 flex-1 text-lg">
+                <b className="font-semibold">{payment.from}</b>{" "}
+                <span className="text-text-muted">pays</span>{" "}
+                <b className="font-semibold">{payment.to}</b>
               </div>
-              <div className="text-4xl font-extrabold">
+              <div className="font-mono text-2xl font-semibold">
                 {money(fromMinor(payment.minor, game.currency))}
               </div>
             </Card>
@@ -167,20 +230,33 @@ export function SettleScreen({
       )}
 
       <SectionTitle>Results</SectionTitle>
-      <ul>
-        {settlement.rows.map((row) => (
+      {/* Biggest winner first; ties keep seating order (REQ-0005-07). */}
+      <ListPanel as="ul">
+        {ranked.map((row) => (
           <ListRow as="li" key={row.playerId} className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-            <b className="text-lg">{row.name}</b>
-            <span className={`text-right text-2xl font-extrabold ${netTone(row.netMinor)}`}>
+            <b className="truncate text-lg font-semibold">{row.name}</b>
+            <span className={`text-right font-mono text-xl font-semibold ${netTone(row.netMinor)}`}>
               {signedMoney(money, row.netMinor, game.currency)}
             </span>
-            <small className="text-md text-text-muted">{`Put in ${money(row.putIn)}`}</small>
-            <small className="text-right text-md text-text-muted">
-              {`Cashed out ${money(row.cashedOut)}`}
+            {/* Short on screen, in full words for assistive technology (REQ-0005-10). */}
+            <small className="col-span-2 font-mono text-md text-text-muted">
+              <span aria-hidden="true">
+                {`In ${withoutCurrency(money(row.putIn))} · Out ${withoutCurrency(money(row.cashedOut))}`}
+              </span>
+              <span className="sr-only">
+                {`Put in ${money(row.putIn)}, cashed out ${money(row.cashedOut)}`}
+              </span>
             </small>
+            <NetBar netMinor={row.netMinor} largestMinor={largestMinor} />
           </ListRow>
         ))}
-      </ul>
+      </ListPanel>
+      {balanced && (
+        <p className="mt-3 flex items-center gap-2 text-md text-text-muted">
+          <CheckIcon />
+          {`${money(settlement.pot)} in, ${money(cashedOut)} out. Balanced.`}
+        </p>
+      )}
 
       <div className="mt-6 flex flex-col gap-2.5">
         {onShare && (

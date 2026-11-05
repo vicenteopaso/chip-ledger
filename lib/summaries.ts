@@ -11,7 +11,7 @@ import {
   stackValue,
 } from "@/lib/game";
 import { fromMinor, type MoneyFormatter } from "@/lib/money";
-import type { Settlement } from "@/lib/settlement";
+import { rankByNet, type Settlement } from "@/lib/settlement";
 
 /**
  * `ok` renders as a confirmation line, `warn` as a highlighted note. `code` names the message
@@ -117,7 +117,7 @@ export function resultsText(settlement: Settlement, money: MoneyFormatter, date:
         ]
       : []),
     "",
-    ...settlement.rows.map((row) => `${row.name}: ${signed(row.netMinor)}`),
+    ...rankByNet(settlement.rows).map((row) => `${row.name}: ${signed(row.netMinor)}`),
     "",
     "Payments:",
     ...payments,

@@ -178,10 +178,11 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await page.getByRole("button", { name: "Settle up" }).click();
     await expect(page.getByRole("main").getByText("Everyone broke even.")).toBeHidden();
     const payments = page.getByRole("listitem").filter({ hasText: "pays" });
+    // Each payment starts with the two players' decorative initials (REQ-0005-06).
     await expect(payments).toHaveText([
-      "Ana pays Dee$10.00",
-      "Cy pays Dee$7.50",
-      "Ben pays Dee$5.00",
+      /Ana pays Dee\$10\.00$/,
+      /Cy pays Dee\$7\.50$/,
+      /Ben pays Dee\$5\.00$/,
     ]);
   });
 
@@ -307,7 +308,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     const html = page.locator("html");
     const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
-    expect(await bg()).toBe("rgb(233, 239, 234)");
+    expect(await bg()).toBe("rgb(243, 241, 236)");
 
     await page.getByRole("button", { name: "Theme: System" }).click();
     await expect(page.getByRole("button", { name: "Theme: Light" })).toBeVisible();
@@ -316,18 +317,18 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await page.getByRole("button", { name: "Theme: Light" }).click();
     await expect(page.getByRole("button", { name: "Theme: Dark" })).toBeVisible();
     await expect(html).toHaveAttribute("data-theme", "dark");
-    expect(await bg()).toBe("rgb(11, 38, 29)");
+    expect(await bg()).toBe("rgb(13, 14, 16)");
 
     await page.reload();
     // Already dark when the page first renders, with no light flash, and the button agrees.
     await expect(html).toHaveAttribute("data-theme", "dark");
-    expect(await bg()).toBe("rgb(11, 38, 29)");
+    expect(await bg()).toBe("rgb(13, 14, 16)");
     await expect(page.getByRole("button", { name: "Theme: Dark" })).toBeVisible();
 
     await page.getByRole("button", { name: "Theme: Dark" }).click();
     await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
     await expect(html).not.toHaveAttribute("data-theme", /.+/);
-    expect(await bg()).toBe("rgb(233, 239, 234)");
+    expect(await bg()).toBe("rgb(243, 241, 236)");
 
     await page.evaluate(() => {
       localStorage.setItem("chip-ledger.theme", "nonsense");

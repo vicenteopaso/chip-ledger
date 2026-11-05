@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GameState } from "@/lib/game";
-import { settle } from "@/lib/settlement";
+import { rankByNet, settle } from "@/lib/settlement";
 import { defaultGame } from "@/test/unit/fixtures";
 
 /** Default chips, so one unit of face value is worth $1. `blue` chips are worth $1 each. */
@@ -135,5 +135,27 @@ describe("settle in whole units", () => {
       result.rows.filter((r) => r.netMinor < 0).reduce((sum, r) => sum - r.netMinor, 0),
     );
     expect(result.payments.every((p) => Number.isInteger(p.minor) && p.minor > 0)).toBe(true);
+  });
+});
+
+describe("rankByNet", () => {
+  const row = (name: string, netMinor: number) => ({
+    playerId: name,
+    name,
+    putIn: 20,
+    cashedOut: 20 + netMinor / 100,
+    netMinor,
+  });
+
+  it("AC-0005-05, REQ-0005-07: ranks the biggest winner first", () => {
+    const rows = [row("Ana", 80), row("Ben", -280), row("Carla", 280), row("Dev", -80)];
+    expect(rankByNet(rows).map((r) => r.name)).toEqual(["Carla", "Ana", "Dev", "Ben"]);
+    // The settlement's own order (seating) is left alone.
+    expect(rows.map((r) => r.name)).toEqual(["Ana", "Ben", "Carla", "Dev"]);
+  });
+
+  it("AC-0005-05, REQ-0005-07: equal nets keep seating order", () => {
+    const rows = [row("Ana", 0), row("Ben", 100), row("Cy", 100), row("Dee", -200)];
+    expect(rankByNet(rows).map((r) => r.name)).toEqual(["Ben", "Cy", "Ana", "Dee"]);
   });
 });
