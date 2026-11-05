@@ -38,6 +38,8 @@ Generate from the single `INDEXABLE_PATHS` source. `robots` references the sitem
 
 Generate dynamically per page where it adds value, with legible text and safe margins. Provide alt text. Cache-bust through a versioned URL when the design changes.
 
+Chip Ledger has one image for every page, `app/opengraph-image.tsx` (1200 × 630, built at build time): the brand, the description, and a sample pot and payments. It never shows real game data, so shared-game links (`/g/…`) preview the same image. Twitter/X uses it as a large card (SPEC-0005 REQ-0005-18). The manifest (`app/manifest.ts`) and theme colors come from `lib/seo.ts`.
+
 ### 404 and error pages
 
 A friendly 404 that returns status 404, offers navigation, and is itself `noindex`.

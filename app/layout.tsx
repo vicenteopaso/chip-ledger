@@ -1,19 +1,20 @@
 import "@/app/globals.css";
 
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, THEME_COLORS } from "@/lib/seo";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { getSiteUrl } from "@/lib/infra/env";
 
-const bricolage = Bricolage_Grotesque({
+// Self-hosted at build time, so the CSP keeps font-src 'self' (REQ-0005-02).
+const geist = Geist({ subsets: ["latin"], display: "swap", variable: "--font-geist" });
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  axes: ["opsz"],
   display: "swap",
-  variable: "--font-bricolage",
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = pageMetadata({ siteUrl: getSiteUrl(), path: "/" });
@@ -22,6 +23,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: THEME_COLORS,
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -29,7 +31,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     // data-theme is set by the pre-paint script, so React must not flag it as a mismatch.
-    <html lang="en" className={bricolage.variable} suppressHydrationWarning>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body>
         {/*
           Runs before the first paint so a forced theme does not flash. The content is a constant
@@ -44,7 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
         <a
           href="#main"
-          className="sr-only rounded-md bg-surface px-4 py-3 font-semibold text-accent focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-10"
+          className="sr-only rounded-md bg-surface px-4 py-3 font-semibold text-accent-text focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-10"
         >
           Skip to content
         </a>

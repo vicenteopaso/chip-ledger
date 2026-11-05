@@ -52,10 +52,10 @@ export function PlayerCashCard({
   return (
     <Card as="section" className="my-3.5" aria-labelledby={headingId}>
       <header className="flex items-baseline justify-between gap-2.5">
-        <h2 id={headingId} className="text-2xl font-extrabold">
+        <h2 id={headingId} className="text-2xl font-semibold">
           {name}
         </h2>
-        <span className="text-2xl font-extrabold">{value}</span>
+        <span className="text-2xl font-semibold">{value}</span>
       </header>
       {photo && (
         <>

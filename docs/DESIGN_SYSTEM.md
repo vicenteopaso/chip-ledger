@@ -2,7 +2,7 @@
 
 Shared language for UI: tokens, patterns, and rules. Tokens are the contract between design and code; components consume tokens and never invent values.
 
-Values carried over from the Chip Ledger prototype ([SPEC-0001](./specs/0001-chip-ledger/spec.md) REQ-0001-27), with two contrast fixes noted below.
+Values from the **Card Room** identity ([SPEC-0005](./specs/0005-card-room-reskin/spec.md)): a dark card room, felt green behind the most important number, brass for the one action that moves the game forward, Geist for text and Geist Mono for money. It replaced the prototype's green look (SPEC-0001 REQ-0001-27).
 
 ## 1. Principles
 
@@ -20,59 +20,64 @@ Tokens are defined once in `styles/tokens.css` as a Tailwind `@theme`, so each t
 
 Contrast is the lower of the ratios against `bg` and `surface`.
 
-| Role                                           | Light                     | Dark                  | Used for                           | Contrast (light / dark)     |
-| ---------------------------------------------- | ------------------------- | --------------------- | ---------------------------------- | --------------------------- |
-| `--color-bg`                                   | `#E9EFEA`                 | `#0B261D`             | Page background                    | —                           |
-| `--color-surface`                              | `#FFFFFF`                 | `#11342A`             | Cards, fields, outlined buttons    | —                           |
-| `--color-sunk`                                 | `#F2F6F3`                 | `#0E2D23`             | Unused since SPEC-0002 REQ-0002-31 | —                           |
-| `--color-text`                                 | `#13241C`                 | `#ECF3EE`             | Body text                          | 13.9 / 12.0                 |
-| `--color-text-muted`                           | `#56685E`                 | `#9AB2A5`             | Secondary text, placeholders       | 5.1 / 6.0                   |
-| `--color-accent`                               | `#14573F`                 | `#43B884`             | Primary actions, links, pot        | 7.3 / 5.4                   |
-| `--color-accent-ink`                           | `#FFFFFF`                 | `#06231A`             | Text on accent                     | 8.5 / 6.7 on accent         |
-| `--color-border`                               | `#CFDAD2`                 | `#22503F`             | Dividers, card and button outlines | decorative                  |
-| `--color-border-control`                       | `#7A8B81`                 | `#5A8A77`             | Text-field and select borders      | 3.1 / 3.5                   |
-| `--color-focus`                                | `#9A6E1C`                 | `#E3B95A`             | Focus ring                         | 3.9 / 7.3                   |
-| `--color-accent-hover`                         | accent 85% + text         | same mix              | Primary button hover               | accent-ink ≥ 4.5:1          |
-| `--color-surface-hover`                        | surface 95% + text        | same mix              | Outline button and step hover      | text ≥ 4.5:1                |
-| `--color-accent-soft` / `-hover`               | accent 18% / 26% + bg     | same mix              | Secondary buttons, stepper keys    | text 10.5 / 10.3            |
-| `--color-danger-soft` / `-hover`               | danger 8% / 12% + surface | same mix              | Danger buttons                     | danger ≥ 4.5:1              |
-| `--color-success-bg`                           | success 12% + surface     | same mix              | Confirmation notices               | text 13.7 / 9.3; icon ≥ 3:1 |
-| `--color-disabled-bg` / `--color-disabled-ink` | `#DCE3DE` / `#5F6E66`     | `#1A3D31` / `#8FA89B` | Unavailable controls (no opacity)  | ≥ 3:1                       |
-| `--color-success`                              | `#1D7448`                 | `#6CD49C`             | Gains, confirmations               | 4.9 / 7.5                   |
-| `--color-danger`                               | `#B0342B`                 | `#F28274`             | Losses, mismatches, destructive    | 5.3 / 5.3                   |
-| `--color-warn-bg` / `--color-warn-ink`         | `#FBF1DC` / `#6B4A0E`     | `#3A2F12` / `#F2D58C` | Notes; busy photo status           | 7.2 / 9.2                   |
+| Role                                           | Light                         | Dark                  | Used for                                      | Contrast (light / dark)          |
+| ---------------------------------------------- | ----------------------------- | --------------------- | --------------------------------------------- | -------------------------------- |
+| `--color-bg`                                   | `#F3F1EC`                     | `#0D0E10`             | Page background (the room)                    | —                                |
+| `--color-surface`                              | `#FFFFFF`                     | `#16181B`             | Panels, cards, fields, secondary buttons      | —                                |
+| `--color-sunk`                                 | `#ECE8DF`                     | `#121417`             | Recessed boxes in the Share sheet             | —                                |
+| `--color-text`                                 | `#17181B`                     | `#EDEAE3`             | Body text                                     | 15.7 / 14.8                      |
+| `--color-text-muted`                           | `#62646A`                     | `#9B9DA1`             | Secondary text, placeholders                  | 5.2 / 6.5                        |
+| `--color-accent`                               | `#A5803A`                     | `#CDAA63`             | Brass fill: primary buttons, + key, step bars | 3.2 / 8.1 (graphics)             |
+| `--color-accent-ink`                           | `#17130A`                     | `#17130A`             | Text on brass                                 | 5.1 / 8.4 on accent              |
+| `--color-accent-text`                          | `#7A5C1E`                     | `#CDAA63`             | Brass as text or an icon: links, check marks  | 5.5 / 8.1                        |
+| `--color-felt` / `-ink` / `-muted`             | `#134A37` / white / `#CFE0D6` | `#0F3A2B` / same      | The pot panel (once per screen)               | ink 10.2 / 12.6; muted 7.4 / 9.2 |
+| `--color-avatar`                               | `#ECE8DF`                     | `#23262B`             | Decorative player initials                    | text 14.5 / 12.6                 |
+| `--color-border`                               | `#E2DED5`                     | `#2C3036`             | Dividers, panel and secondary-button edges    | decorative                       |
+| `--color-border-control`                       | `#8C8A84`                     | `#6B7078`             | Field borders, − key, later steps' bars       | 3.1 / 3.6                        |
+| `--color-focus`                                | `#7A5C1E`                     | `#F2D58C`             | Focus ring                                    | 5.5 / 12.4                       |
+| `--color-accent-hover`                         | accent 82% + surface          | same mix              | Brass hover (its ink is dark in both themes)  | accent-ink ≥ 4.5:1               |
+| `--color-surface-hover`                        | surface 95% + text            | same mix              | Secondary, outline, and − key hover           | text ≥ 4.5:1                     |
+| `--color-accent-soft` / `-hover`               | accent 18% / 26% + bg         | same mix              | Setup stepper keys, payee initials            | text ≥ 4.5:1                     |
+| `--color-danger-soft` / `-hover`               | danger 8% / 12% + surface     | same mix              | Danger buttons                                | danger ≥ 4.5:1                   |
+| `--color-success-bg`                           | success 12% + surface         | same mix              | Confirmation notices                          | text ≥ 4.5:1; icon ≥ 3:1         |
+| `--color-disabled-bg` / `--color-disabled-ink` | `#E4E0D7` / `#66645E`         | `#202327` / `#8B8E93` | Unavailable controls (no opacity)             | 4.5 / 4.8                        |
+| `--color-success`                              | `#1D7448`                     | `#6FCF97`             | Gains, confirmations, gain bars               | 5.1 / 9.4                        |
+| `--color-danger`                               | `#B0342B`                     | `#F08A7E`             | Losses, mismatches, destructive, loss bars    | 5.5 / 7.3                        |
+| `--color-warn-bg` / `--color-warn-ink`         | `#F8EED6` / `#6B4A0E`         | `#2A2312` / `#F2D58C` | Notes; busy photo status                      | 7.0 / 10.9                       |
 
-Pairs that carry meaning are checked against `styles/tokens.css` by `test/unit/styles/tokens.test.ts`, so a changed value cannot silently drop below its ratio. Done steps were first marked by a `--color-step-done` border (SPEC-0002 REQ-0002-04); the progress stepper (REQ-0002-27) replaced it with filled accent circles, so the token was removed.
-
-Contrast fixes against the prototype: text-field borders use `--color-border-control` (the prototype's `#CFDAD2` was 1.2:1), and the busy photo status uses `--color-warn-ink` instead of the focus gold (3.9:1 as text).
+Pairs that carry meaning are checked against `styles/tokens.css` by `test/unit/styles/tokens.test.ts`, so a changed value cannot silently drop below its ratio. Light brass is split in two: the fill (`accent`, 3.2:1, enough for bars and button shapes) and a deeper shade for text (`accent-text`, 5.5:1). Step bars use brass up to the current step and the control border after it, so every state is at least 3:1 (SPEC-0005 REQ-0005-04).
 
 Chip artwork colors (`--color-chip-*`) are decorative, identical in both themes, and always paired with a text label. The QR code uses `--color-qr-ink` and `--color-qr-paper`, also identical in both themes: scanners need dark modules on a light plate.
 
 ### Typography
 
-| Token                                      | Value                                                              | Use                                         |
-| ------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
-| `--font-sans`                              | Bricolage Grotesque (self-hosted by `next/font`), system fallbacks | UI and body                                 |
-| `--font-mono`                              | `ui-monospace, Menlo, monospace`                                   | Copyable results text                       |
-| `--text-xs` … `--text-5xl`                 | 13, 14, 15, 16, 17 (`body`), 18, 19, 20, 22, 24, 34 px             | Type scale (`--text-body` is the body size) |
-| `--leading-display` / `--tracking-display` | 1.05 / −0.02em                                                     | Step titles and the pot                     |
-| Line height                                | 1.4 body                                                           | Kept from the prototype                     |
+| Token                                      | Value                                                      | Use                                       |
+| ------------------------------------------ | ---------------------------------------------------------- | ----------------------------------------- |
+| `--font-sans`                              | Geist (self-hosted by `next/font`), system fallbacks       | UI and body; titles at weight 600         |
+| `--font-mono`                              | Geist Mono (self-hosted by `next/font`), system monospace  | Money in lists and results; copy fallback |
+| `--text-xs` … `--text-6xl`                 | 13, 14, 15, 16, 17 (`body`), 18, 19, 20, 22, 24, 34, 44 px | Type scale; 44 px is the pot on the felt  |
+| `--leading-display` / `--tracking-display` | 1.05 / −0.03em                                             | Step titles and the pot                   |
+| `--tracking-label`                         | 0.14em                                                     | Small upper-case labels (the pot's)       |
+| Line height                                | 1.4 body                                                   | Kept from the prototype                   |
 
 ### Spacing, radius, borders, motion
 
 - **Spacing:** Tailwind's 4 px base (`--spacing: 0.25rem`); fractional steps (`p-3.5` = 14 px) express the prototype's values without arbitrary pixels.
-- **Control language (REQ-0002-31):** three shapes that never overlap. **Fields** (text fields, selects, the stepper) share `FIELD_BOX` from `app/components/Field.ts`: 48 px tall, radius `md`, a `--color-border-control` border on surface. **Buttons** are pills (radius `full`): primary is accent, secondary a soft accent tint, danger a soft danger tint, and only `outline` has a border. **Notices** are tinted panels with a 4 px rule on the left and no full border. Selects draw their own chevron inside the box (`Select`, REQ-0002-32).
+- **Control language (REQ-0002-31):** three shapes that never overlap. **Fields** (text fields, selects, the stepper) share `FIELD_BOX` from `app/components/Field.ts`: 48 px tall, radius `md`, a `--color-border-control` border on surface. **Buttons** are rounded rectangles (radius `lg`, SPEC-0005 REQ-0005-14): primary is brass, secondary is the surface with the decorative panel border, danger a soft danger tint, and `outline` a brass border. Only fields carry the 3:1 control border, so a button never looks like a field. **Notices** are tinted panels with a 4 px rule on the left and no full border. Selects draw their own chevron inside the box (`Select`, REQ-0002-32).
 - **Page header (REQ-0002-28):** the brand mark and "Chip Ledger", then the step navigation, in one `<header>` on every step, so the content never shifts when the step changes. Below it, every step uses the same title spacing (`PageTitle` top 7, `Lede` bottom 6, `SectionTitle` top 9) (REQ-0002-30).
-- **Brand mark:** three chips (blue, green, red) in a cluster, from the chip artwork tokens (`BrandMark`). `app/icon.svg` and `app/apple-icon.png` are the same drawing (REQ-0002-29).
-- **Surfaces:** `Card` (radius `xl`, border, surface, padding 4) for grouped content and `ListRow` (bottom rule, padding-block 3) for lists. These are the only two looks (REQ-0002-20).
+- **Brand mark:** one brass chip: a rim, eight edge spots, and a solid center in `--color-accent`, so it follows the theme (`BrandMark`). `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, and the manifest icons in `public/icons/` are the same drawing on the dark room color; the browser's theme color is each theme's page color (SPEC-0005 REQ-0005-11, -16, -17, -19).
+- **Step navigation:** four buttons, each a bar and a name. Bars fill like a progress bar: brass up to the current step (4 px for the current one, 3 px before it), the control border after it. Done steps add a check mark; the number is only in each button's name. Once the header shrinks, only the bars show, still in 44 px buttons (SPEC-0005 REQ-0005-12, -13).
+- **Felt and initials:** `FeltPanel` holds a screen's most important number (the pot on Table), at most once per screen. `Avatar` draws a player's initial; it is decorative (`aria-hidden`) and gives its room back to the name at 320 px (REQ-0005-03, -06).
+- **Table stepper:** free-standing 44 px circles, − outlined in the control border and + in brass. Setup's stepper keeps the field box (REQ-0005-15).
+- **Surfaces:** `Card` (radius `xl`, border, surface, padding 4) for grouped content and `ListRow` (bottom rule, padding-block 3) for lists; `ListPanel` puts list rows on one surface panel with no rule under the last row (Table players, Settle results) (REQ-0002-20).
 - **Sizes:** no one-off sizes or arbitrary values in components (REQ-0002-26); `--container-lede` (40ch) sets the intro text's line length. A source check in `test/unit/app/source-checks.test.ts` enforces this, along with the single focus style (REQ-0002-22).
 - **Radius:** `sm` 10, `md` 12, `lg` 14, `xl` 16, `2xl` 18 px, `full`.
 - **Borders:** `--border-control` (1.5 px) through the `border-control` utility for fields and outlined buttons.
 - **Effects:** `--blur-bar` (10 px) for the bottom bar; `--color-chip-shadow` for chip artwork.
 - **Bottom bar:** `--bar-clearance` (36 spacing steps) is both the space kept under the content and the page's `scroll-padding-bottom`, so a focused field never lands behind the bar. Under the `short:` variant (`max-height: 30rem`: landscape phones, 200% zoom) the bar is static and scrolls with the page (REQ-0002-10). The bar is compact (48px buttons, 28px footer row) and shrinks further once the page is scrolled.
-- **Forced colors:** controls use transparent borders, never none, so forced-colors mode can draw them; step circles are outlined (upcoming), filled with `CanvasText` (done), or `Highlight` (current), and chip artwork keeps its colors next to its text label (REQ-0002-09, REQ-0002-27).
+- **Forced colors:** controls use transparent borders, never none, so forced-colors mode can draw them; step bars are `GrayText` (later), `CanvasText` (done), or `Highlight` (current), and chip artwork keeps its colors next to its text label (REQ-0002-09, REQ-0005-13).
 - **Motion:** buttons scale to 0.97 while pressed, only under `prefers-reduced-motion: no-preference`.
-- **Hover:** Tailwind's `hover:` applies only on devices that can hover, and only to available controls (`hover:not-disabled:not-aria-disabled:…`). The hover mixes step toward the text color, so one definition darkens in light and lightens in dark (REQ-0002-17).
+- **Hover:** Tailwind's `hover:` applies only on devices that can hover, and only to available controls (`hover:not-disabled:not-aria-disabled:…`). The surface hover mixes toward the text color, so one definition darkens in light and lightens in dark; brass hovers toward the surface instead, because its ink is dark in both themes (REQ-0002-17).
 - **Text size:** controls and hints use at least `--text-md` (15 px), and the footer at least `--text-sm` (14 px) (REQ-0002-16).
 - **Touch targets:** 44 px minimum. Where the prototype drew smaller controls (step tabs, remove-chip button), the hit area is enlarged without changing the drawn size.
 

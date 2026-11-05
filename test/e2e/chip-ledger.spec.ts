@@ -178,10 +178,11 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await page.getByRole("button", { name: "Settle up" }).click();
     await expect(page.getByRole("main").getByText("Everyone broke even.")).toBeHidden();
     const payments = page.getByRole("listitem").filter({ hasText: "pays" });
+    // Each payment starts with the two players' decorative initials (REQ-0005-06).
     await expect(payments).toHaveText([
-      "Ana pays Dee$10.00",
-      "Cy pays Dee$7.50",
-      "Ben pays Dee$5.00",
+      /Ana pays Dee\$10\.00$/,
+      /Cy pays Dee\$7\.50$/,
+      /Ben pays Dee\$5\.00$/,
     ]);
   });
 
@@ -307,7 +308,7 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     const html = page.locator("html");
     const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
-    expect(await bg()).toBe("rgb(233, 239, 234)");
+    expect(await bg()).toBe("rgb(243, 241, 236)");
 
     await page.getByRole("button", { name: "Theme: System" }).click();
     await expect(page.getByRole("button", { name: "Theme: Light" })).toBeVisible();
@@ -316,18 +317,18 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await page.getByRole("button", { name: "Theme: Light" }).click();
     await expect(page.getByRole("button", { name: "Theme: Dark" })).toBeVisible();
     await expect(html).toHaveAttribute("data-theme", "dark");
-    expect(await bg()).toBe("rgb(11, 38, 29)");
+    expect(await bg()).toBe("rgb(13, 14, 16)");
 
     await page.reload();
     // Already dark when the page first renders, with no light flash, and the button agrees.
     await expect(html).toHaveAttribute("data-theme", "dark");
-    expect(await bg()).toBe("rgb(11, 38, 29)");
+    expect(await bg()).toBe("rgb(13, 14, 16)");
     await expect(page.getByRole("button", { name: "Theme: Dark" })).toBeVisible();
 
     await page.getByRole("button", { name: "Theme: Dark" }).click();
     await expect(page.getByRole("button", { name: "Theme: System" })).toBeVisible();
     await expect(html).not.toHaveAttribute("data-theme", /.+/);
-    expect(await bg()).toBe("rgb(233, 239, 234)");
+    expect(await bg()).toBe("rgb(243, 241, 236)");
 
     await page.evaluate(() => {
       localStorage.setItem("chip-ledger.theme", "nonsense");
@@ -383,6 +384,46 @@ test.describe("SPEC-0001 Chip Ledger", () => {
     await expect(apple).toHaveAttribute("sizes", "180x180");
     const png = await request.get((await apple.getAttribute("href")) ?? "");
     expect(png.headers()["content-type"]).toBe("image/png");
+  });
+
+  test("AC-0005-14 … -17: favicon.ico, an installable manifest, theme colors, and a link-preview image", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/");
+    const ico = page.locator('link[rel="icon"][type="image/x-icon"]');
+    await expect(ico).toHaveCount(1);
+    expect(
+      (await request.get((await ico.getAttribute("href")) ?? "")).headers()["content-type"],
+    ).toBe("image/x-icon");
+
+    const manifestHref = await page.locator('link[rel="manifest"]').getAttribute("href");
+    const manifest = await request.get(manifestHref ?? "");
+    expect(manifest.headers()["content-type"]).toContain("application/manifest+json");
+    const { icons } = (await manifest.json()) as { icons: { src: string }[] };
+    for (const icon of icons) {
+      expect((await request.get(icon.src)).headers()["content-type"]).toBe("image/png");
+    }
+
+    await expect(page.locator('meta[name="theme-color"]')).toHaveCount(2);
+    await expect(
+      page.locator('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]'),
+    ).toHaveAttribute("content", "#0d0e10");
+
+    await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute(
+      "content",
+      "1200",
+    );
+    await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
+      "content",
+      /^Chip Ledger: /,
+    );
+    // The image's address uses the configured site URL; fetch the same path from this server.
+    const og = new URL(
+      (await page.locator('meta[property="og:image"]').getAttribute("content")) ?? "",
+    );
+    const image = await request.get(og.pathname + og.search);
+    expect(image.headers()["content-type"]).toBe("image/png");
   });
 
   test("SEO: title, description, canonical, robots and sitemap", async ({ page, request }) => {

@@ -103,13 +103,50 @@ describe("design token contrast", () => {
       ).toBeGreaterThanOrEqual(4.5);
     });
 
-    it(`AC-0002-04, REQ-0002-27: step circles are at least 3:1 against the page (${theme})`, () => {
+    it(`AC-0005-01, REQ-0005-04: step bars are at least 3:1 against the page (${theme})`, () => {
       const bg = color("--color-bg", theme);
+      // Done and current steps: brass; later steps: the control border.
       expect(contrast(color("--color-accent", theme), bg)).toBeGreaterThanOrEqual(3);
       expect(contrast(color("--color-border-control", theme), bg)).toBeGreaterThanOrEqual(3);
+    });
+
+    it(`AC-0005-01, REQ-0005-01: Card Room text pairs reach 4.5:1 (${theme})`, () => {
+      const pairs: [string, string][] = [
+        ["--color-text", "--color-bg"],
+        ["--color-text", "--color-surface"],
+        ["--color-text-muted", "--color-bg"],
+        ["--color-text-muted", "--color-surface"],
+        ["--color-accent-ink", "--color-accent"],
+        ["--color-accent-text", "--color-bg"],
+        ["--color-accent-text", "--color-surface"],
+        ["--color-accent-text", "--color-accent-soft"],
+        ["--color-felt-ink", "--color-felt"],
+        ["--color-felt-muted", "--color-felt"],
+        ["--color-text", "--color-avatar"],
+        ["--color-success", "--color-surface"],
+        ["--color-danger", "--color-surface"],
+      ];
+      for (const [ink, fill] of pairs) {
+        expect(
+          contrast(color(ink, theme), color(fill, theme)),
+          `${ink} on ${fill}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+
+    it(`AC-0005-01, REQ-0005-01: focus, gain and loss bars reach 3:1 (${theme})`, () => {
+      for (const edge of ["--color-focus", "--color-success", "--color-danger"]) {
+        for (const fill of ["--color-bg", "--color-surface"]) {
+          expect(
+            contrast(color(edge, theme), color(fill, theme)),
+            `${edge} on ${fill}`,
+          ).toBeGreaterThanOrEqual(3);
+        }
+      }
+      // The focus outline also has to show around a brass button.
       expect(
-        contrast(color("--color-accent-ink", theme), color("--color-accent", theme)),
-      ).toBeGreaterThanOrEqual(4.5);
+        contrast(color("--color-focus", theme), color("--color-bg", theme)),
+      ).toBeGreaterThanOrEqual(3);
     });
   }
 

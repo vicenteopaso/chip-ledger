@@ -6,16 +6,16 @@ import type { ButtonHTMLAttributes, Ref } from "react";
 // to available ones, and Tailwind's `hover:` already requires a device that can hover (REQ-0002-17).
 const UNAVAILABLE =
   "disabled:bg-disabled-bg disabled:text-disabled-ink aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
-// Every button is a pill, so a button never looks like a field (squared box) or a notice
-// (tinted panel with a left rule) (REQ-0002-31).
-const PILL = "press min-h-12 rounded-full border-control px-5 text-body font-semibold";
+// Every button is a rounded rectangle with a larger radius than fields, so a button never looks
+// like a field (squared box) or a notice (tinted panel with a left rule) (REQ-0005-14).
+const BOX = "press min-h-12 rounded-lg border-control px-5 text-body font-semibold";
 
 const VARIANTS = {
-  primary: `press min-h-14 flex-1 rounded-full border-control border-transparent bg-accent px-5 text-lg font-extrabold text-accent-ink hover:not-disabled:not-aria-disabled:bg-accent-hover ${UNAVAILABLE}`,
-  secondary: `${PILL} border-transparent bg-accent-soft text-text hover:not-disabled:not-aria-disabled:bg-accent-soft-hover ${UNAVAILABLE}`,
-  danger: `${PILL} border-transparent bg-danger-soft text-danger hover:not-disabled:not-aria-disabled:bg-danger-soft-hover ${UNAVAILABLE}`,
-  link: "border-0 bg-transparent py-3 font-semibold text-accent hover:underline",
-  outline: `${PILL} inline-flex items-center justify-center gap-2 border-accent bg-surface text-accent hover:not-disabled:not-aria-disabled:bg-surface-hover ${UNAVAILABLE}`,
+  primary: `press min-h-14 flex-1 rounded-lg border-control border-transparent bg-accent px-5 text-lg font-semibold text-accent-ink hover:not-disabled:not-aria-disabled:bg-accent-hover ${UNAVAILABLE}`,
+  secondary: `${BOX} border-border bg-surface text-text hover:not-disabled:not-aria-disabled:bg-surface-hover ${UNAVAILABLE}`,
+  danger: `${BOX} border-transparent bg-danger-soft text-danger hover:not-disabled:not-aria-disabled:bg-danger-soft-hover ${UNAVAILABLE}`,
+  link: "border-0 bg-transparent py-3 font-semibold text-accent-text hover:underline",
+  outline: `${BOX} inline-flex items-center justify-center gap-2 border-accent bg-surface text-accent-text hover:not-disabled:not-aria-disabled:bg-surface-hover ${UNAVAILABLE}`,
 } as const;
 
 /**

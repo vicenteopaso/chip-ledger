@@ -48,8 +48,23 @@ describe("Stepper", () => {
     expect(remove).toBeEnabled();
   });
 
-  it("AC-0002-19: Setup's player count and Table's buy-ins render the same stepper", () => {
+  it("AC-0005-12, REQ-0005-15: Table's buy-in keys are 44 px circles, − outlined and + brass", () => {
     const game = defaultGame();
+    const { container: table } = render(
+      <TableScreen game={{ ...game, screen: "table" }} money={usd} dispatch={vi.fn()} />,
+    );
+    expect(within(table).getByRole("button", { name: "Remove a buy-in for Player 1" })).toHaveClass(
+      "size-11",
+      "rounded-full",
+      "border-border-control",
+    );
+    expect(within(table).getByRole("button", { name: "Add a buy-in for Player 1" })).toHaveClass(
+      "size-11",
+      "rounded-full",
+      "bg-accent",
+      "text-accent-ink",
+    );
+    // Setup keeps the stepper in a field box.
     const { container: setup } = render(
       <SetupScreen
         game={game}
@@ -60,14 +75,10 @@ describe("Stepper", () => {
         onAutoFill={vi.fn()}
       />,
     );
-    const setupButton = within(setup).getByRole("button", { name: "More players" }).className;
-    const { container: table } = render(
-      <TableScreen game={{ ...game, screen: "table" }} money={usd} dispatch={vi.fn()} />,
+    expect(within(setup).getByRole("group", { name: "Number of players" })).toHaveClass(
+      "h-12",
+      "rounded-md",
     );
-    const tableButton = within(table).getByRole("button", {
-      name: "Add a buy-in for Player 1",
-    }).className;
-    expect(setupButton).toBe(tableButton);
   });
 });
 
@@ -113,19 +124,21 @@ describe("surfaces, notices, and the outline button", () => {
 });
 
 describe("control language", () => {
-  it("AC-0002-31: buttons are pills, fields are squared boxes, so they never look alike", () => {
+  it("AC-0005-12, REQ-0005-14: buttons are rounded rectangles without the field border", () => {
     for (const variant of ["primary", "secondary", "danger", "outline"] as const) {
-      expect(buttonClasses(variant)).toContain("rounded-full");
+      expect(buttonClasses(variant)).toContain("rounded-lg");
+      expect(buttonClasses(variant)).not.toContain("rounded-full");
       expect(buttonClasses(variant)).not.toContain("border-border-control");
     }
-    expect(buttonClasses("secondary")).toContain("bg-accent-soft");
+    expect(buttonClasses("primary")).toContain("bg-accent");
+    expect(buttonClasses("secondary")).toContain("bg-surface");
+    expect(buttonClasses("secondary")).toContain("border-border");
     expect(buttonClasses("danger")).toContain("bg-danger-soft");
     expect(FIELD).toContain("rounded-md");
     expect(FIELD).toContain("border-border-control");
-    expect(FIELD).not.toContain("rounded-full");
   });
 
-  it("AC-0002-31: the stepper is a field-styled box with round keys", () => {
+  it("AC-0002-31: Setup's stepper is a field-styled box with round keys", () => {
     render(
       <Stepper
         label="Players"
@@ -134,6 +147,7 @@ describe("control language", () => {
         decrementLabel="Fewer"
         incrementLabel="More"
         onStep={vi.fn()}
+        stretch
       />,
     );
     const group = screen.getByRole("group", { name: "Players" });

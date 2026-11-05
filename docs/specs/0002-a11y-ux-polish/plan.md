@@ -4,7 +4,7 @@
 | ------ | -------------------- |
 | Spec   | [spec.md](./spec.md) |
 | ADR    | none (Tier 1)        |
-| Status | approved             |
+| Status | implemented          |
 
 ## 1. Approach
 

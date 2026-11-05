@@ -97,7 +97,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
             id={titleId}
             ref={headingRef}
             tabIndex={-1}
-            className="text-3xl leading-display font-extrabold tracking-display"
+            className="text-3xl leading-display font-semibold tracking-display"
           >
             {title}
           </h2>

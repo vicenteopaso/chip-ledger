@@ -2,33 +2,44 @@
  * Design tokens: the single source of truth for color, type, radius, and motion
  * (docs/DESIGN_SYSTEM.md). Declared as a Tailwind theme so utilities exist for each one;
  * Tailwind's default palette and type scale are cleared so only these values can be used.
- * Values carried over from the Chip Ledger prototype.
+ * Values from the Card Room identity (SPEC-0005).
  */
 
 @theme static {
   --color-*: initial;
-  --color-bg: #e9efea;
+  --color-bg: #f3f1ec;
   --color-surface: #ffffff;
-  --color-sunk: #f2f6f3;
-  --color-text: #13241c;
-  --color-text-muted: #56685e;
-  --color-border: #cfdad2;
+  --color-sunk: #ece8df;
+  --color-text: #17181b;
+  --color-text-muted: #62646a;
+  --color-border: #e2ded5;
   /* Text-field borders: 3:1 against bg and surface (WCAG 1.4.11). */
-  --color-border-control: #7a8b81;
-  --color-accent: #14573f;
-  --color-accent-ink: #ffffff;
-  --color-focus: #9a6e1c;
+  --color-border-control: #8c8a84;
+  --color-accent: #a5803a;
+  --color-accent-ink: #17130a;
+  /* Brass as text or an icon on the page or a panel: the fill shade is too light for text (REQ-0005-01). */
+  --color-accent-text: #7a5c1e;
+  /* The felt panel behind each screen's most important number: deep green in both themes
+     (REQ-0005-03). */
+  --color-felt: #134a37;
+  --color-felt-ink: #ffffff;
+  --color-felt-muted: #cfe0d6;
+  /* Decorative player initials (REQ-0005-06). */
+  --color-avatar: #ece8df;
+  --color-focus: #7a5c1e;
   --color-success: #1d7448;
   --color-danger: #b0342b;
-  --color-warn-bg: #fbf1dc;
+  --color-warn-bg: #f8eed6;
   --color-warn-ink: #6b4a0e;
   --color-bar: color-mix(in srgb, var(--color-bg) 92%, transparent);
   /* Hover: a step toward the text color, so it darkens in light and lightens in dark (REQ-0002-17). */
-  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, var(--color-text));
+  /* Brass hovers toward the panel color instead: its ink is dark in both themes, so a darker brass
+   * would lose contrast in the light theme (SPEC-0005). */
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 82%, var(--color-surface));
   --color-surface-hover: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
   /* Disabled: readable (3:1) but clearly unavailable, instead of opacity (REQ-0002-18). */
-  --color-disabled-bg: #dce3de;
-  --color-disabled-ink: #5f6e66;
+  --color-disabled-bg: #e4e0d7;
+  --color-disabled-ink: #66645e;
   /* Soft fills, so buttons, fields, and notices each look different (REQ-0002-31): secondary
    * buttons and stepper keys are a tint of the page, danger buttons a tint of the surface. */
   --color-accent-soft: color-mix(in srgb, var(--color-accent) 18%, var(--color-bg));
@@ -59,8 +70,8 @@
   --color-chip-shadow: rgb(0 0 0 / 0.25);
 
   --font-sans:
-    var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, Menlo, monospace;
+    var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
 
   --text-*: initial;
   --text-xs: 0.8125rem;
@@ -74,6 +85,8 @@
   --text-3xl: 1.375rem;
   --text-4xl: 1.5rem;
   --text-5xl: 2.125rem;
+  /* The pot on the felt (REQ-0005-05). */
+  --text-6xl: 2.75rem;
 
   --radius-*: initial;
   --radius-sm: 0.625rem;
@@ -84,7 +97,9 @@
   --radius-full: 9999px;
 
   --leading-display: 1.05;
-  --tracking-display: -0.02em;
+  --tracking-display: -0.03em;
+  /* Small upper-case labels, such as the pot's. */
+  --tracking-label: 0.14em;
 
   --border-control: 1.5px;
   --blur-bar: 10px;
@@ -100,41 +115,47 @@
 @layer theme {
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --color-bg: #0b261d;
-      --color-surface: #11342a;
-      --color-sunk: #0e2d23;
-      --color-text: #ecf3ee;
-      --color-text-muted: #9ab2a5;
-      --color-border: #22503f;
-      --color-border-control: #5a8a77;
-      --color-accent: #43b884;
-      --color-accent-ink: #06231a;
-      --color-focus: #e3b95a;
-      --color-success: #6cd49c;
-      --color-danger: #f28274;
-      --color-warn-bg: #3a2f12;
+      --color-bg: #0d0e10;
+      --color-surface: #16181b;
+      --color-sunk: #121417;
+      --color-text: #edeae3;
+      --color-text-muted: #9b9da1;
+      --color-border: #2c3036;
+      --color-border-control: #6b7078;
+      --color-accent: #cdaa63;
+      --color-accent-ink: #17130a;
+      --color-focus: #f2d58c;
+      --color-success: #6fcf97;
+      --color-danger: #f08a7e;
+      --color-warn-bg: #2a2312;
       --color-warn-ink: #f2d58c;
-      --color-disabled-bg: #1a3d31;
-      --color-disabled-ink: #8fa89b;
+      --color-disabled-bg: #202327;
+      --color-disabled-ink: #8b8e93;
+      --color-accent-text: #cdaa63;
+      --color-felt: #0f3a2b;
+      --color-avatar: #23262b;
     }
   }
 
   :root[data-theme="dark"] {
-    --color-bg: #0b261d;
-    --color-surface: #11342a;
-    --color-sunk: #0e2d23;
-    --color-text: #ecf3ee;
-    --color-text-muted: #9ab2a5;
-    --color-border: #22503f;
-    --color-border-control: #5a8a77;
-    --color-accent: #43b884;
-    --color-accent-ink: #06231a;
-    --color-focus: #e3b95a;
-    --color-success: #6cd49c;
-    --color-danger: #f28274;
-    --color-warn-bg: #3a2f12;
+    --color-bg: #0d0e10;
+    --color-surface: #16181b;
+    --color-sunk: #121417;
+    --color-text: #edeae3;
+    --color-text-muted: #9b9da1;
+    --color-border: #2c3036;
+    --color-border-control: #6b7078;
+    --color-accent: #cdaa63;
+    --color-accent-ink: #17130a;
+    --color-focus: #f2d58c;
+    --color-success: #6fcf97;
+    --color-danger: #f08a7e;
+    --color-warn-bg: #2a2312;
     --color-warn-ink: #f2d58c;
-    --color-disabled-bg: #1a3d31;
-    --color-disabled-ink: #8fa89b;
+    --color-disabled-bg: #202327;
+    --color-disabled-ink: #8b8e93;
+    --color-accent-text: #cdaa63;
+    --color-felt: #0f3a2b;
+    --color-avatar: #23262b;
   }
 }

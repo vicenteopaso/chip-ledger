@@ -41,7 +41,8 @@ test.describe("SPEC-0004 chip sales between players", () => {
       page.getByRole("main").getByText("Includes chip sales between players."),
     ).toBeVisible();
     await expect(page.getByRole("listitem").filter({ hasText: "pays" })).toHaveText([
-      "Ben pays Ana$5.00",
+      // After the payer's and payee's decorative initials (REQ-0005-06).
+      /Ben pays Ana\$5\.00$/,
     ]);
   });
 

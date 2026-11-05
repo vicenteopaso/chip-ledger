@@ -44,11 +44,11 @@ A − value + control in the shared field box, with round − and + keys: the Se
 
 ## Design tokens
 
-The field box (`FIELD_BOX`: 48 px, `--radius-md`, `--color-border-control`, `--color-surface`) so it reads as a field (REQ-0002-31). Keys: 40 px circles in `--color-accent-soft` (`--color-accent-soft-hover` on hover), `--color-disabled-bg` / `--color-disabled-ink` at a limit.
+With `stretch` (Setup): the field box (`FIELD_BOX`: 48 px, `--radius-md`, `--color-border-control`, `--color-surface`) so it reads as a field (REQ-0002-31), with 40 px keys in `--color-accent-soft` (`--color-accent-soft-hover` on hover). Without it (Table): free-standing 44 px circles, − outlined in `--color-border-control` and + in brass (`--color-accent`, `--color-accent-ink`) (REQ-0005-15). Both use `--color-disabled-bg` / `--color-disabled-ink` at a limit.
 
 ## Testing
 
-`test/unit/app/components/shared.test.tsx` (AC-0002-19: both directions, limits, the same markup on Setup and Table); container and e2e tests for each screen.
+`test/unit/app/components/shared.test.tsx` (AC-0002-19: both directions and limits; AC-0005-12: the Table keys and Setup's field box); container and e2e tests for each screen.
 
 ## Read-only
 

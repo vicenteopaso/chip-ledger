@@ -10,13 +10,23 @@ export type StepperProps = {
   decrementLabel: string;
   incrementLabel: string;
   onStep: (delta: 1 | -1) => void;
-  /** Stretches the value to fill the row (Setup); otherwise the stepper is compact (Table). */
+  /** Stretches the value to fill a field box (Setup); otherwise free-standing round keys (Table). */
   stretch?: boolean;
 };
 
-// Round keys in the soft button tint, inset in the field box (REQ-0002-31).
-const STEP_BUTTON =
-  "press size-10 flex-none rounded-full border-0 bg-accent-soft text-2xl leading-none font-extrabold text-text hover:not-aria-disabled:bg-accent-soft-hover aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
+// Setup: round keys in the soft button tint, inset in the field box (REQ-0002-31).
+const BOXED_KEY =
+  "press size-10 flex-none rounded-full border-0 bg-accent-soft text-2xl leading-none font-semibold text-text hover:not-aria-disabled:bg-accent-soft-hover aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
+// Table: free-standing 44 px circles, − outlined and + in brass (REQ-0005-15).
+const ROUND_KEY =
+  "press size-11 flex-none rounded-full border-control text-2xl leading-none font-semibold aria-disabled:border-transparent aria-disabled:bg-disabled-bg aria-disabled:text-disabled-ink";
+const KEYS = {
+  boxed: { decrement: BOXED_KEY, increment: BOXED_KEY },
+  round: {
+    decrement: `${ROUND_KEY} border-border-control bg-transparent text-text hover:not-aria-disabled:bg-surface-hover`,
+    increment: `${ROUND_KEY} border-transparent bg-accent text-accent-ink hover:not-aria-disabled:bg-accent-hover`,
+  },
+} as const;
 
 /**
  * − value + in one box that looks like the other fields (REQ-0002-19, REQ-0002-31). A limit is marked with `aria-disabled`, not
@@ -43,7 +53,7 @@ export function Stepper({
         className={`flex items-center px-3 ${FIELD_BOX} ${stretch ? "w-full" : "w-fit"}`}
       >
         <output
-          className={`min-w-7 text-center text-2xl font-extrabold ${stretch ? "flex-1" : ""}`}
+          className={`min-w-7 text-center text-2xl font-semibold ${stretch ? "flex-1" : ""}`}
           aria-label={label}
           aria-live="off"
         >
@@ -52,15 +62,18 @@ export function Stepper({
       </div>
     );
   }
+  const keys = KEYS[stretch ? "boxed" : "round"];
   return (
     <div
       role="group"
       aria-label={label}
-      className={`flex items-center gap-1 px-0.5 ${FIELD_BOX} ${stretch ? "w-full" : "w-fit"}`}
+      className={
+        stretch ? `flex w-full items-center gap-1 px-0.5 ${FIELD_BOX}` : "flex items-center gap-2"
+      }
     >
       <button
         type="button"
-        className={STEP_BUTTON}
+        className={keys.decrement}
         aria-label={decrementLabel}
         aria-disabled={value <= min}
         onClick={() => {
@@ -70,7 +83,7 @@ export function Stepper({
         −
       </button>
       <output
-        className={`min-w-7 text-center text-2xl font-extrabold ${stretch ? "flex-1" : ""}`}
+        className={`min-w-7 text-center text-2xl font-semibold ${stretch ? "flex-1" : ""}`}
         aria-label={label}
         aria-live="off"
       >
@@ -78,7 +91,7 @@ export function Stepper({
       </output>
       <button
         type="button"
-        className={STEP_BUTTON}
+        className={keys.increment}
         aria-label={incrementLabel}
         aria-disabled={value >= max}
         onClick={() => {

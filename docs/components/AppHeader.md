@@ -7,7 +7,7 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 | Location | `app/components/AppHeader.tsx`, `app/components/BrandMark.tsx`       |
 | Type     | `AppHeader` client component (scroll); `BrandMark` server-compatible |
 | Status   | stable                                                               |
-| Spec     | SPEC-0002 (REQ-0002-24, REQ-0002-28, REQ-0002-29)                    |
+| Spec     | SPEC-0002 (REQ-0002-24, REQ-0002-28), SPEC-0005 (REQ-0005-11)        |
 
 ## Props
 
@@ -29,15 +29,25 @@ The page header on every step: the brand mark and "Chip Ledger", then the step n
 ## Accessibility
 
 - **Role / semantics:** a `<header>` outside `main`, so it is the page's `banner` landmark. "Chip Ledger" is a paragraph, not a heading: each step's `h1` is the step's name (REQ-0002-24). The skip link still goes to `#main`.
-- **Brand mark:** three chips (blue, green, red) in a cluster; decorative (`aria-hidden`), since the wordmark beside it names the app.
+- **Brand mark:** one brass chip; decorative (`aria-hidden`), since the wordmark beside it names the app.
 
 ## Design tokens
 
-`--color-chip-blue`, `--color-chip-green`, `--color-chip-red` (bodies), `--color-chip-spot` (spots and rings), `--color-bg` (each chip's outline, so overlaps read in both themes), `--text-4xl` (the wordmark balances the 34 px step title), `--leading-display`, `--tracking-display`, `--container-app`.
+`--color-accent` (the chip's rim, edge spots, and center, so it follows the theme), `--text-2xl` wordmark at weight 600 with a 36 px mark (`--text-base` and 24 px once shrunk), `--leading-display`, `--tracking-display`, `--container-app`.
 
 ## Assets
 
-`app/icon.svg` (favicon) is the same three chips with white outlines, so it reads on light and dark browser tabs; `app/apple-icon.png` (180 px home-screen icon) puts it on the page color `#E9EFEA`. The icon's chip colors must match the tokens; a source check enforces it. Next.js links both from the page head (REQ-0002-29). Edit the SVG and `BrandMark` together.
+All drawn from the same chip, in the dark theme's brass (`#CDAA63`) on the dark room color (`#0D0E10`) (SPEC-0005 REQ-0005-11, -16, -19):
+
+| File                                 | Use                                           | Drawing                                       |
+| ------------------------------------ | --------------------------------------------- | --------------------------------------------- |
+| `app/icon.svg`                       | Favicon in current browsers, bookmarks        | Rounded square, chip at 80 %                  |
+| `app/favicon.ico`                    | Older browsers and tools that ask for it      | Same, 16, 32, and 48 px PNG frames            |
+| `app/apple-icon.png`                 | iPhone and iPad home screen, Safari bookmarks | Full square, chip centered (180 px)           |
+| `public/icons/icon-192.png`, `-512`  | Installed app (manifest, `purpose: any`)      | Rounded square, chip at 80 %                  |
+| `public/icons/icon-maskable-512.png` | Android adaptive icon (`purpose: maskable`)   | Full bleed, chip at 55 % (in the safe circle) |
+
+The PNG and ICO files are rendered from the SVG drawing; edit `BrandMark`, `app/icon.svg`, and these files together. A source check keeps the SVG's colors equal to the tokens and the PNGs at their sizes; Next.js links the favicons, the Apple icon, and the manifest from the page head. The link-preview image (`app/opengraph-image.tsx`) uses the same mark.
 
 ## Testing
 

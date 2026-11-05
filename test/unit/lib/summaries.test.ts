@@ -86,6 +86,25 @@ describe("count check", () => {
 });
 
 describe("resultsText", () => {
+  it("AC-0005-05, REQ-0005-07: lists results in the same ranked order as Settle", () => {
+    const game = defaultGame();
+    const named = {
+      ...game,
+      players: game.players.map((p, i) => ({
+        ...p,
+        name: ["Ana", "Ben", "Cy", "Dee"][i] ?? "",
+        counts: { blue: [10, 20, 40, 10][i] ?? 0 },
+      })),
+    };
+    const lines = resultsText(settle(named), usd, "d").split("\n");
+    expect(lines.filter((line) => /^(Ana|Ben|Cy|Dee):/.test(line))).toEqual([
+      "Cy: +$20.00",
+      "Ben: $0.00",
+      "Ana: -$10.00",
+      "Dee: -$10.00",
+    ]);
+  });
+
   it("REQ-0001-22: summarizes date, pot, nets and payments", () => {
     const game = defaultGame();
     const named = {

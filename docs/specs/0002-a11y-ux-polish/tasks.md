@@ -34,9 +34,10 @@ Legend: `[P]` can run in parallel with its neighbours.
 - [x] T-09 [P] Copy-fallback field border _(REQ-0002-06)_
   - Tests: component test
   - Done when: AC-0002-06 passes.
-- [ ] T-10 LiveAnnouncer and announcements _(REQ-0002-07)_
+- [x] T-10 LiveAnnouncer and announcements _(REQ-0002-07)_
   - Tests: component tests for each message and the debounce by kind
   - Done when: AC-0002-07 passes; a VoiceOver or NVDA check is recorded in the PR.
+  - Screen-reader check confirmed by the owner on 2026-11-05, recorded in PR #24.
 - [x] T-11 `aria-disabled` start button _(REQ-0002-08)_
   - Tests: Button and SetupScreen component tests; e2e cleared buy-in
   - Done when: AC-0002-08 passes.
@@ -120,6 +121,7 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 - [x] T-27 Docs: component docs for the new components, updated `DESIGN_SYSTEM.md` (tokens, contrast table, patterns) and `ACCESSIBILITY.md` (remove the known hidden-label gap), and SPEC-0001 cross-references.
   - Done when: `node scripts/check-sdd-refs.mjs && node scripts/check-doc-links.mjs` pass.
-- [ ] T-28 Close Phase 3: refresh visual baselines (macOS and Linux), open the P3 PR, and run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
+- [x] T-28 Close Phase 3: refresh visual baselines (macOS and Linux), open the P3 PR, and run `pnpm verify`, `pnpm test:a11y`, `pnpm test:visual`.
   - Done when: all pass; AC-0002-24 is demonstrated with a keyboard walkthrough and a screen-reader pass noted in the PR.
-- [ ] T-29 Set the spec to `implemented`, update the index, and remove Roadmap item 1.
+  - Phase 3 shipped in PR #7 with green checks and CI-generated baselines; the keyboard and screen-reader pass was confirmed by the owner on 2026-11-05 (PR #24).
+- [x] T-29 Set the spec to `implemented`, update the index, and remove Roadmap item 1 (already removed).

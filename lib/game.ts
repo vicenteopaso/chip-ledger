@@ -141,6 +141,15 @@ export function playerName(game: GameState, player: Player): string {
   return player.name.trim() || `Player ${game.players.indexOf(player) + 1}`;
 }
 
+/**
+ * The first letter of a name, upper-cased, for a decorative avatar (REQ-0005-06). Takes the first
+ * whole character, so an emoji or an accented letter is not split; empty for a blank name.
+ */
+export function initialOf(name: string): string {
+  const [first = ""] = Array.from(name.trim());
+  return first.toLocaleUpperCase();
+}
+
 /** Player counts for the "All colors" chip are stored under this id. */
 export const UNIFORM_CHIP_ID = "all";
 

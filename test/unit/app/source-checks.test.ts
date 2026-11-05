@@ -39,16 +39,34 @@ describe("source checks", () => {
     expect(offending).toEqual([]);
   });
 
-  it("AC-0002-29: ships a favicon and a home-screen icon drawn from the brand mark", () => {
+  it("AC-0005-09, REQ-0005-11: ships a favicon and a home-screen icon drawn from the brass chip mark", () => {
     const icon = readFileSync(join(root, "app/icon.svg"), "utf8");
     expect(icon).toContain('viewBox="0 0 32 32"');
-    // The header mark's chip colors, taken from styles/tokens.css so they cannot drift.
+    // The dark theme's brass and room colors, taken from styles/tokens.css so they cannot drift.
     const tokens = readFileSync(join(root, "styles/tokens.css"), "utf8");
-    for (const chip of ["blue", "green", "red"]) {
-      const value = new RegExp(`--color-chip-${chip}: (#[0-9a-f]{6});`).exec(tokens)?.[1];
+    const dark = tokens.slice(tokens.indexOf(':root[data-theme="dark"]'));
+    for (const token of ["accent", "bg"]) {
+      const value = new RegExp(`--color-${token}: (#[0-9a-f]{6});`).exec(dark)?.[1];
       expect(value).toBeDefined();
       expect(icon).toContain(value);
     }
+    // One chip: one rim, one ring of edge spots, one center.
+    expect(icon.match(/<circle/g)).toHaveLength(3);
     expect(existsSync(join(root, "app/apple-icon.png"))).toBe(true);
+  });
+
+  it("AC-0005-14, REQ-0005-16, -19: ships favicon.ico and the manifest's icons at their sizes", () => {
+    // PNG width and height are big-endian at bytes 16 and 20.
+    const pngSize = (path: string) => {
+      const png = readFileSync(join(root, path));
+      return [png.readUInt32BE(16), png.readUInt32BE(20)];
+    };
+    expect(pngSize("public/icons/icon-192.png")).toEqual([192, 192]);
+    expect(pngSize("public/icons/icon-512.png")).toEqual([512, 512]);
+    expect(pngSize("public/icons/icon-maskable-512.png")).toEqual([512, 512]);
+    // An ICO header: reserved 0, type 1 (icon), then the frame count; frames are 16, 32, 48 px.
+    const ico = readFileSync(join(root, "app/favicon.ico"));
+    expect([ico.readUInt16LE(0), ico.readUInt16LE(2), ico.readUInt16LE(4)]).toEqual([0, 1, 3]);
+    expect([0, 1, 2].map((i) => ico.readUInt8(6 + 16 * i))).toEqual([16, 32, 48]);
   });
 });

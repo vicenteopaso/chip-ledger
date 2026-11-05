@@ -80,6 +80,15 @@ export function moneyFormatter(currency: Currency, locale?: string): MoneyFormat
   return (amount) => format.format(amount);
 }
 
+/**
+ * A formatted amount without its currency symbol or code, in the same locale's digits and
+ * separators: "€20.00" → "20.00", "20,00 €" → "20,00", "CLP 10.000" → "10.000". For short labels
+ * whose currency is already clear from the screen (REQ-0005-10).
+ */
+export function withoutCurrency(formatted: string): string {
+  return formatted.replace(/[^\d.,\s\u00a0\u202f'’+\-−]/g, "").trim();
+}
+
 /** Parses a decimal typed by a person; a comma counts as the decimal separator. Invalid input is 0. */
 export function parseDecimal(text: string): number {
   const value = Number.parseFloat(text.replace(",", "."));
