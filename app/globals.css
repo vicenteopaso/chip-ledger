@@ -217,12 +217,14 @@
 .app-header[data-compact="true"] {
   border-bottom-color: var(--color-border);
 }
+/* Even spacing once small: 12 px above the brand, then the bars centered in their 44 px targets,
+   so the gap from the brand to the bars matches the gap from the bars to the rule (20 px each). */
 .app-header[data-compact="true"] .app-header-inner {
-  padding-top: calc(var(--spacing) * 2);
-  padding-bottom: calc(var(--spacing) * 2);
+  padding-top: calc(var(--spacing) * 3);
+  padding-bottom: 0;
 }
 .app-header[data-compact="true"] .app-header-brand {
-  margin-bottom: calc(var(--spacing) * 1);
+  margin-bottom: 0;
 }
 /* While small, the steps keep their bars and lose the written names, which stay for screen
    readers: the bars show the way, the words cost the height (REQ-0005-13). */
@@ -234,9 +236,12 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-/* Still a 44 px target while small (REQ-0005-12): the bar sits at the top of the button. */
+/* Still a 44 px target while small (REQ-0005-12), with the bar in its middle: the name is hidden,
+   so a bar at the top would leave the rest of the target as empty space under it. */
 .app-header[data-compact="true"] .app-header-inner nav button {
   min-height: calc(var(--spacing) * 11);
+  justify-content: center;
+  padding-top: 0;
   padding-bottom: 0;
 }
 .app-header[data-compact="true"] .app-header-title {
