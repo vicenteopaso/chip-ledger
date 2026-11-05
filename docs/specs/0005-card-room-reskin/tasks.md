@@ -40,6 +40,6 @@ Legend: `[P]` can run in parallel with its neighbours.
 ## Verification and close
 
 - [x] T-09 Check every step and both sheets in a browser: both themes, 320, 390 and 1280 px wide, top and scrolled _(AC-0005-13; the sheets through the macOS visual snapshots)_
-- [ ] T-10 `pnpm verify` and `pnpm test:a11y`; refresh visual baselines (macOS done locally; Linux pending, through the `update-visual-baselines` label on the PR)
+- [x] T-10 `pnpm verify` and `pnpm test:a11y`; refresh visual baselines (macOS locally; Linux from the `update-visual-baselines` workflow)
 - [x] T-11 Update the docs listed in the plan §7
 - [ ] T-12 Set spec status to `implemented` and update `docs/specs/README.md`
