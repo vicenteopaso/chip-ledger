@@ -45,4 +45,4 @@ Legend: `[P]` can run in parallel with its neighbours.
 - [x] T-13 Favicon.ico, manifest and its icons, theme colors, Open Graph image _(REQ-0005-16 … -19)_
   - Tests: `support.test.ts` (manifest, theme colors match tokens, large card); `source-checks.test.ts` (icon sizes, ICO frames); e2e `AC-0005-14 … -17`
   - Done when: every file is served with its type and the preview image is checked by eye
-- [ ] T-12 Set spec status to `implemented` and update `docs/specs/README.md`
+- [x] T-12 Set spec status to `implemented` and update `docs/specs/README.md`
