@@ -18,7 +18,7 @@
 
 - If `pending === 0`, it reloads.
 - If edits are pending and the device is live, it shows "Saving your changes…" and reloads when `pending` reaches 0 (REQ-0008-10).
-- If offline, it shows the confirm described in §5 (proposed amendment).
+- If offline (`navigator.onLine === false`, or the shared feed reports Offline), on any page, it doesn't reload. It shows "You're offline. Refresh when you're back online." in the notice and through the live region (REQ-0008-14). Unsent edits stay queued and mirrored to `sessionStorage`.
 
 **Old versions that can no longer edit (REQ-0008-13).** `lib/shared-game.ts` gains `EDIT_PROTOCOL` (starts at 1) and `MIN_EDIT_PROTOCOL` (starts at 1). The edit envelope gets an optional `protocol` field; a missing field means 1, so pages from before this change keep working. When a later change raises `MIN_EDIT_PROTOCOL`, the actions route answers `409` with type `outdated_client` for older envelopes. `sendEdit` maps that to `{ kind: "outdated" }`. `useSharedEditor` then stops sending, keeps the queue, and exposes `outdated: true`, which turns the notice into "Refresh to keep editing". The queue is mirrored to `sessionStorage` per game, so it survives the reload. The new version re-validates each kept action with `SharedActionSchema`, sends the valid ones, and drops the rest with the existing "wasn't saved" reason.
 
@@ -65,27 +65,28 @@ sequenceDiagram
 
 ## 4. Testing strategy
 
-| Requirement      | Unit                                          | Component                         | E2E                                                    | Visual       | A11y             |
-| ---------------- | --------------------------------------------- | --------------------------------- | ------------------------------------------------------ | ------------ | ---------------- |
-| REQ-0008-01, -02 | hook timing with fake timers                  |                                   | AC-0008-01, -03 (route mocked with `page.route`)       |              |                  |
-| REQ-0008-03      | `isDifferentVersion` incl. `"dev"`            |                                   | AC-0008-04 (mock answers an older value)               |              |                  |
-| REQ-0008-04, -05 | client parse failures                         | no notice on failure              | AC-0008-05 (offline, request log has no game data)     |              |                  |
-| REQ-0008-06, -07 |                                               | VersionNotice; ActionBar slot     | AC-0008-10 (each step, shared, unavailable)            | notice, both | axe both, 320 px |
-| REQ-0008-08      |                                               | no dismiss control                | AC-0008-12                                             |              |                  |
-| REQ-0008-09, -11 |                                               | Refresh blurs the draft first     | AC-0008-06                                             |              |                  |
-| REQ-0008-10      | useSharedEditor waits for pending             | "Saving your changes…" state      | AC-0008-07, -08                                        |              | announced        |
-| REQ-0008-12      |                                               |                                   | AC-0008-09                                             |              |                  |
-| REQ-0008-13      | envelope schema; route refusal; client map    | editor pauses and keeps the queue | AC-0008-11 (raise `MIN_EDIT_PROTOCOL` in a test build) |              |                  |
-| Route            | route test: shape, `no-store`, limiter, error |                                   |                                                        |              |                  |
+| Requirement      | Unit                                          | Component                               | E2E                                                    | Visual       | A11y             |
+| ---------------- | --------------------------------------------- | --------------------------------------- | ------------------------------------------------------ | ------------ | ---------------- |
+| REQ-0008-01, -02 | hook timing with fake timers                  |                                         | AC-0008-01, -03 (route mocked with `page.route`)       |              |                  |
+| REQ-0008-03      | `isDifferentVersion` incl. `"dev"`            |                                         | AC-0008-04 (mock answers an older value)               |              |                  |
+| REQ-0008-04, -05 | client parse failures                         | no notice on failure                    | AC-0008-05 (offline, request log has no game data)     |              |                  |
+| REQ-0008-06, -07 |                                               | VersionNotice; ActionBar slot           | AC-0008-10 (each step, shared, unavailable)            | notice, both | axe both, 320 px |
+| REQ-0008-08      |                                               | no dismiss control                      | AC-0008-12                                             |              |                  |
+| REQ-0008-09, -11 |                                               | Refresh blurs the draft first           | AC-0008-06                                             |              |                  |
+| REQ-0008-10      | useSharedEditor waits for pending             | "Saving your changes…" state            | AC-0008-07                                             |              | announced        |
+| REQ-0008-14      | offline detection (both signals)              | offline text; no reload; no auto-reload | AC-0008-08 (`context.setOffline`)                      |              | announced        |
+| REQ-0008-12      |                                               |                                         | AC-0008-09                                             |              |                  |
+| REQ-0008-13      | envelope schema; route refusal; client map    | editor pauses and keeps the queue       | AC-0008-11 (raise `MIN_EDIT_PROTOCOL` in a test build) |              |                  |
+| Route            | route test: shape, `no-store`, limiter, error |                                         |                                                        |              |                  |
 
 ## 5. Risks and mitigations
 
-| Risk                                                                                                                                                                                                                          | Likelihood | Impact | Mitigation                                                                                                                                                                                                                              |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Spec conflict, REQ-0008-10 offline case.** With no service worker, reloading while offline shows the browser's own offline page instead of the game. Confirming "lose the changes" still leaves the person without the app. | High       | Medium | **Proposed spec amendment for owner approval:** when offline, **Refresh** says "You're offline. Refresh when you're back online." and does not reload. Unsent edits are kept, also in `sessionStorage`. Not implemented until approved. |
-| `GITHUB_SHA` isn't visible to `vercel build` in Actions, or a preview and production share a commit.                                                                                                                          | Low        | Medium | Task T-01 checks the value on a preview build first. The same commit means the same code, so no notice is correct.                                                                                                                      |
-| The notice appears for a deploy that changed nothing visible (docs only).                                                                                                                                                     | High       | Low    | Accepted: same code is not guaranteed, and refresh is cheap and safe.                                                                                                                                                                   |
-| An old page from before this change never shows the notice.                                                                                                                                                                   | Certain    | Low    | It gets the notice code on its next reload. This is a one-time gap.                                                                                                                                                                     |
+| Risk                                                                                                 | Likelihood | Impact | Mitigation                                                                                                         |
+| ---------------------------------------------------------------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| An offline reload would show the browser's error page instead of the game.                           | High       | Medium | Resolved by the owner's amendment (REQ-0008-14): offline, **Refresh** waits and says why; edits are kept.          |
+| `GITHUB_SHA` isn't visible to `vercel build` in Actions, or a preview and production share a commit. | Low        | Medium | Task T-01 checks the value on a preview build first. The same commit means the same code, so no notice is correct. |
+| The notice appears for a deploy that changed nothing visible (docs only).                            | High       | Low    | Accepted: same code is not guaranteed, and refresh is cheap and safe.                                              |
+| An old page from before this change never shows the notice.                                          | Certain    | Low    | It gets the notice code on its next reload. This is a one-time gap.                                                |
 
 ## 6. Rollout and rollback
 
