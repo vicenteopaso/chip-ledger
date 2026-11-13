@@ -28,8 +28,8 @@ The dialog (the shared `Dialog`, also used by [GamesSheet](./GamesSheet.md)) beh
 
 ## Behavior
 
-- Before sharing (`intro`), the retention notice is shown and nothing is sent until **Create the link** is pressed (REQ-0003-22). A second sentence says the host keeps playing in the shared game and that this device's own game then starts empty (SPEC-0006 REQ-0006-06). Creating stores the host's edit key and watch key on this device and opens the shared game with the sheet already open (`?share=1`, removed from the address).
-- The switch is last and is **Watch only** each time the sheet opens. A device that holds only the edit key (a co-host) cannot show the watch link; the sheet says so instead of showing a code. A watcher can offer the watch link but not the edit link.
+- Before sharing (`intro`), the retention notice is shown and nothing is sent until **Create the link** is pressed (REQ-0003-22). A second sentence says the host keeps playing in the shared game and that this device's own game then starts empty (SPEC-0006 REQ-0006-06). With `separateStorage`, set in a browser on iPhone or iPad, a third says the browser and the home-screen app keep their games separately (SPEC-0007 REQ-0007-09). Creating stores the host's edit key and watch key on this device and opens the shared game with the sheet already open (`?share=1`, removed from the address).
+- The switch is last and is **Watch only** each time the sheet opens. Edit links carry the watch key, so a co-host who opens one can show the watch link too (SPEC-0007). A device that joined with an edit link made before that holds only the edit key; the sheet says its link is older and who can show the watch-only code, instead of showing a code. A watcher can offer the watch link but not the edit link.
 - The edit code lasts 10 minutes; asking for a new one replaces the old one.
 
 ## Accessibility

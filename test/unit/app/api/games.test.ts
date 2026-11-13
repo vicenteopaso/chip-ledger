@@ -126,7 +126,7 @@ describe("POST /api/games", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
-  it("REQ-0003-24: the stored game holds hashes, never the keys", async () => {
+  it("REQ-0003-24, AC-0007-05: the stored game holds hashes, never the keys", async () => {
     const { id, watchKey, editKey } = await share();
     const stored = JSON.stringify(await getGameStore()?.get(id));
     expect(stored).not.toContain(watchKey);
@@ -690,7 +690,7 @@ describe("edit codes and upgrades", () => {
   });
 });
 
-describe("logs (REQ-0003-24)", () => {
+describe("logs (REQ-0003-24, AC-0007-05)", () => {
   it("never contain a key, an edit code, or the store token, even when requests fail", async () => {
     const lines: string[] = [];
     const record = (...args: unknown[]) => lines.push(args.map(String).join(" "));

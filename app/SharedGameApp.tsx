@@ -40,7 +40,7 @@ import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { moneyFormatter } from "@/lib/money";
 import { SITE } from "@/lib/seo";
 import { settle } from "@/lib/settlement";
-import { keyFromHash, SharedActionSchema } from "@/lib/shared-game";
+import { keysFromHash, SharedActionSchema } from "@/lib/shared-game";
 import { type ConnectionStatus as Status, statusAnnouncement } from "@/lib/shared-game-sync";
 import { resultsText } from "@/lib/summaries";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
@@ -104,12 +104,13 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
   // game pasted into the same tab only changes the `#` part, which the browser does not reload.
   useEffect(() => {
     const takeKeyFromLink = (): string | null => {
-      const fromLink = keyFromHash(window.location.hash);
-      if (fromLink) {
-        rememberKey(id, fromLink);
-        window.history.replaceState(null, "", window.location.pathname + window.location.search);
-      }
-      return fromLink;
+      const fromLink = keysFromHash(window.location.hash);
+      if (!fromLink) return null;
+      // An edit link also carries the watch key, so this device can show the watch-only link
+      // (SPEC-0007 REQ-0007-04).
+      rememberKey(id, fromLink.key, undefined, fromLink.watchKey ?? undefined);
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return fromLink.key;
     };
     const onHashChange = () => {
       const fromLink = takeKeyFromLink();

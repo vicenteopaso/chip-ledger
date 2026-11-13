@@ -56,8 +56,8 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 ### Sharing and links
 
 - REQ-0003-01: A game MUST stay on the host's device only, with no data sent to a server, until the host chooses **Share**.
-- REQ-0003-02: **Share** MUST be reachable from every step. It MUST open a sheet showing a QR code, the same link as readable text, a **Copy link** button, and (where the browser supports it) a **Share** button for the device's share menu.
-- REQ-0003-03: The sheet MUST end with a two-option switch, **Watch only** and **Can edit**, set to **Watch only** each time the sheet opens. Changing it MUST replace the QR code and link immediately.
+- REQ-0003-02: **Share** MUST be reachable from every step. It MUST open a sheet showing a QR code, the same link as readable text, a **Copy link** button, and (where the browser supports it) a **Share** button for the device's share menu. _Amended by [SPEC-0007](../0007-watch-link-from-any-device/spec.md) REQ-0007-01, -04: an edit link also carries the watch key, so any editor can show the watch-only link._
+- REQ-0003-03: The sheet MUST end with a two-option switch, **Watch only** and **Can edit**, set to **Watch only** each time the sheet opens. Changing it MUST replace the QR code and link immediately. _See SPEC-0007 for which devices can show each link._
 - REQ-0003-04: Each link MUST carry an unguessable key of at least 128 bits in the part of the address after `#`, so the key is not sent to the server by the page request. The app MUST remove the key from the address bar after it has been read.
 - REQ-0003-05: Opening a link MUST join the game with the access the link grants, and MUST show the game's current state within 3 seconds on a normal connection. Joining MUST NOT change the game.
 

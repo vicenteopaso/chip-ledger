@@ -72,9 +72,10 @@ export function ShareControl({
 
   const keys = shared ? keysFor(shared.role, shared.key, watchKeyFor(shared.id)) : null;
   const key = keys ? keys[kind] : null;
+  // The edit link carries the watch key too, when this device has it (REQ-0007-04).
   const link =
-    open && shared && key && typeof window !== "undefined"
-      ? shareLink(window.location.origin, shared.id, key)
+    open && shared && key && keys && typeof window !== "undefined"
+      ? shareLink(window.location.origin, shared.id, key, kind === "edit" ? keys.watch : null)
       : null;
   const modules = useMemo(() => (link ? qrModules(link) : null), [link]);
 
@@ -106,6 +107,11 @@ export function ShareControl({
   };
 
   const canNativeShare = typeof navigator !== "undefined" && "share" in navigator;
+  // `navigator.standalone` exists only on iPhone and iPad: false in a browser, true in the app
+  // opened from the home screen. The two keep their storage apart (REQ-0007-09).
+  const besideHomeScreenApp =
+    typeof navigator !== "undefined" &&
+    (navigator as Navigator & { standalone?: boolean }).standalone === false;
 
   return (
     <ShareSheet
@@ -115,6 +121,7 @@ export function ShareControl({
       }}
       stage={shared ? "ready" : creating ? "creating" : "intro"}
       problem={problem}
+      separateStorage={besideHomeScreenApp}
       onCreate={() => {
         void create();
       }}

@@ -732,3 +732,41 @@ describe("SharedGameApp: reopened from the home page (SPEC-0006)", () => {
     expect(lastGame()).toEqual({ kind: "own" });
   });
 });
+
+describe("SharedGameApp: an edit link that carries the watch key (SPEC-0007)", () => {
+  const WATCH = "W".repeat(22);
+
+  it("REQ-0007-01, -04: keeps both keys, cleans the address, and can then show both links", async () => {
+    fetchMock.mockResolvedValue(snapshot({ role: "edit" }));
+    window.history.replaceState(null, "", `/g/${ID}#k=${KEY}&w=${WATCH}`);
+    render(<SharedGameApp id={ID} />);
+    await tick(0);
+    expect(keyFor(ID)).toBe(KEY);
+    expect(watchKeyFor(ID)).toBe(WATCH);
+    expect(window.location.hash).toBe("");
+    expect(fetchMock.mock.calls[0]?.[0]).toMatchObject({ key: KEY });
+
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+    expect(screen.getByTestId("share-link").textContent).toBe(
+      `${window.location.origin}/g/${ID}#k=${WATCH}`,
+    );
+    await userEvent.click(screen.getByRole("radio", { name: /Can edit/ }));
+    expect(screen.getByTestId("share-link").textContent).toBe(
+      `${window.location.origin}/g/${ID}#k=${KEY}&w=${WATCH}`,
+    );
+  });
+
+  it("REQ-0007-02, -03: a watch link gives the watch key only, with no edit link to show", async () => {
+    fetchMock.mockResolvedValue(snapshot({ role: "watch" }));
+    window.history.replaceState(null, "", `/g/${ID}#k=${WATCH}`);
+    render(<SharedGameApp id={ID} />);
+    await tick(0);
+    expect(keyFor(ID)).toBe(WATCH);
+    expect(watchKeyFor(ID)).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+    expect(screen.getByTestId("share-link").textContent).toBe(
+      `${window.location.origin}/g/${ID}#k=${WATCH}`,
+    );
+    expect(screen.getByText(/Needs edit access/)).toBeInTheDocument();
+  });
+});

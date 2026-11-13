@@ -17,6 +17,7 @@ import {
   GameIdSchema,
   GameReplySchema,
   keyFromHash,
+  keysFromHash,
   KeySchema,
   lastActivityAt,
   lifecycleStatus,
@@ -368,6 +369,21 @@ describe("join links and replies (REQ-0003-04, -05)", () => {
     expect(keyFromHash(`#k=${key}`)).toBe(key);
     for (const bad of ["", "#", `#${key}`, `#k=${key}x`, "#k=short", `#k=${key}&x=1`, `k=${key}`]) {
       expect(keyFromHash(bad)).toBeNull();
+    }
+  });
+
+  it("REQ-0007-04: reads the watch key an edit link carries in &w=", () => {
+    const key = "A".repeat(22);
+    const watch = "W".repeat(22);
+    expect(keysFromHash(`#k=${key}`)).toEqual({ key, watchKey: null });
+    expect(keysFromHash(`#k=${key}&w=${watch}`)).toEqual({ key, watchKey: watch });
+    // A watch key that isn't a key, is empty, or repeats the key is left out; the link still opens.
+    for (const w of ["short", "", key, `${watch}x`]) {
+      expect(keysFromHash(`#k=${key}&w=${w}`)).toEqual({ key, watchKey: null });
+    }
+    // Anything else after the key still makes the link unreadable.
+    for (const bad of [`#k=${key}&w=${watch}&x=1`, `#w=${watch}&k=${key}`, `#k=bad&w=${watch}`]) {
+      expect(keysFromHash(bad)).toBeNull();
     }
   });
 
