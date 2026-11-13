@@ -115,7 +115,7 @@ Planning is blocked until every item is resolved or explicitly deferred with a r
 - Q3, resolved 2026-11-13 by the owner: plan for 12 devices on one network (REQ-0006-08); the numbers are set in the plan.
 - Q4, resolved 2026-11-13 by the owner: "N phones live" (REQ-0006-13).
 - Changed during implementation, 2026-11-13, for the owner to confirm in the implementation PR:
-  - `sdd.yaml` requires an ADR to change a rate limit, which the first draft of this spec missed ("ADR: none"). [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md) is proposed with the code. It adds the limit on misses now in REQ-0006-09.
+  - `sdd.yaml` requires an ADR to change a rate limit, which the first draft of this spec missed ("ADR: none"). [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md) was proposed with the code and accepted by the owner on merge, 2026-11-13. It adds the limit on misses now in REQ-0006-09.
   - REQ-0006-10 said that opening the page again must not skip the wait. A reloaded page has nothing to show until its first check, so holding that check back would leave it blank for up to a minute. A reload now makes one check, and a refusal starts the wait again.
   - While the home address is opening the last shared game, it says "Opening your game…" instead of briefly showing the device's own game (REQ-0006-01).
 - Q5, resolved 2026-11-13 by the owner: specified separately as [SPEC-0007](../0007-watch-link-from-any-device/spec.md); it stays a non-goal here.
