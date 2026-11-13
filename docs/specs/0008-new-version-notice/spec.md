@@ -59,7 +59,8 @@ The app has no service worker and its pages are rendered per request (ADR-0004),
 ### Refreshing safely
 
 - REQ-0008-09: **Refresh** MUST reload the page into the new version and open the same game at the same step as before (REQ-0003-18).
-- REQ-0008-10: If edits to a shared game are still waiting to be sent, **Refresh** MUST first send them. While it waits, the button reads "Saving your changes…". It reloads once they are saved. If they can't be sent because the device is offline, it MUST say so and MUST NOT reload until the person confirms that the unsent changes will be lost.
+- REQ-0008-10: If edits to a shared game are still waiting to be sent, **Refresh** MUST first send them. While it waits, the button reads "Saving your changes…". It reloads once they are saved.
+- REQ-0008-14: While the device is offline, on any page, **Refresh** MUST NOT reload, because with no service worker a reload offline shows the browser's own error page instead of the game. It MUST say "You're offline. Refresh when you're back online." Edits not yet sent MUST be kept (REQ-0003-14). When the connection returns, **Refresh** works again; it MUST NOT reload by itself. _Amends REQ-0008-10's offline case, owner decision 2026-11-13._
 - REQ-0008-11: Text the person is typing that has not yet been applied to the game MUST be applied before reloading, or the reload MUST wait until the field loses focus.
 - REQ-0008-12: After the reload, the notice MUST NOT appear again for the version now running.
 
@@ -76,7 +77,7 @@ The app has no service worker and its pages are rendered per request (ADR-0004),
 - AC-0008-05 (REQ-0008-04, -05): Given a game never shared and the network off, then no notice and no error appear, and the game works as before; no request carries game data.
 - AC-0008-06 (REQ-0008-09): Given a solo game on Cash out with counts entered, when the person presses **Refresh**, then the new version opens on Cash out with the same counts.
 - AC-0008-07 (REQ-0008-09, -10): Given an editor in a shared game with one edit not yet confirmed, when they press **Refresh**, then the button reads "Saving your changes…", the edit is saved, then the page reloads into the new version on the same step, showing the edit.
-- AC-0008-08 (REQ-0008-10): Given an editor offline with unsent edits, when they press **Refresh**, then they are told the changes are not sent yet and the page does not reload unless they confirm.
+- AC-0008-08 (REQ-0008-14): Given an editor offline with unsent edits, when they press **Refresh**, then the page does not reload, they read "You're offline. Refresh when you're back online.", and the edits are still pending; when the connection returns, the page has not reloaded by itself, and pressing **Refresh** saves the edits and then reloads. The same holds on a solo game, without the edits.
 - AC-0008-09 (REQ-0008-12): Given a page just reloaded by **Refresh**, then the notice is not shown.
 - AC-0008-11 (REQ-0008-13): Given an editor on an old version whose edits the server no longer accepts, when they make a change, then it shows on their device, is not lost, the game keeps updating from others, and the notice reads "Refresh to keep editing"; after **Refresh**, the change is saved or a "wasn't saved" reason is shown.
 - AC-0008-12 (REQ-0008-08): Given the notice is shown, then there is no control to dismiss it, and it stays across step changes until **Refresh**.
@@ -88,7 +89,7 @@ The app has no service worker and its pages are rendered per request (ADR-0004),
 - **Security:** The check reads one public value: an identifier of the deployment, such as its id or commit. That value is not a secret and gives no access. If a new route is added, it is same-origin, read-only, takes no input, answers with a fixed shape that the client parses with a schema, and is rate-limited like other reads. CSP needs no change: `connect-src 'self'` covers it. No change to keys or the access model.
 - **Privacy:** No personal data. The request carries no game, key or name, and nothing is logged beyond normal request logs.
 - **Performance:** At most one small request per check, with no store commands (REQ-0008-05). At the agreed interval this is a handful of requests an hour per open page. No change to the first-load JavaScript budget beyond a small component; Lighthouse performance stays ≥ 90.
-- **Error states:** A failed check is silent and retried (REQ-0008-04). A refresh blocked by unsent offline edits explains why (REQ-0008-10). A failed reload behaves like any failed page load. Failures are not logged on the client beyond development warnings.
+- **Error states:** A failed check is silent and retried (REQ-0008-04). A refresh pressed while offline explains why it waits (REQ-0008-14). A failed reload behaves like any failed page load. Failures are not logged on the client beyond development warnings.
 - **i18n / localization:** N/A: OPT-I18N is not adopted.
 - **SEO:** N/A: the notice is shown only after a check in the browser, never in the server-rendered page, so crawlers see no change.
 
@@ -100,6 +101,7 @@ Planning is blocked until every item is resolved or explicitly deferred with a r
 - Q2, resolved 2026-11-13 by the owner: the notice can't be dismissed (REQ-0008-08).
 - Q3, resolved 2026-11-13 by the owner: pause edits, keep them, and ask to refresh (REQ-0008-13).
 - Q4, resolved 2026-11-13 by the owner: a slim bar above the bottom action bar (REQ-0008-07).
+- Amendment, approved 2026-11-13 by the owner: found while planning. A reload offline shows the browser's error page, so offline **Refresh** waits instead of asking to discard edits (REQ-0008-14 replaces the offline part of REQ-0008-10).
 
 ## 8. References
 
