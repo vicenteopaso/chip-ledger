@@ -6,7 +6,13 @@ import { Button } from "@/app/components/Button";
 import { Dialog } from "@/app/components/Dialog";
 import { QrCode } from "@/app/components/QrCode";
 import { Hint } from "@/app/components/Typography";
-import { LINK_HELP, LINK_KINDS, type LinkKind, RETENTION_NOTICE } from "@/lib/share-links";
+import {
+  LINK_HELP,
+  LINK_KINDS,
+  type LinkKind,
+  RETENTION_NOTICE,
+  STAYS_IN_GAME_NOTICE,
+} from "@/lib/share-links";
 
 export type EditCodeState =
   | { kind: "hidden" }
@@ -61,6 +67,7 @@ export function ShareSheet(props: ShareSheetProps) {
     body = (
       <>
         <p className="mb-3">{RETENTION_NOTICE}</p>
+        <p className="mb-3">{STAYS_IN_GAME_NOTICE}</p>
         <Hint>Nothing is sent until you press the button below.</Hint>
         {props.problem && (
           <p role="alert" className="mb-3 font-semibold text-danger">

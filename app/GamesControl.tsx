@@ -6,6 +6,7 @@ import { type GameRow, GamesSheet } from "@/app/components/GamesSheet";
 import { gameTitle } from "@/lib/games-list";
 import { loadSavedGame } from "@/lib/infra/game-storage";
 import { forgetGame, listGames } from "@/lib/infra/joined-games-storage";
+import { rememberLastGame } from "@/lib/infra/last-game-storage";
 import { deleteSharedGame } from "@/lib/infra/shared-game-client";
 import type { Role } from "@/lib/shared-game";
 
@@ -79,10 +80,16 @@ export function GamesControl({
     return saved ? gameTitle(saved) : null;
   }, [open, ownTitle]);
 
+  /** The device's own game becomes the one the home page opens, then it opens (REQ-0006-04). */
+  const openOwn = () => {
+    rememberLastGame({ kind: "own" });
+    navigate("/");
+  };
+
   const leave = (id: string) => {
     forgetGame(id);
     if (id === current?.id) {
-      navigate("/");
+      openOwn();
       return;
     }
     setLeaving(null);
@@ -94,7 +101,7 @@ export function GamesControl({
     const outcome = await deleteSharedGame({ id: current.id, key: current.key });
     if (outcome.kind === "deleted") {
       forgetGame(current.id);
-      navigate("/");
+      openOwn();
       return;
     }
     setConfirming(false);
@@ -112,9 +119,7 @@ export function GamesControl({
       onOpenGame={(id) => {
         navigate(`/g/${id}`);
       }}
-      onOpenOwn={() => {
-        navigate("/");
-      }}
+      onOpenOwn={openOwn}
       leaving={leaving}
       onLeavingChange={setLeaving}
       onLeave={leave}

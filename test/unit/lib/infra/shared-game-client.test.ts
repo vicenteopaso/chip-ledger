@@ -5,6 +5,7 @@ import {
   deleteSharedGame,
   fetchGame,
   requestEditCode,
+  retryAfterMs,
   sendEdit,
   upgradeWithCode,
 } from "@/lib/infra/shared-game-client";
@@ -67,8 +68,22 @@ describe("fetchGame (REQ-0003-04, -05, -10)", () => {
   it("REQ-0003-25: 429 and 503 mean slow down", async () => {
     for (const status of [429, 503]) {
       const outcome = await fetchGame({ id: "abcdefghijklmnop", key: KEY }, sender({}, status));
-      expect(outcome).toEqual({ kind: "busy" });
+      expect(outcome).toEqual({ kind: "busy", retryAfterMs: null });
     }
+  });
+
+  it("REQ-0006-10: reads how long the server asked to wait", async () => {
+    const send = (header: string) => () =>
+      Promise.resolve(new Response("{}", { status: 429, headers: { "Retry-After": header } }));
+    const wait = async (header: string) => {
+      const outcome = await fetchGame({ id: "abcdefghijklmnop", key: KEY }, send(header));
+      return outcome.kind === "busy" ? outcome.retryAfterMs : "not busy";
+    };
+    expect(await wait("60")).toBe(60_000);
+    expect(await wait("0")).toBe(1000);
+    expect(await wait("99999")).toBe(300_000);
+    expect(await wait("soon")).toBeNull();
+    expect(retryAfterMs(null)).toBeNull();
   });
 
   it("treats other failures, a dead network, and a bad reply as errors", async () => {

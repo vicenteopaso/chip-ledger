@@ -17,6 +17,8 @@ export type ShareControlProps = {
   shared: { id: string; role: Role; key: string } | null;
   /** For a game not yet shared: what to send when the person presses "Create the link". */
   makeRequest?: () => CreateGameRequest;
+  /** Called once the server has the game, before going to it (REQ-0006-05). */
+  onShared?: (id: string) => void;
   /** Where to go after sharing; the browser's own navigation by default. */
   navigate?: (url: string) => void;
 };
@@ -47,6 +49,7 @@ export function ShareControl({
   onOpenChange,
   shared,
   makeRequest,
+  onShared,
   navigate = goTo,
 }: ShareControlProps) {
   const [kind, setKind] = useState<LinkKind>("watch");
@@ -83,6 +86,7 @@ export function ShareControl({
     if (outcome.kind === "created") {
       // The host holds both keys, so the device can offer either link and edit its own game.
       rememberKey(outcome.id, outcome.editKey, undefined, outcome.watchKey);
+      onShared?.(outcome.id);
       navigate(`/g/${outcome.id}?share=1`);
       return;
     }

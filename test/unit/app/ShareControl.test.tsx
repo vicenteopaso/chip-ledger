@@ -41,6 +41,25 @@ function mount(overrides: Partial<ShareControlProps> = {}) {
 }
 
 describe("sharing a solo game (REQ-0003-01, -22)", () => {
+  it("REQ-0006-05: tells the app once the server has the game, before going to it", async () => {
+    createMock.mockResolvedValue({ kind: "created", id: ID, watchKey: WATCH, editKey: EDIT });
+    const order: string[] = [];
+    const onShared = vi.fn((id: string) => order.push(`shared ${id}`));
+    const navigate = vi.fn((url: string) => order.push(`go ${url}`));
+    mount({ onShared, navigate });
+    await userEvent.click(screen.getByRole("button", { name: "Create the link" }));
+    expect(order).toEqual([`shared ${ID}`, `go /g/${ID}?share=1`]);
+  });
+
+  it("REQ-0006-05: a failed share leaves this device's own game alone", async () => {
+    createMock.mockResolvedValue({ kind: "error" });
+    const onShared = vi.fn();
+    mount({ onShared });
+    await userEvent.click(screen.getByRole("button", { name: "Create the link" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(onShared).not.toHaveBeenCalled();
+  });
+
   it("shows what is kept and sends nothing until the host presses the button", () => {
     mount();
     expect(screen.getByText(/24 hours/)).toBeInTheDocument();

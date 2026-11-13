@@ -95,7 +95,7 @@ for (const colorScheme of ["light", "dark"] as const) {
         const shared = await shareGame(request, baseURL ?? "");
         await openShared(page, shared.id, shared.watchKey);
         await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
-        await expect(page.getByText("Live · 1 here")).toBeVisible();
+        await expect(page.getByText("1 phone live")).toBeVisible();
         await snap(page, `shared-table-${colorScheme}-${size}`);
       });
     });
@@ -114,7 +114,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expect(
         page.getByRole("heading", { level: 1, name: "Waiting for the host" }),
       ).toBeVisible();
-      await expect(page.getByText("Live · 1 here")).toBeVisible();
+      await expect(page.getByText("1 phone live")).toBeVisible();
       await snap(page, `shared-waiting-${colorScheme}-mobile`);
 
       await page.goto("about:blank");
@@ -169,7 +169,7 @@ for (const colorScheme of ["light", "dark"] as const) {
         await openAsHost(host, shared);
         const sheet = host.getByRole("dialog", { name: "Share this game" });
         await expect(sheet.getByRole("img")).toBeVisible();
-        await expect(host.getByText("Live · 1 here")).toBeVisible();
+        await expect(host.getByText("1 phone live")).toBeVisible();
         await snapSheet(host, `share-ready-${colorScheme}-${size}`);
       });
 
@@ -193,7 +193,7 @@ test.describe("share sheet forced colors mobile", () => {
     await expect(
       page.getByRole("dialog", { name: "Share this game" }).getByRole("img"),
     ).toBeVisible();
-    await expect(page.getByText("Live · 1 here")).toBeVisible();
+    await expect(page.getByText("1 phone live")).toBeVisible();
     await snapSheet(page, "share-ready-forced-colors-mobile");
   });
 });

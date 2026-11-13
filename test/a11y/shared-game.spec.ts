@@ -21,6 +21,9 @@ for (const colorScheme of ["light", "dark"] as const) {
       const shared = await shareGame(request, baseURL ?? "");
       await openShared(page, shared.id, shared.watchKey);
       await expect(page.getByRole("heading", { level: 1, name: "At the table" })).toBeVisible();
+      // AC-0006-11: the count and its note are on the page when axe runs.
+      await expect(page.getByText("1 phone live")).toBeVisible();
+      await expect(page.getByText(/locked or in another app aren't counted/)).toBeVisible();
       await expectNoViolations(page);
       await page.getByRole("button", { name: "Back to Setup" }).click();
       await expect(page.getByRole("heading", { level: 1, name: "Setup" })).toBeVisible();
@@ -71,6 +74,8 @@ for (const colorScheme of ["light", "dark"] as const) {
       await startGame(page);
       await page.getByRole("button", { name: "Share" }).click();
       await expect(page.getByRole("dialog", { name: "Share this game" })).toBeVisible();
+      // REQ-0006-06: the sentence about staying in the shared game is there when axe runs.
+      await expect(page.getByText(/You keep playing in the shared game/)).toBeVisible();
       await expectNoViolations(page);
       await page.keyboard.press("Escape");
 

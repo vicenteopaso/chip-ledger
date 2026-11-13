@@ -20,10 +20,17 @@ export function retryDelayMs(failures: number): number {
 
 export type ConnectionStatus = "live" | "reconnecting" | "offline";
 
-/** One missed check is a hiccup; three in a row means the device is effectively offline. */
-export function connectionStatus(failures: number): ConnectionStatus {
+/**
+ * One missed check is a hiccup; three in a row means the device is effectively offline. A check
+ * the server refused for being too frequent proves the device is online, so it is never shown as
+ * Offline (REQ-0006-11).
+ */
+export function connectionStatus(
+  failures: number,
+  { limited = false }: { limited?: boolean } = {},
+): ConnectionStatus {
   if (failures <= 0) return "live";
-  return failures < 3 ? "reconnecting" : "offline";
+  return failures < 3 || limited ? "reconnecting" : "offline";
 }
 
 /** What a screen reader hears when the status changes (REQ-0003-13); nothing if it did not. */
@@ -38,6 +45,9 @@ export function statusAnnouncement(from: ConnectionStatus, to: ConnectionStatus)
  * The visible text of the status row (REQ-0003-13, -14). While changes wait to be sent it says
  * so, so nobody thinks they were lost.
  */
+/** Says what the device count leaves out, so a locked phone isn't read as someone leaving (REQ-0006-14). */
+export const NOT_COUNTED_NOTE = "Phones that are locked or in another app aren't counted.";
+
 export function statusText(status: ConnectionStatus, online: number | null, pending = 0): string {
   if (status === "reconnecting") {
     return pending > 0 ? "Reconnecting… your changes will sync." : "Reconnecting…";
@@ -47,5 +57,7 @@ export function statusText(status: ConnectionStatus, online: number | null, pend
       ? "Offline. Your changes will sync when the connection returns."
       : "Offline. Showing the last version.";
   }
-  return online === null ? "Live" : `Live · ${String(online)} here`;
+  // The count is devices with the game open, not people at the table (REQ-0006-13).
+  if (online === null) return "Live";
+  return `${String(online)} ${online === 1 ? "phone" : "phones"} live`;
 }

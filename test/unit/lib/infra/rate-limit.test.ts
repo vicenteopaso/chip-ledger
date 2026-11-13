@@ -12,6 +12,15 @@ describe("createRateLimiter", () => {
     expect(limiter.check("a", 60_000)).toEqual({ ok: true });
   });
 
+  it("peek says whether the next hit would pass, without counting one", () => {
+    const limiter = createRateLimiter({ limit: 1, windowMs: 60_000 });
+    expect(limiter.peek("a", 0)).toEqual({ ok: true });
+    expect(limiter.peek("a", 0)).toEqual({ ok: true });
+    limiter.check("a", 0);
+    expect(limiter.peek("a", 30_000)).toEqual({ ok: false, retryAfterSeconds: 30 });
+    expect(limiter.peek("a", 60_000)).toEqual({ ok: true });
+  });
+
   it("evicts the oldest key when full", () => {
     const limiter = createRateLimiter({ limit: 1, windowMs: 60_000, maxKeys: 1 });
     limiter.check("a", 0);

@@ -33,6 +33,7 @@ import { copyToClipboard } from "@/lib/infra/clipboard";
 import { canShare, shareText } from "@/lib/infra/web-share";
 import { saveGame } from "@/lib/infra/game-storage";
 import { keyFor, rememberKey, stepFor, updateGame } from "@/lib/infra/joined-games-storage";
+import { lastGame, rememberLastGame } from "@/lib/infra/last-game-storage";
 import { gameTitle } from "@/lib/games-list";
 import { upgradeWithCode } from "@/lib/infra/shared-game-client";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
@@ -90,6 +91,8 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
   const [seenStarted, setSeenStarted] = useState<boolean | null>(null);
   const [seenGame, setSeenGame] = useState<GameState | null>(null);
   const [seenRejected, setSeenRejected] = useState<string | null>(null);
+  /** Opened by the home page to reopen the last game, so a dead game falls back (REQ-0006-02). */
+  const [resumed, setResumed] = useState(false);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const buyInRef = useRef<HTMLInputElement>(null);
   const firstChipRef = useRef<HTMLInputElement>(null);
@@ -116,11 +119,15 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
     // The host arrives from "Create the link" with the sheet already asked for (REQ-0003-02).
     const params = new URLSearchParams(window.location.search);
     const openShare = params.get("share") === "1";
-    if (openShare) {
+    const resume = params.get("resume") === "1";
+    if (openShare || resume) {
       params.delete("share");
+      params.delete("resume");
       const rest = params.toString();
       window.history.replaceState(null, "", window.location.pathname + (rest ? `?${rest}` : ""));
     }
+    // This is now the game the home page reopens (REQ-0006-01).
+    rememberLastGame({ kind: "shared", id });
     // One-time read of an external system (the address bar and storage) after mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setJoin({ checked: true, key: first ?? keyFor(id) });
@@ -128,6 +135,7 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
     const lastStep = stepFor(id);
     if (lastStep) setScreen(lastStep);
     if (openShare) setShareOpen(true);
+    if (resume) setResumed(true);
     setTheme(loadTheme());
     window.addEventListener("hashchange", onHashChange);
     return () => {
@@ -254,6 +262,7 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
    */
   const leaveForNewGame = (next: GameState) => {
     saveGame(next);
+    rememberLastGame({ kind: "own" });
     navigate("/");
   };
   const newGameSamePlayers = () => {
@@ -270,6 +279,16 @@ export function SharedGameApp({ id, footer, navigate = goTo }: SharedGameAppProp
   };
 
   const unavailable = view.phase === "unavailable" || (join.checked && join.key === null);
+  const archived = ready?.archived ?? false;
+  // A game that can't be opened, or (when reopened from the home page) one that is archived, is no
+  // longer the game to reopen: the home page shows the device's own game instead, with no error
+  // page and no loop back here (REQ-0006-01, -02).
+  useEffect(() => {
+    if (!unavailable && !(resumed && archived)) return;
+    const last = lastGame();
+    if (last.kind === "shared" && last.id === id) rememberLastGame({ kind: "own" });
+    if (resumed) navigate("/");
+  }, [unavailable, resumed, archived, id, navigate]);
   const showGame = ready && game && settlement && ready.snapshot.started;
   // The host can fill in Setup and start the game; everyone else waits (REQ-0003-15).
   const settingUp = ready && game && !ready.snapshot.started && canEdit;

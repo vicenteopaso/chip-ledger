@@ -5,11 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChipLedgerApp } from "@/app/ChipLedgerApp";
 import { copyToClipboard } from "@/lib/infra/clipboard";
 import { STORAGE_KEY } from "@/lib/infra/game-storage";
+import { keyFor, rememberKey } from "@/lib/infra/joined-games-storage";
+import { lastGame, rememberLastGame } from "@/lib/infra/last-game-storage";
+import { createSharedGame } from "@/lib/infra/shared-game-client";
 import { requestPhotoCount } from "@/lib/infra/photo-count-client";
 import { defaultGame } from "@/test/unit/fixtures";
 
 vi.mock("@/lib/infra/clipboard", () => ({ copyToClipboard: vi.fn() }));
 vi.mock("@/lib/infra/photo-count-client", () => ({ requestPhotoCount: vi.fn() }));
+vi.mock("@/lib/infra/shared-game-client", () => ({ createSharedGame: vi.fn() }));
 
 const copy = vi.mocked(copyToClipboard);
 const photoCount = vi.mocked(requestPhotoCount);
@@ -633,5 +637,77 @@ describe("ChipLedgerApp: Games (SPEC-0003 REQ-0003-17)", () => {
     const dialog = screen.getByRole("dialog", { name: "Games" });
     expect(dialog).toHaveTextContent("This device's own game. Open now.");
     expect(within(dialog).queryByRole("button", { name: "Delete for everyone" })).toBeNull();
+  });
+});
+
+describe("ChipLedgerApp: reopening the right game (SPEC-0006)", () => {
+  const ID = "abcdefghijklmnop";
+  const EDIT = "E".repeat(22);
+  const WATCH = "W".repeat(22);
+
+  beforeEach(() => {
+    saved({ screen: "table" });
+  });
+
+  it("REQ-0006-01: opens the last shared game this device holds a key for, on its own page", () => {
+    rememberKey(ID, EDIT);
+    rememberLastGame({ kind: "shared", id: ID });
+    const replace = vi.fn();
+    render(<ChipLedgerApp photoCountingEnabled={false} sharingEnabled replace={replace} />);
+    expect(replace).toHaveBeenCalledWith(`/g/${ID}?resume=1`);
+    // It says the game is opening, not an empty Setup that could look like a lost game.
+    expect(screen.getByRole("status")).toHaveTextContent("Opening your game…");
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+    expect(lastGame()).toEqual({ kind: "shared", id: ID });
+  });
+
+  it("REQ-0006-01, -03: without a key for it, opens this device's own game and asks nothing", () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    rememberLastGame({ kind: "shared", id: ID });
+    const replace = vi.fn();
+    render(<ChipLedgerApp photoCountingEnabled={false} sharingEnabled replace={replace} />);
+    expect(replace).not.toHaveBeenCalled();
+    expect(heading()).toHaveTextContent("At the table");
+    expect(lastGame()).toEqual({ kind: "own" });
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+
+  it("REQ-0003-27: with sharing off, never leaves this device's own game", () => {
+    rememberKey(ID, EDIT);
+    rememberLastGame({ kind: "shared", id: ID });
+    const replace = vi.fn();
+    render(<ChipLedgerApp photoCountingEnabled={false} replace={replace} />);
+    expect(replace).not.toHaveBeenCalled();
+    expect(heading()).toHaveTextContent("At the table");
+  });
+
+  it("REQ-0006-05, -06, -07: after sharing, this device's own game starts empty and the shared one opens next", async () => {
+    vi.mocked(createSharedGame).mockResolvedValue({
+      kind: "created",
+      id: ID,
+      watchKey: WATCH,
+      editKey: EDIT,
+    });
+    const assign = vi.fn();
+    const original = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { assign, origin: "https://chips.example" },
+    });
+    try {
+      render(<ChipLedgerApp photoCountingEnabled={false} sharingEnabled />);
+      await userEvent.click(await screen.findByRole("button", { name: "Share" }));
+      expect(screen.getByText(/You keep playing in the shared game/)).toBeInTheDocument();
+      await userEvent.click(button("Create the link"));
+      expect(assign).toHaveBeenCalledWith(`/g/${ID}?share=1`);
+      expect(keyFor(ID)).toBe(EDIT);
+      expect(lastGame()).toEqual({ kind: "shared", id: ID });
+      const own = savedGame();
+      expect(own.screen).toBe("setup");
+      expect(own.players.every((player) => player.name === "")).toBe(true);
+    } finally {
+      Object.defineProperty(window, "location", { configurable: true, value: original });
+    }
   });
 });

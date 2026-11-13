@@ -7,11 +7,13 @@ import {
   openGame,
   originAllowed,
   readAllowed,
+  recordReadMiss,
   statusOf,
   storeOrNull,
   tooManyRequests,
 } from "@/app/api/games/_lib";
 import { problem } from "@/app/api/games/_lib";
+import { logWarning } from "@/lib/error-logging";
 import { toSnapshot } from "@/lib/shared-game";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +32,23 @@ export async function GET(request: Request, { params }: Context): Promise<Respon
   try {
     const store = storeOrNull();
     if (!store) return problem(404, "not_found", "Not found.");
-    if (!readAllowed(request)) return tooManyRequests(requestId, 60);
+    const rawId = (await params).id;
+    const read = readAllowed(request, rawId);
+    if (!read.ok) {
+      // The route and which limit refused only: no address, key or game id (REQ-0006-12).
+      logWarning("Read refused by a rate limit", {
+        context: "GET /api/games/[id]",
+        requestId,
+        limit: read.limit,
+      });
+      return tooManyRequests(requestId, read.retryAfterSeconds);
+    }
 
-    const opened = await openGame(request, (await params).id, store, requestId);
-    if (!opened.ok) return opened.response;
+    const opened = await openGame(request, rawId, store, requestId);
+    if (!opened.ok) {
+      recordReadMiss(request);
+      return opened.response;
+    }
     const { doc, role } = opened.opened;
     const now = Date.now();
     const status = await statusOf(store, doc, now);

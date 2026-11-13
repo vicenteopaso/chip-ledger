@@ -13,6 +13,13 @@ export function shareLink(origin: string, id: string, key: string): string {
 export const RETENTION_NOTICE =
   "Sharing keeps this game, including player names, on a server. It is kept until 24 hours after the last time anyone uses it, then stays read-only for 30 days, then is deleted. An editor can delete it sooner.";
 
+/**
+ * Said before the first share: the host keeps playing in the shared game, and this device's own
+ * game starts empty so the same game can't be shared twice (SPEC-0006 REQ-0006-05, -06).
+ */
+export const STAYS_IN_GAME_NOTICE =
+  "You keep playing in the shared game, and so does everyone who joins. This device's own game then starts empty, ready for your next game.";
+
 /** Short help under each choice, in plain words. */
 export const LINK_HELP: Record<LinkKind, string> = {
   watch: "People with this link can follow the game, but not change anything.",

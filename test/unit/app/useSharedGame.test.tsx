@@ -147,10 +147,53 @@ describe("useSharedGame", () => {
   });
 
   it("REQ-0003-25: a busy answer is handled like a missed check", async () => {
-    fetchMock.mockResolvedValueOnce(snapshot(1)).mockResolvedValue({ kind: "busy" });
+    fetchMock
+      .mockResolvedValueOnce(snapshot(1))
+      .mockResolvedValue({ kind: "busy", retryAfterMs: null });
     const { result } = renderHook(() => useSharedGame(ID, KEY));
     await tick(2000);
     expect(result.current.view).toMatchObject({ status: "reconnecting" });
+  });
+
+  it("REQ-0006-10: waits as long as the server asked, even when the tab comes back", async () => {
+    fetchMock
+      .mockResolvedValueOnce(snapshot(1))
+      .mockResolvedValueOnce({ kind: "busy", retryAfterMs: 60_000 })
+      .mockResolvedValue(unchanged(1));
+    renderHook(() => useSharedGame(ID, KEY));
+    await tick(2000); // the refused check
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await tick(30_000);
+    act(() => {
+      setHidden(true);
+    });
+    act(() => {
+      setHidden(false);
+    });
+    await tick(0);
+    window.dispatchEvent(new Event("online"));
+    await tick(29_000);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await tick(1000);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("REQ-0006-11, -15: refused checks show Reconnecting, never Offline, and keep the game", async () => {
+    fetchMock
+      .mockResolvedValueOnce(snapshot(1))
+      .mockResolvedValue({ kind: "busy", retryAfterMs: 1000 });
+    const { result } = renderHook(() => useSharedGame(ID, KEY));
+    await tick(0);
+    await tick(120_000); // many refusals in a row
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(4);
+    expect(result.current.view).toMatchObject({
+      phase: "ready",
+      status: "reconnecting",
+      snapshot: { rev: 1 },
+    });
+    fetchMock.mockResolvedValue(snapshot(2));
+    await tick(30_000);
+    expect(result.current.view).toMatchObject({ status: "live", snapshot: { rev: 2 } });
   });
 
   it("shows the connection problem before the first game arrives, without calling it unavailable", async () => {

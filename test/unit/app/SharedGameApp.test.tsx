@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SharedGameApp } from "@/app/SharedGameApp";
+import { lastGame, rememberLastGame } from "@/lib/infra/last-game-storage";
 import { copyToClipboard } from "@/lib/infra/clipboard";
 import {
   keyFor,
@@ -159,7 +160,7 @@ describe("SharedGameApp: watching", () => {
   it("REQ-0003-13: shows how many devices are here", async () => {
     fetchMock.mockResolvedValue(snapshot({ online: 3 }));
     await open();
-    expect(screen.getByText("Live · 3 here")).toBeInTheDocument();
+    expect(screen.getByText("3 phones live")).toBeInTheDocument();
   });
 
   it("REQ-0003-20: says a game is archived", async () => {
@@ -666,5 +667,68 @@ describe("SharedGameApp: the Games list and archived games (SPEC-0003 REQ-0003-1
     expect(saved.players.every((p) => p.buyins === 1)).toBe(true);
     expect(navigate).toHaveBeenCalledWith("/");
     expect(sendMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("SharedGameApp: reopened from the home page (SPEC-0006)", () => {
+  async function resume(outcome: FetchOutcome) {
+    rememberKey(ID, KEY);
+    fetchMock.mockResolvedValue(outcome);
+    window.history.replaceState(null, "", `/g/${ID}?resume=1`);
+    const navigate = vi.fn();
+    render(<SharedGameApp id={ID} navigate={navigate} />);
+    await tick(0);
+    return navigate;
+  }
+
+  it("REQ-0006-01: becomes the game the home page reopens, and tidies the address", async () => {
+    const navigate = await resume(snapshot());
+    expect(lastGame()).toEqual({ kind: "shared", id: ID });
+    expect(window.location.search).toBe("");
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["deleted or a wrong key", { kind: "unavailable" as const }],
+    ["archived", snapshot({ archived: true })],
+  ])(
+    "REQ-0006-01, -02: a game that is %s falls back to this device's own game, once",
+    async (_, outcome) => {
+      const navigate = await resume(outcome);
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith("/");
+      expect(lastGame()).toEqual({ kind: "own" });
+    },
+  );
+
+  it("an archived game opened from its link stays open, read-only", async () => {
+    rememberKey(ID, KEY);
+    fetchMock.mockResolvedValue(snapshot({ archived: true }));
+    window.history.replaceState(null, "", `/g/${ID}`);
+    const navigate = vi.fn();
+    render(<SharedGameApp id={ID} navigate={navigate} />);
+    await tick(0);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(lastGame()).toEqual({ kind: "shared", id: ID });
+  });
+
+  it("REQ-0006-02: an unavailable game opened from its link is not reopened again from home", async () => {
+    rememberLastGame({ kind: "shared", id: ID });
+    fetchMock.mockResolvedValue({ kind: "unavailable" });
+    await open();
+    expect(heading()).toHaveTextContent("This game isn’t available");
+    expect(lastGame()).toEqual({ kind: "own" });
+  });
+
+  it("REQ-0006-15: a new game from the shared one makes this device's own game the one to reopen", async () => {
+    fetchMock.mockResolvedValue(snapshot({ role: "edit", archived: true }));
+    const navigate = vi.fn();
+    rememberKey(ID, KEY);
+    window.history.replaceState(null, "", `/g/${ID}`);
+    render(<SharedGameApp id={ID} navigate={navigate} />);
+    await tick(0);
+    await userEvent.click(screen.getByRole("button", { name: /Duplicate into a new game/ }));
+    expect(navigate).toHaveBeenCalledWith("/");
+    expect(lastGame()).toEqual({ kind: "own" });
   });
 });

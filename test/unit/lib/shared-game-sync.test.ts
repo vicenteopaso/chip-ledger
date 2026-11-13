@@ -32,8 +32,17 @@ describe("retryDelayMs", () => {
 });
 
 describe("connectionStatus (REQ-0003-13)", () => {
+  it("REQ-0006-11: refusals for being too frequent are never Offline", () => {
+    expect([0, 1, 3, 9].map((n) => connectionStatus(n, { limited: true }))).toEqual([
+      "live",
+      "reconnecting",
+      "reconnecting",
+      "reconnecting",
+    ]);
+  });
+
   it("is live, then reconnecting for the first two misses, then offline", () => {
-    expect([0, 1, 2, 3, 9].map(connectionStatus)).toEqual([
+    expect([0, 1, 2, 3, 9].map((failures) => connectionStatus(failures))).toEqual([
       "live",
       "reconnecting",
       "reconnecting",
@@ -53,7 +62,9 @@ describe("what is said about the connection", () => {
 
   it("shows the status and how many are here", () => {
     expect(statusText("live", null)).toBe("Live");
-    expect(statusText("live", 3)).toBe("Live · 3 here");
+    expect(statusText("live", 3)).toBe("3 phones live");
+    expect(statusText("live", 1)).toBe("1 phone live");
+    expect(statusText("live", 0)).toBe("0 phones live");
     expect(statusText("reconnecting", 3)).toBe("Reconnecting…");
     expect(statusText("offline", null)).toMatch(/^Offline/);
   });
@@ -63,6 +74,6 @@ describe("what is said about the connection", () => {
     expect(statusText("offline", null, 1)).toBe(
       "Offline. Your changes will sync when the connection returns.",
     );
-    expect(statusText("live", 3, 4)).toBe("Live · 3 here");
+    expect(statusText("live", 3, 4)).toBe("3 phones live");
   });
 });

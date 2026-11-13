@@ -46,6 +46,8 @@ import { canShare, shareText } from "@/lib/infra/web-share";
 import { applyTheme, loadTheme, saveTheme } from "@/lib/infra/theme-storage";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { loadSavedGame, saveGame } from "@/lib/infra/game-storage";
+import { keyFor } from "@/lib/infra/joined-games-storage";
+import { lastGame, rememberLastGame } from "@/lib/infra/last-game-storage";
 import { requestPhotoCount } from "@/lib/infra/photo-count-client";
 
 /**
@@ -79,6 +81,12 @@ export type ChipLedgerAppProps = {
   sharingEnabled?: boolean;
   /** Rendered by the page (it needs the request time) and shown inside the bottom bar. */
   footer?: ReactNode;
+  /** Opens another page in place of this one; the browser's own replace by default. */
+  replace?: (url: string) => void;
+};
+
+const replaceWith = (url: string) => {
+  window.location.replace(url);
 };
 
 /**
@@ -89,9 +97,12 @@ export function ChipLedgerApp({
   photoCountingEnabled,
   sharingEnabled = false,
   footer,
+  replace = replaceWith,
 }: ChipLedgerAppProps) {
   const [game, dispatch] = useReducer(gameReducer, undefined, defaultGame);
   const [hydrated, setHydrated] = useState(false);
+  /** The last game used is a shared one, and its page is opening in place of this one. */
+  const [leaving, setLeaving] = useState(false);
   const [photos, setPhotos] = useState<Record<string, PhotoState>>({});
   const [copy, setCopy] = useState<CopyState>({ kind: "idle" });
   const [resetConfirming, setResetConfirming] = useState(false);
@@ -112,14 +123,27 @@ export function ChipLedgerApp({
   // Restore the saved game once, after hydration (REQ-0001-25). Browser storage and the
   // browser's locale are not available during the server render.
   useEffect(() => {
+    // The home page (and the installed app's icon) reopens the game this device used last. A
+    // shared one opens on its own page, which falls back here if it can't be opened. Nothing is
+    // asked of the server from this page (REQ-0006-01, -02, -03).
+    const last = sharingEnabled ? lastGame() : ({ kind: "own" } as const);
+    if (last.kind === "shared" && keyFor(last.id)) {
+      // Say so instead of showing this device's own game for a moment, which could look like the
+      // shared game was lost. Like the theme below, a one-time read of browser storage after
+      // mount; the rule reports the effect's first state change, so one directive covers both.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLeaving(true);
+      replace(`/g/${last.id}?resume=1`);
+      return;
+    }
+    rememberLastGame({ kind: "own" });
     const saved = loadSavedGame();
     if (saved) dispatch({ type: "replace", game: saved });
     // One-time sync from external systems after mount; there is no event to subscribe to. The
     // pre-paint script in the layout already applied a forced theme; this only syncs the button.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(loadTheme());
     setHydrated(true);
-  }, []);
+  }, [sharingEnabled, replace]);
 
   useEffect(() => {
     if (hydrated) saveGame(game);
@@ -258,6 +282,19 @@ export function ChipLedgerApp({
     saveTheme(next);
   };
 
+  if (leaving) {
+    return (
+      <>
+        <AppHeader>{null}</AppHeader>
+        <main id="main" className="mx-auto max-w-app px-4 pt-2">
+          <p className="mt-7 text-text-muted" role="status">
+            Opening your game…
+          </p>
+        </main>
+      </>
+    );
+  }
+
   return (
     <StepTitleContext value={titleRef}>
       <LiveAnnouncer message={message} />
@@ -302,6 +339,15 @@ export function ChipLedgerApp({
             started: game.screen !== "setup",
             game: SharedGameBodySchema.parse(game),
           })}
+          onShared={(id) => {
+            // The game now lives in the shared link; this device's own game starts empty, so the
+            // same game can't be shared twice by accident (REQ-0006-05, -07).
+            clearPhotos();
+            const fresh = createGame(randomId);
+            dispatch({ type: "replace", game: fresh });
+            saveGame(fresh);
+            rememberLastGame({ kind: "shared", id });
+          }}
         />
       )}
       <main id="main" className="mx-auto max-w-app px-4 pt-2 pb-(--bar-clearance) short:pb-4">

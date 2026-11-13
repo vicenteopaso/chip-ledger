@@ -22,7 +22,7 @@ test.describe("SPEC-0003 shared games: watching", () => {
     expect(urls.some((url) => url.includes(`/api/games/${shared.id}`))).toBe(true);
     await expect(page.getByText(/^Watch only/)).toBeVisible();
     // The first check is also a heartbeat, so this device counts itself.
-    await expect(page.getByText("Live · 1 here")).toBeVisible();
+    await expect(page.getByText("1 phone live")).toBeVisible();
   });
 
   test("REQ-0003-04: a reload still opens the game, from the remembered key", async ({
