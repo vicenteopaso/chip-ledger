@@ -26,7 +26,10 @@ Legend: `[P]` can run in parallel with its neighbours.
   - Done when: AC-0008-01, -02, -06 and -09 pass in e2e
 - [ ] T-06 Shared refresh waits for pending edits _(REQ-0008-10)_
   - Tests: editor hook waits for `pending = 0`; "Saving your changes…" announced
-  - Done when: AC-0008-07 passes; the offline branch waits for the owner's decision on the proposed amendment (plan §5)
+  - Done when: AC-0008-07 passes
+- [ ] T-06b Offline Refresh waits and explains; no auto-reload when back online _(REQ-0008-14)_
+  - Tests: component tests for both offline signals, solo and shared; live region text
+  - Done when: AC-0008-08 passes in e2e with `context.setOffline`
 
 ## Version compatibility
 
@@ -39,7 +42,7 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 ## Verification and close
 
-- [ ] T-09 AC-0008-04, -05 and -08 in e2e (rollback value, offline solo, offline shared per the approved wording)
+- [ ] T-09 AC-0008-04, -05 and -08 in e2e (rollback value, offline solo, offline shared, REQ-0008-14)
 - [ ] T-10 Real-phone check: installed app and Safari tab both show the notice after a preview redeploy (screenshots in the PR)
 - [ ] T-11 Update the docs listed in the plan §7
 - [ ] T-12 `pnpm verify` passes; Lighthouse performance ≥ 90
