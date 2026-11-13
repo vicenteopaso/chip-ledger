@@ -129,8 +129,10 @@ describe("ShareSheet content (REQ-0003-02, -03, -22)", () => {
       />,
     );
     expect(screen.queryByRole("img")).toBeNull();
-    expect(screen.getByText(/doesn't have the watch link/)).toBeInTheDocument();
-    expect(screen.getByText(/Not available on this device/)).toBeInTheDocument();
+    // REQ-0007-07: it says the link is older and who can show the code, not "only the host".
+    expect(screen.getByText(/joined with an older edit link/)).toBeInTheDocument();
+    expect(screen.getByText(/This device joined with an older link\./)).toBeInTheDocument();
+    expect(screen.queryByText(/Not available on this device/)).toBeNull();
   });
 
   it("shows the edit code for an editor, in words a screen reader reads letter by letter", async () => {

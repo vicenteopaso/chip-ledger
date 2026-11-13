@@ -1,4 +1,8 @@
-import { type ConnectionStatus as Status, statusText } from "@/lib/shared-game-sync";
+import {
+  type ConnectionStatus as Status,
+  NOT_COUNTED_NOTE,
+  statusText,
+} from "@/lib/shared-game-sync";
 
 const DOT: Record<Status, string> = {
   live: "bg-success",
@@ -19,9 +23,14 @@ export type ConnectionStatusProps = {
  */
 export function ConnectionStatus({ status, online, pending = 0 }: ConnectionStatusProps) {
   return (
-    <p className="mt-2 mb-1 flex items-center gap-2 text-md text-text-muted">
-      <span className={`size-2.5 flex-none rounded-full ${DOT[status]}`} aria-hidden="true" />
-      {statusText(status, online, pending)}
-    </p>
+    <div className="mt-2 mb-1">
+      <p className="flex items-center gap-2 text-md text-text-muted">
+        <span className={`size-2.5 flex-none rounded-full ${DOT[status]}`} aria-hidden="true" />
+        {statusText(status, online, pending)}
+      </p>
+      {status === "live" && online !== null && (
+        <p className="ml-4.5 text-sm text-text-muted">{NOT_COUNTED_NOTE}</p>
+      )}
+    </div>
   );
 }

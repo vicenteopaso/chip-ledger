@@ -41,6 +41,25 @@ function mount(overrides: Partial<ShareControlProps> = {}) {
 }
 
 describe("sharing a solo game (REQ-0003-01, -22)", () => {
+  it("REQ-0006-05: tells the app once the server has the game, before going to it", async () => {
+    createMock.mockResolvedValue({ kind: "created", id: ID, watchKey: WATCH, editKey: EDIT });
+    const order: string[] = [];
+    const onShared = vi.fn((id: string) => order.push(`shared ${id}`));
+    const navigate = vi.fn((url: string) => order.push(`go ${url}`));
+    mount({ onShared, navigate });
+    await userEvent.click(screen.getByRole("button", { name: "Create the link" }));
+    expect(order).toEqual([`shared ${ID}`, `go /g/${ID}?share=1`]);
+  });
+
+  it("REQ-0006-05: a failed share leaves this device's own game alone", async () => {
+    createMock.mockResolvedValue({ kind: "error" });
+    const onShared = vi.fn();
+    mount({ onShared });
+    await userEvent.click(screen.getByRole("button", { name: "Create the link" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(onShared).not.toHaveBeenCalled();
+  });
+
   it("shows what is kept and sends nothing until the host presses the button", () => {
     mount();
     expect(screen.getByText(/24 hours/)).toBeInTheDocument();
@@ -105,10 +124,29 @@ describe("an editor in a shared game (REQ-0003-03, -08)", () => {
     expect(screen.getByRole("radio", { name: /Watch only/ })).toBeChecked();
   });
 
-  it("does not offer a watch link it does not have, and says so", () => {
+  it("REQ-0007-01, -04: the edit link carries the watch key, the watch link never does", async () => {
+    rememberKey(ID, EDIT, undefined, WATCH);
+    const user = userEvent.setup();
+    mount({ shared: editor });
+    expect(screen.getByTestId("share-link").textContent).not.toContain("&w=");
+    expect(screen.getByTestId("share-link").textContent).not.toContain(EDIT);
+    await user.click(screen.getByRole("radio", { name: /Can edit/ }));
+    expect(screen.getByTestId("share-link").textContent).toBe(
+      `${window.location.origin}/g/${ID}#k=${EDIT}&w=${WATCH}`,
+    );
+  });
+
+  it("REQ-0007-05, -07: a device on an older edit link says why it can't show the watch code", async () => {
+    const user = userEvent.setup();
     mount({ shared: editor });
     expect(screen.queryByRole("img")).toBeNull();
-    expect(screen.getByText(/doesn't have the watch link/)).toBeInTheDocument();
+    expect(screen.getByText(/joined with an older edit link/)).toBeInTheDocument();
+    expect(screen.queryByText(/Only the device that started sharing/)).toBeNull();
+    // Its edit link still works, as it always did.
+    await user.click(screen.getByRole("radio", { name: /Can edit/ }));
+    expect(screen.getByTestId("share-link").textContent).toBe(
+      `${window.location.origin}/g/${ID}#k=${EDIT}`,
+    );
   });
 
   it("copies the link and says so", async () => {
@@ -145,6 +183,37 @@ describe("an editor in a shared game (REQ-0003-03, -08)", () => {
     mount({ shared: editor });
     await user.click(screen.getByRole("button", { name: "Show edit code" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(text);
+  });
+});
+
+describe("where the browser and the home-screen app keep games apart (REQ-0007-09)", () => {
+  const withStandalone = (value: boolean | undefined, run: () => void) => {
+    if (value !== undefined) {
+      Object.defineProperty(navigator, "standalone", { value, configurable: true });
+    }
+    try {
+      run();
+    } finally {
+      Reflect.deleteProperty(navigator, "standalone");
+    }
+  };
+
+  it("says so before the first share in a browser on iPhone or iPad", () => {
+    withStandalone(false, () => {
+      mount();
+      expect(screen.getByText(/share from the one you'll keep using/)).toBeInTheDocument();
+    });
+  });
+
+  it.each([
+    ["the home-screen app", true],
+    ["any other browser", undefined],
+  ])("says nothing in %s", (_, value) => {
+    withStandalone(value, () => {
+      mount();
+      expect(screen.queryByText(/share from the one you'll keep using/)).toBeNull();
+      expect(screen.getByText(/24 hours/)).toBeInTheDocument();
+    });
   });
 });
 

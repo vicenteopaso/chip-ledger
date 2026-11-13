@@ -93,11 +93,12 @@ One shape for every error (modeled on RFC 9457 problem details):
 
 `/api/games` follows the same handler structure with these specifics ([ADR-0005](./adr/0005-shared-live-games-architecture.md)):
 
-- The key is a capability sent as `Authorization: Bearer <key>`, never in a URL or a log. Only SHA-256 hashes are stored and compared in constant time.
+- The key is a capability sent as `Authorization: Bearer <key>`, never in a URL or a log. In a link it sits after `#`: `#k=<key>`, and on an edit link `#k=<edit key>&w=<watch key>` (SPEC-0007). The page reads the fragment, saves the keys on the device, and removes them from the address. Only SHA-256 hashes are stored and compared in constant time.
 - An unknown id, a deleted game, a malformed key and a wrong key all answer the same `404`, so nobody can learn whether a game exists.
 - State changes are `POST` with a client `actionId`, so a retried edit is applied once; `DELETE /api/games/{id}` answers `204` and is idempotent (an already-deleted game counts as deleted).
 - Clients poll `GET /api/games/{id}?rev=N`, which answers a short "unchanged" reply when nothing moved, and add `connection=` once every 45 s as a heartbeat. Server-sent events were measured and deferred: polling met the budget on the free store plan.
 - Limits live in the shared store, not in memory, so they hold across serverless instances: game creation, edits, and wrong edit codes.
+- Reads are the exception: they are limited in memory, per instance, so a read costs no extra store command. Phones at one table share an address, so the limit is 400 a minute per address and game, with 1,200 a minute per address across games, and 120 a minute per address for reads that answer `404` ([ADR-0007](./adr/0007-read-limits-per-address-and-game.md), SPEC-0006). A refused read answers `429` with `Retry-After`; the client waits that long and shows Reconnecting, not Offline.
 
 ## 6. Security checklist
 

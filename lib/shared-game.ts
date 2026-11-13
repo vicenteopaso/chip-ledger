@@ -174,9 +174,20 @@ export const GameReplySchema = z.union([SnapshotSchema, UnchangedSchema]);
 
 /** The key in a join link: `#k=<22 characters>`; anything else is not a key (REQ-0003-04). */
 export function keyFromHash(hash: string): string | null {
-  const match = /^#k=([^&]+)$/.exec(hash);
+  return keysFromHash(hash)?.key ?? null;
+}
+
+/**
+ * The keys a link carries after `#`: `k`, and on an edit link also `w`, the game's watch key
+ * (SPEC-0007 REQ-0007-04). Anything else in the fragment makes the link unreadable, as before. A
+ * `w` that is not a key, or repeats `k`, is left out and the link still opens.
+ */
+export function keysFromHash(hash: string): { key: string; watchKey: string | null } | null {
+  const match = /^#k=([^&]+)(?:&w=([^&]*))?$/.exec(hash);
   const key = KeySchema.safeParse(match?.[1]);
-  return key.success ? key.data : null;
+  if (!key.success) return null;
+  const watch = KeySchema.safeParse(match?.[2]);
+  return { key: key.data, watchKey: watch.success && watch.data !== key.data ? watch.data : null };
 }
 
 export function toSnapshot(

@@ -2,7 +2,7 @@
 
 | Field   | Value                                                                                                                                                                                                                                                                                                                             |
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status  | draft                                                                                                                                                                                                                                                                                                                             |
+| Status  | approved                                                                                                                                                                                                                                                                                                                          |
 | Tier    | 1                                                                                                                                                                                                                                                                                                                                 |
 | Owner   | @vicenteopaso                                                                                                                                                                                                                                                                                                                     |
 | Created | 2026-11-13                                                                                                                                                                                                                                                                                                                        |
@@ -89,6 +89,7 @@ Planning is blocked until every item is resolved or explicitly deferred with a r
 - Q1, resolved 2026-11-13 by the owner: new edit links only; the watch key travels in the edit link, no server change (REQ-0007-04, -05). Tier set to 1 as a result.
 - Q2, resolved 2026-11-13 by the owner: recovery after cleared browser data is out of scope (§2).
 - Q3, resolved 2026-11-13 by the owner: a hint only, in the notice before the first share (REQ-0007-09).
+- Wording chosen during implementation, 2026-11-13: the hint says "this browser", not "Safari", because every browser on iPhone and iPad keeps its games apart from the home-screen app, not only Safari.
 
 ## 8. References
 

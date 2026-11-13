@@ -6,7 +6,15 @@ import { Button } from "@/app/components/Button";
 import { Dialog } from "@/app/components/Dialog";
 import { QrCode } from "@/app/components/QrCode";
 import { Hint } from "@/app/components/Typography";
-import { LINK_HELP, LINK_KINDS, type LinkKind, RETENTION_NOTICE } from "@/lib/share-links";
+import {
+  LINK_HELP,
+  LINK_KINDS,
+  type LinkKind,
+  OLDER_LINK_NOTICE,
+  RETENTION_NOTICE,
+  SEPARATE_STORAGE_NOTICE,
+  STAYS_IN_GAME_NOTICE,
+} from "@/lib/share-links";
 
 export type EditCodeState =
   | { kind: "hidden" }
@@ -20,6 +28,8 @@ export type ShareSheetProps = {
   /** Before the game is shared there is no link yet: the sheet asks first (REQ-0003-22). */
   stage: "intro" | "creating" | "ready";
   problem: string | null;
+  /** The page runs in a browser that keeps its games apart from the home-screen app (REQ-0007-09). */
+  separateStorage?: boolean;
   onCreate: () => void;
   /** The chosen kind, and the link for it, or `null` when this device cannot offer that kind. */
   kind: LinkKind;
@@ -61,6 +71,8 @@ export function ShareSheet(props: ShareSheetProps) {
     body = (
       <>
         <p className="mb-3">{RETENTION_NOTICE}</p>
+        <p className="mb-3">{STAYS_IN_GAME_NOTICE}</p>
+        {props.separateStorage && <p className="mb-3">{SEPARATE_STORAGE_NOTICE}</p>}
         <Hint>Nothing is sent until you press the button below.</Hint>
         {props.problem && (
           <p role="alert" className="mb-3 font-semibold text-danger">
@@ -104,7 +116,7 @@ export function ShareSheet(props: ShareSheetProps) {
         ) : (
           <p className="mb-3 rounded-md border border-border bg-sunk p-3">
             {kind === "watch"
-              ? "This device doesn't have the watch link. Only the device that started sharing can show it. You can still share the edit link below."
+              ? OLDER_LINK_NOTICE
               : "A watcher can't offer an edit link. Ask an editor, or use the edit code."}
           </p>
         )}
@@ -133,7 +145,7 @@ export function ShareSheet(props: ShareSheetProps) {
                   {!available[option] && (
                     <span className="block text-text-muted">
                       {option === "watch"
-                        ? " Not available on this device."
+                        ? " This device joined with an older link."
                         : " Needs edit access."}
                     </span>
                   )}

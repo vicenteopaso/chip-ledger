@@ -9,11 +9,23 @@ import { WatchNotice } from "@/app/components/WatchNotice";
 describe("shared-game parts", () => {
   it("REQ-0003-13: the status says how things are in words", () => {
     const { rerender } = render(<ConnectionStatus status="live" online={3} />);
-    expect(screen.getByText("Live · 3 here")).toBeInTheDocument();
+    expect(screen.getByText("3 phones live")).toBeInTheDocument();
     rerender(<ConnectionStatus status="reconnecting" online={3} />);
     expect(screen.getByText("Reconnecting…")).toBeInTheDocument();
     rerender(<ConnectionStatus status="offline" online={null} />);
     expect(screen.getByText(/^Offline/)).toBeInTheDocument();
+  });
+
+  it("REQ-0006-13, -14: counts phones with the game open, and says locked ones aren't counted", () => {
+    const { rerender } = render(<ConnectionStatus status="live" online={1} />);
+    expect(screen.getByText("1 phone live")).toBeInTheDocument();
+    expect(
+      screen.getByText("Phones that are locked or in another app aren't counted."),
+    ).toBeVisible();
+    rerender(<ConnectionStatus status="live" online={null} />);
+    expect(screen.queryByText(/aren't counted/)).toBeNull();
+    rerender(<ConnectionStatus status="reconnecting" online={4} />);
+    expect(screen.queryByText(/aren't counted/)).toBeNull();
   });
 
   it("REQ-0003-14: says that changes made here will sync", () => {
@@ -26,7 +38,7 @@ describe("shared-game parts", () => {
       screen.getByText("Offline. Your changes will sync when the connection returns."),
     ).toBeInTheDocument();
     rerender(<ConnectionStatus status="live" online={2} pending={1} />);
-    expect(screen.getByText("Live · 2 here")).toBeInTheDocument();
+    expect(screen.getByText("2 phones live")).toBeInTheDocument();
   });
 
   it("REQ-0003-06, -29: the notice states the role in text", () => {

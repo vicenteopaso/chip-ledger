@@ -21,6 +21,8 @@ You cannot fix what you cannot see. This document defines what we collect, why, 
 4. **Privacy by design.** Never log secrets, tokens, or personal data; redact by key; sample session replay and mask inputs.
 5. **Alert on symptoms, not causes.** Page on user-visible impact; chart the rest.
 
+One warning to know by name: `Read refused by a rate limit` (context `GET /api/games/[id]`, with `limit` set to `reads-per-game`, `reads-per-client` or `misses-per-client`). It holds no address, key or game id. An honest table should never produce `reads-per-game`; if it does, the limits in [ADR-0007](./adr/0007-read-limits-per-address-and-game.md) are too low (SPEC-0006 REQ-0006-12).
+
 ## 3. Error tracking
 
 - Initialize on client, server, and edge runtimes with environment and release labels.

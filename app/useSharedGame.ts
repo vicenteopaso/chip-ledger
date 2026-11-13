@@ -40,6 +40,8 @@ export type SharedGameFeed = {
  * Keeps one shared game up to date by asking the server: every 2 s for a minute after a change,
  * then every 5 s; never while the tab is hidden, and once straight away when it returns. A missed
  * check backs off and shows as Reconnecting, then Offline (REQ-0003-10, -13, ADR-0005 addendum).
+ * A check refused for being too frequent waits as long as the server asks, even when the tab
+ * comes back, and shows Reconnecting, never Offline (REQ-0006-10, -11).
  * Every 45 s a check doubles as a heartbeat so the others can see this device is here.
  */
 export function useSharedGame(id: string, key: string | null): SharedGameFeed {
@@ -91,13 +93,18 @@ export function useSharedGame(id: string, key: string | null): SharedGameFeed {
     let controller: AbortController | undefined;
     let lastBeat = 0;
     let failures = 0;
+    /** The server asked this device to wait until then; nothing checks earlier (REQ-0006-10). */
+    let notBefore = 0;
 
     const schedule = (delay: number) => {
       clearTimeout(timer);
       if (stopped || document.hidden) return;
-      timer = setTimeout(() => {
-        void check();
-      }, delay);
+      timer = setTimeout(
+        () => {
+          void check();
+        },
+        Math.max(delay, notBefore - Date.now()),
+      );
     };
 
     async function check(): Promise<void> {
@@ -122,11 +129,15 @@ export function useSharedGame(id: string, key: string | null): SharedGameFeed {
       }
       if (outcome.kind === "error" || outcome.kind === "busy") {
         failures += 1;
-        const status = connectionStatus(failures);
+        const limited = outcome.kind === "busy";
+        const status = connectionStatus(failures, { limited });
         update((previous) =>
           previous.phase === "unavailable" ? previous : { ...previous, status },
         );
-        schedule(retryDelayMs(failures));
+        const delay = Math.max(retryDelayMs(failures), limited ? (outcome.retryAfterMs ?? 0) : 0);
+        // Only a refusal sets a floor; after a network error, coming back online retries at once.
+        notBefore = limited ? Date.now() + delay : 0;
+        schedule(delay);
         return;
       }
 
@@ -154,7 +165,8 @@ export function useSharedGame(id: string, key: string | null): SharedGameFeed {
         clearTimeout(timer);
         controller?.abort();
       } else {
-        void check();
+        // Straight away, unless the server asked this device to wait (REQ-0006-10).
+        schedule(0);
       }
     };
     document.addEventListener("visibilitychange", resume);

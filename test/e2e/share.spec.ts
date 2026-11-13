@@ -132,6 +132,15 @@ test.describe("SPEC-0003 Share sheet, QR code and edit codes", () => {
       timeout: 10_000,
     });
     await expect(guest.getByRole("button", { name: "I have an edit code" })).toHaveCount(0);
+    // AC-0007-02: an editor who joined with a code can show both links.
+    await guest.getByRole("button", { name: "Share" }).click();
+    await expect(sheet(guest).getByTestId("share-link")).toContainText("#k=");
+    const watchLink = (await sheet(guest).getByTestId("share-link").textContent()) ?? "";
+    expect(watchLink).not.toContain("&w=");
+    await sheet(guest)
+      .getByRole("radio", { name: /Can edit/ })
+      .check();
+    await expect(sheet(guest).getByTestId("share-link")).toContainText("&w=");
     await guest.close();
   });
 });

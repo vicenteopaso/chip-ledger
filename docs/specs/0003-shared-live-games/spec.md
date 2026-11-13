@@ -56,8 +56,8 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 ### Sharing and links
 
 - REQ-0003-01: A game MUST stay on the host's device only, with no data sent to a server, until the host chooses **Share**.
-- REQ-0003-02: **Share** MUST be reachable from every step. It MUST open a sheet showing a QR code, the same link as readable text, a **Copy link** button, and (where the browser supports it) a **Share** button for the device's share menu.
-- REQ-0003-03: The sheet MUST end with a two-option switch, **Watch only** and **Can edit**, set to **Watch only** each time the sheet opens. Changing it MUST replace the QR code and link immediately.
+- REQ-0003-02: **Share** MUST be reachable from every step. It MUST open a sheet showing a QR code, the same link as readable text, a **Copy link** button, and (where the browser supports it) a **Share** button for the device's share menu. _Amended by [SPEC-0007](../0007-watch-link-from-any-device/spec.md) REQ-0007-01, -04: an edit link also carries the watch key, so any editor can show the watch-only link._
+- REQ-0003-03: The sheet MUST end with a two-option switch, **Watch only** and **Can edit**, set to **Watch only** each time the sheet opens. Changing it MUST replace the QR code and link immediately. _See SPEC-0007 for which devices can show each link._
 - REQ-0003-04: Each link MUST carry an unguessable key of at least 128 bits in the part of the address after `#`, so the key is not sent to the server by the page request. The app MUST remove the key from the address bar after it has been read.
 - REQ-0003-05: Opening a link MUST join the game with the access the link grants, and MUST show the game's current state within 3 seconds on a normal connection. Joining MUST NOT change the game.
 
@@ -73,7 +73,7 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 - REQ-0003-10: A change made on one device MUST appear on every other open device within 2 seconds for 95% of changes on a normal connection, without the user refreshing.
 - REQ-0003-11: Changes to different fields MUST all be kept. Two changes to the same field MUST resolve to the later one. Buy-in increases and decreases MUST add up, not overwrite each other: two people each pressing + once on the same player produce two extra buy-ins.
 - REQ-0003-12: A change that arrives from another device MUST NOT replace text the user is currently typing, MUST NOT move focus, and MUST NOT scroll the page.
-- REQ-0003-13: Each device MUST show whether it is **Live**, **Reconnecting**, or **Offline**, and how many devices are connected to the game. The status MUST update by itself, and a change from Live to Offline or back MUST be announced to assistive technology.
+- REQ-0003-13: Each device MUST show whether it is **Live**, **Reconnecting**, or **Offline**, and how many devices are connected to the game. The status MUST update by itself, and a change from Live to Offline or back MUST be announced to assistive technology. _Amended by [SPEC-0006](../0006-shared-game-reliability/spec.md) REQ-0006-13: the count reads "N phones live"._
 - REQ-0003-14: When the connection returns, the device MUST catch up to the current state without the user doing anything. Edits an editor makes while offline MUST be kept on the device and sent in order when the connection returns, with a visible "Reconnecting, changes will sync" notice while they wait.
 
 ### Steps and starting the game
@@ -83,7 +83,7 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 ### Several games
 
 - REQ-0003-16: When an editor starts a new game, whether by **New game, same players** or **Start over from scratch**, from a shared game, the app MUST create a separate game on that device and leave the shared game unchanged for everyone else. The new game starts private until shared. _Amends SPEC-0001 REQ-0001-24 and SPEC-0002 REQ-0002-11 and -12 for shared games._
-- REQ-0003-17: A device MUST keep a list of the games it has joined or created, show it from a **Games** control, and let the user switch between them and **Leave** a game. Leaving MUST remove the game and its access from that device only.
+- REQ-0003-17: A device MUST keep a list of the games it has joined or created, show it from a **Games** control, and let the user switch between them and **Leave** a game. Leaving MUST remove the game and its access from that device only. _Amended by [SPEC-0006](../0006-shared-game-reliability/spec.md) REQ-0006-05, -07: once shared, the device's own game starts empty, so one game is listed once._
 - REQ-0003-18: A game MUST open at the step it was last used on this device, and one device's work in one game MUST NOT affect its state in another.
 
 ### Lifecycle and retention
@@ -97,12 +97,12 @@ The host wants to start a game, fill in the names, show a QR code, and have ever
 
 - REQ-0003-23: The server MUST validate every request against a schema, accept only the defined kinds of edit, and check the resulting game with the same rules as a saved game. Anything else MUST be rejected with a generic message.
 - REQ-0003-24: Link keys and edit codes MUST NOT be stored or logged in a form that can be read back. A leaked log or database MUST NOT reveal how to open or edit a game.
-- REQ-0003-25: The server MUST limit game creation per client, edits per game, and joins per client, and MUST cap the stored size of a game. Exceeding a limit MUST give a generic, retry-later message.
+- REQ-0003-25: The server MUST limit game creation per client, edits per game, and joins per client, and MUST cap the stored size of a game. Exceeding a limit MUST give a generic, retry-later message. _Amended by [SPEC-0006](../0006-shared-game-reliability/spec.md) REQ-0006-08, -09: reads are limited per address and game._
 - REQ-0003-26: A link to a game that does not exist, was deleted, or has a wrong key MUST show the same generic "This game isn't available" page, with a way to start a new game, so that nobody can learn whether a game exists.
 
 ### Solo play
 
-- REQ-0003-27: A game that was never shared MUST behave exactly as today, including saving on the device, working with no network after the page has loaded, and sending no requests to the sharing service.
+- REQ-0003-27: A game that was never shared MUST behave exactly as today, including saving on the device, working with no network after the page has loaded, and sending no requests to the sharing service. _Amended by [SPEC-0006](../0006-shared-game-reliability/spec.md) REQ-0006-01: the home address opens the game used last, which may be a shared one._
 
 ### Accessibility
 

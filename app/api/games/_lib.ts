@@ -81,9 +81,48 @@ export const originAllowed = (request: Request): boolean =>
 export const clientOf = (request: Request): string =>
   clientKey(request.headers.get("x-forwarded-for"));
 
-/** Reads in one process: a cheap guard with no store commands behind it. */
-const readLimiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
-export const readAllowed = (request: Request): boolean => readLimiter.check(clientOf(request)).ok;
+/**
+ * Reads are limited in one process, a cheap guard with no store commands behind it (SPEC-0006).
+ * Phones on one Wi-Fi share an address, so the main limit is per address and game: 12 phones
+ * checking every 2 s make 360 reads a minute (REQ-0006-08). A looser limit per address across all
+ * games stops one address reading many games fast (REQ-0006-09). Reads that find no game, or come
+ * with a wrong key, keep the limit every read had before SPEC-0006, so looking for games is no
+ * faster than it was (ADR-0007).
+ */
+export const READS_PER_GAME = { limit: 400, windowMs: 60_000 } as const;
+export const READS_PER_CLIENT = { limit: 1200, windowMs: 60_000 } as const;
+export const MISSES_PER_CLIENT = { limit: 120, windowMs: 60_000 } as const;
+const perGameReads = createRateLimiter(READS_PER_GAME);
+const perClientReads = createRateLimiter(READS_PER_CLIENT);
+const perClientMisses = createRateLimiter(MISSES_PER_CLIENT);
+
+export type ReadLimit = "reads-per-game" | "reads-per-client" | "misses-per-client";
+export type ReadCheck = { ok: true } | { ok: false; limit: ReadLimit; retryAfterSeconds: number };
+
+export function readAllowed(request: Request, rawId: string): ReadCheck {
+  const client = clientOf(request);
+  // Checked before the store is asked anything, so a client that keeps missing costs no commands.
+  const misses = perClientMisses.peek(client);
+  if (!misses.ok) {
+    return { ok: false, limit: "misses-per-client", retryAfterSeconds: misses.retryAfterSeconds };
+  }
+  // An id that can't be a game shares one bucket, so junk ids can't make fresh ones.
+  const game = GameIdSchema.safeParse(rawId).success ? rawId : "invalid";
+  const forGame = perGameReads.check(`${client}:${game}`);
+  if (!forGame.ok) {
+    return { ok: false, limit: "reads-per-game", retryAfterSeconds: forGame.retryAfterSeconds };
+  }
+  const forClient = perClientReads.check(client);
+  if (!forClient.ok) {
+    return { ok: false, limit: "reads-per-client", retryAfterSeconds: forClient.retryAfterSeconds };
+  }
+  return { ok: true };
+}
+
+/** Counts a read that found no game or had a wrong key (the answer is the same 404 either way). */
+export function recordReadMiss(request: Request): void {
+  perClientMisses.check(clientOf(request));
+}
 
 export type OpenedGame = { doc: StoredGame; role: Role };
 

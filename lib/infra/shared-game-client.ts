@@ -23,9 +23,22 @@ export type FetchOutcome =
   | { kind: "unchanged"; rev: number; archived: boolean; online: number | null }
   /** No such game, or not with this key: one answer for both (REQ-0003-26). */
   | { kind: "unavailable" }
-  /** The server asked us to slow down or is out of room; try again later. */
-  | { kind: "busy" }
+  /**
+   * The server asked us to slow down or is out of room; try again later, and not before
+   * `retryAfterMs` when the server said how long to wait (REQ-0006-10).
+   */
+  | { kind: "busy"; retryAfterMs: number | null }
   | { kind: "error" };
+
+/** The longest wait a `Retry-After` header can ask for, so a bad value can't stop a device. */
+const MAX_RETRY_AFTER_SECONDS = 300;
+
+/** `Retry-After` in whole seconds, clamped to 1–300 s, or `null` when absent or not a number. */
+export function retryAfterMs(header: string | null): number | null {
+  if (header === null || !/^\d+$/.test(header.trim())) return null;
+  const seconds = Math.min(MAX_RETRY_AFTER_SECONDS, Math.max(1, Number(header.trim())));
+  return seconds * 1000;
+}
 
 export type FetchOptions = {
   id: string;
@@ -57,7 +70,9 @@ export async function fetchGame(
     return { kind: "error" };
   }
   if (response.status === 404) return { kind: "unavailable" };
-  if (response.status === 429 || response.status === 503) return { kind: "busy" };
+  if (response.status === 429 || response.status === 503) {
+    return { kind: "busy", retryAfterMs: retryAfterMs(response.headers.get("retry-after")) };
+  }
   if (!response.ok) return { kind: "error" };
   let body: unknown;
   try {

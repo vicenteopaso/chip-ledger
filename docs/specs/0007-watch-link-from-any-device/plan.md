@@ -4,7 +4,7 @@
 | ------ | -------------------------------------------- |
 | Spec   | [spec.md](./spec.md)                         |
 | ADR    | none (Tier 1, reasoning in spec §6 Security) |
-| Status | draft                                        |
+| Status | approved                                     |
 
 ## 1. Approach
 

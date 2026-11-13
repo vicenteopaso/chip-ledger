@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GamesControl, type GamesControlProps } from "@/app/GamesControl";
 import { saveGame } from "@/lib/infra/game-storage";
 import { keyFor, listGames, rememberKey, updateGame } from "@/lib/infra/joined-games-storage";
+import { lastGame, rememberLastGame } from "@/lib/infra/last-game-storage";
 import { deleteSharedGame } from "@/lib/infra/shared-game-client";
 import { defaultGame } from "@/test/unit/fixtures";
 
@@ -82,6 +83,7 @@ describe("GamesControl (REQ-0003-17, -18, -21)", () => {
     await user.click(screen.getAllByRole("button", { name: "Leave Ana, Ben" })[0] ?? document.body);
     expect(keyFor(A)).toBeNull();
     expect(props.navigate).toHaveBeenCalledWith("/");
+    expect(lastGame()).toEqual({ kind: "own" });
   });
 
   it("an editor deletes the open game for everyone, forgets it here, and goes home", async () => {
@@ -115,5 +117,20 @@ describe("GamesControl (REQ-0003-17, -18, -21)", () => {
     unmount();
     mount({ current: null });
     expect(screen.queryByRole("button", { name: "Delete for everyone" })).toBeNull();
+  });
+});
+
+describe("GamesControl: the game the home page reopens (REQ-0006-04)", () => {
+  it("choosing this device's own game makes it the one that opens next time", async () => {
+    saveGame({
+      ...defaultGame(),
+      players: defaultGame().players.map((p, i) => ({ ...p, name: ["Eve", "Fay"][i] ?? "" })),
+      count: 2,
+    });
+    rememberLastGame({ kind: "shared", id: "abcdefghijklmnop" });
+    const { props } = mount();
+    await userEvent.click(screen.getByRole("button", { name: "Open Eve, Fay" }));
+    expect(lastGame()).toEqual({ kind: "own" });
+    expect(props.navigate).toHaveBeenCalledWith("/");
   });
 });

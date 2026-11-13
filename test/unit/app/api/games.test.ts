@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as createGame } from "@/app/api/games/route";
+import { MISSES_PER_CLIENT, READS_PER_CLIENT, READS_PER_GAME } from "@/app/api/games/_lib";
 import { DELETE, GET } from "@/app/api/games/[id]/route";
 import { POST as postAction } from "@/app/api/games/[id]/actions/route";
 import { POST as postCode } from "@/app/api/games/[id]/code/route";
@@ -125,7 +126,7 @@ describe("POST /api/games", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
-  it("REQ-0003-24: the stored game holds hashes, never the keys", async () => {
+  it("REQ-0003-24, AC-0007-05: the stored game holds hashes, never the keys", async () => {
     const { id, watchKey, editKey } = await share();
     const stored = JSON.stringify(await getGameStore()?.get(id));
     expect(stored).not.toContain(watchKey);
@@ -285,16 +286,90 @@ describe("GET /api/games/{id}", () => {
     expect(again).toMatchObject({ unchanged: true, archived: true });
   });
 
-  it("REQ-0003-25: a cheap in-process limit on reads", async () => {
+  it("REQ-0006-08, AC-0006-07: a table of 12 phones on one address follows a game unrefused", async () => {
     const { id, watchKey } = await share();
     const ip = "198.18.0.1";
-    for (let i = 0; i < 120; i += 1) {
+    // 12 phones, each checking every 2 s for a minute: 360 reads from one address.
+    for (let i = 0; i < 12 * 30; i += 1) {
       expect(
         (await GET(call(`/api/games/${id}?rev=0`, { key: watchKey, ip }), ctx(id))).status,
       ).toBe(200);
     }
+  });
+
+  it("REQ-0006-08, -12: past the per-game limit a read is refused, with Retry-After and a clean log", async () => {
+    const { id, watchKey } = await share();
+    const ip = "198.18.0.2";
+    for (let i = 0; i < READS_PER_GAME.limit; i += 1) {
+      await GET(call(`/api/games/${id}?rev=0`, { key: watchKey, ip }), ctx(id));
+    }
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const limited = await GET(call(`/api/games/${id}`, { key: watchKey, ip }), ctx(id));
     expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(0);
+    expect(warn).toHaveBeenCalledTimes(1);
+    const line = String(warn.mock.calls[0]?.[0]);
+    expect(JSON.parse(line)).toMatchObject({
+      context: "GET /api/games/[id]",
+      limit: "reads-per-game",
+    });
+    expect(line).not.toContain(ip);
+    expect(line).not.toContain(id);
+    expect(line).not.toContain(watchKey);
+    warn.mockRestore();
+    // Another address reading the same game is not affected.
+    expect((await GET(call(`/api/games/${id}`, { key: watchKey }), ctx(id))).status).toBe(200);
+  });
+
+  it("REQ-0006-09, ADR-0007: reads with a wrong key or an unknown game keep the old limit and then cost the store nothing", async () => {
+    const { id } = await share();
+    const ip = "198.18.0.4";
+    const wrongKey = "Z".repeat(22);
+    for (let i = 0; i < MISSES_PER_CLIENT.limit; i += 1) {
+      const target = i % 2 === 0 ? id : "unknowngame00000";
+      expect(
+        (await GET(call(`/api/games/${target}`, { key: wrongKey, ip }), ctx(target))).status,
+      ).toBe(404);
+    }
+    const store = getGameStore();
+    if (!store) throw new Error("no store");
+    const get = vi.spyOn(store, "get");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const limited = await GET(call(`/api/games/${id}`, { key: wrongKey, ip }), ctx(id));
+    expect(limited.status).toBe(429);
+    expect(get).not.toHaveBeenCalled();
+    expect(JSON.parse(String(warn.mock.calls[0]?.[0]))).toMatchObject({
+      limit: "misses-per-client",
+    });
+    warn.mockRestore();
+    get.mockRestore();
+  });
+
+  it("REQ-0006-09, AC-0006-08: one address reading many games hits the per-address limit", async () => {
+    const [first, second, third, fourth, last] = await Promise.all([
+      share(),
+      share(),
+      share(),
+      share(),
+      share(),
+    ]);
+    const ip = "198.18.0.3";
+    const perGame = READS_PER_CLIENT.limit / 4;
+    for (const { id, watchKey } of [first, second, third, fourth]) {
+      for (let i = 0; i < perGame; i += 1) {
+        await GET(call(`/api/games/${id}?rev=0`, { key: watchKey, ip }), ctx(id));
+      }
+    }
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const limited = await GET(
+      call(`/api/games/${last.id}`, { key: last.watchKey, ip }),
+      ctx(last.id),
+    );
+    expect(limited.status).toBe(429);
+    expect(JSON.parse(String(warn.mock.calls[0]?.[0]))).toMatchObject({
+      limit: "reads-per-client",
+    });
+    warn.mockRestore();
   });
 });
 
@@ -615,7 +690,7 @@ describe("edit codes and upgrades", () => {
   });
 });
 
-describe("logs (REQ-0003-24)", () => {
+describe("logs (REQ-0003-24, AC-0007-05)", () => {
   it("never contain a key, an edit code, or the store token, even when requests fail", async () => {
     const lines: string[] = [];
     const record = (...args: unknown[]) => lines.push(args.map(String).join(" "));

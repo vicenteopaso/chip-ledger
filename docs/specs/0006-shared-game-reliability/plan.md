@@ -1,18 +1,18 @@
 # Plan: SPEC-0006 Shared games that stay shared
 
-| Field  | Value                |
-| ------ | -------------------- |
-| Spec   | [spec.md](./spec.md) |
-| ADR    | none (Tier 1)        |
-| Status | draft                |
+| Field  | Value                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------- |
+| Spec   | [spec.md](./spec.md)                                                                                           |
+| ADR    | [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md) (a rate-limit change needs one, per `sdd.yaml`) |
+| Status | approved                                                                                                       |
 
 ## 1. Approach
 
 Four small changes, each fixing one diagnosed cause, plus tests that pin the rule that every device stays in an active game.
 
-1. **Remember the last game, and reopen it from `/`.** A new device-only record says which game this device used last: its own game, or a shared game by id. The record is written whenever a game page opens. When `/` loads and the record points at a shared game that this device still holds a key for, the solo app replaces the location with `/g/<id>?resume=1` before rendering any step. The shared page handles the fallbacks: if the game is archived or unavailable and it was opened with `resume=1`, it records "own game" and goes back to `/`. So the home page itself never asks the server anything (REQ-0006-03), and "is it still active?" is answered by the request the shared page already makes. Choosing the device's own game from **Games** records "own game" first (REQ-0006-04).
+1. **Remember the last game, and reopen it from `/`.** A new device-only record says which game this device used last: its own game, or a shared game by id. The record is written whenever a game page opens. When `/` loads and the record points at a shared game that this device still holds a key for, the solo app replaces the location with `/g/<id>?resume=1` before rendering any step, and shows "Opening your game…" while that page loads. The shared page handles the fallbacks: if the game is archived or unavailable and it was opened with `resume=1`, it records "own game" and goes back to `/`. So the home page itself never asks the server anything (REQ-0006-03), and "is it still active?" is answered by the request the shared page already makes. Choosing the device's own game from **Games** records "own game" first (REQ-0006-04).
 2. **Clear the copy once it is shared.** After **Create the link** succeeds, the solo app saves a fresh game (`createGame(randomId)`) to its own storage and records the new shared game as last used, then navigates. The players and counts are already in the shared game. One sentence is added to the notice shown before the first share (REQ-0006-06).
-3. **Read limits that fit one table on one network.** The per-instance read limiter is keyed by address and game id (`<ip>:<gameId>`, the id from the path, not secret), limit 400 a minute, plus a second per-address limiter across all games, limit 1,200 a minute. Neither uses the store, so store commands don't change. The 429 keeps its `Retry-After`, which the client now reads: `fetchGame` returns `{ kind: "busy", retryAfterMs }`, and `useSharedGame` keeps a "not before" time that the next check, the visibility handler and the `online` handler all respect (REQ-0006-10). A refusal for being too frequent counts toward Reconnecting but never Offline (REQ-0006-11). Each refusal logs one warning with the route and the limit's name only (REQ-0006-12).
+3. **Read limits that fit one table on one network.** The per-instance read limiter is keyed by address and game id (`<ip>:<gameId>`, the id from the path, not secret), limit 400 a minute, plus a second per-address limiter across all games, limit 1,200 a minute, and a third for reads that find no game or carry a wrong key, limit 120 a minute (the old limit, so looking for games is no faster; [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md)). Neither uses the store, so store commands don't change. The 429 keeps its `Retry-After`, which the client now reads: `fetchGame` returns `{ kind: "busy", retryAfterMs }`, and `useSharedGame` keeps a "not before" time that the next check, the visibility handler and the `online` handler all respect (REQ-0006-10). A reloaded page makes one check and, if refused, waits again. A refusal for being too frequent counts toward Reconnecting but never Offline (REQ-0006-11). Each refusal logs one warning with the route and the limit's name only (REQ-0006-12).
 4. **Wording.** `statusText` reads "N phones live" ("1 phone live"), and the status row adds a short muted line: "Phones that are locked or in another app aren't counted." (REQ-0006-13, -14).
 
 12 phones checking every 2 s make 360 reads a minute, so 400 leaves room for opening the page and heartbeats. 1,200 across games allows about three such tables behind one address (a venue, or mobile carrier NAT) and still caps one address reading many games.
@@ -35,7 +35,8 @@ Four small changes, each fixing one diagnosed cause, plus tests that pin the rul
   - `app/ShareControl.tsx`: after `created`, call `onShared(outcome.id)` before `navigate`.
   - `app/SharedGameApp.tsx`: record "shared" on open; read and strip `resume=1`; on `unavailable` or `archived` with `resume`, record "own" and `navigate("/")`.
   - `app/GamesControl.tsx`: `onOpenOwn` and the leave/delete paths record "own" before navigating.
-  - `app/api/games/_lib.ts`: two limiters; `readAllowed(request, gameId)` returns which limit refused, if any; refusal is logged.
+  - `app/api/games/_lib.ts`: three limiters; `readAllowed(request, gameId)` returns which limit refused, if any; `recordReadMiss` counts a 404. The route logs the refusal.
+  - `lib/infra/rate-limit.ts`: `peek`, to refuse a client that keeps missing before the store is asked.
   - `app/api/games/[id]/route.ts`: pass the id (after `GameIdSchema` parsing, so junk ids share one bucket).
   - `lib/infra/shared-game-client.ts`: parse `Retry-After` (seconds, clamped 1–300) into `retryAfterMs`.
   - `app/useSharedGame.ts`: `notBefore` timestamp; `schedule` and `resume` use `max(delay, notBefore - now)`; busy failures cap status at Reconnecting.
@@ -78,13 +79,13 @@ AC-0006-07 runs against the route with an in-memory store and a fixed `x-forward
 
 ## 5. Risks and mitigations
 
-| Risk                                                               | Likelihood | Impact | Mitigation                                                                                                                  |
-| ------------------------------------------------------------------ | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------- |
-| The home page flashes the solo game before redirecting.            | Medium     | Low    | Redirect in the hydrate effect before any step renders; the server markup is the empty shell. Checked on a real phone.      |
-| A redirect loop between `/` and `/g/<id>`.                         | Low        | High   | The fallback records "own" before navigating, and `/` redirects only for `kind: "shared"`. Unit and e2e test the loop case. |
-| The per-instance limiter differs across instances (Fluid Compute). | Medium     | Low    | Same as today; limits are generous for one table and still cap one address. Store-backed reads would cost commands.         |
-| The diagnosis of cause 2 is from code, not logs.                   | Medium     | Medium | REQ-0006-12 adds the warning, so the next game night shows whether refusals still happen.                                   |
-| Clearing the copy after sharing loses a game if navigation fails.  | Low        | Medium | The copy is cleared only after the server confirmed the game; the shared game holds the same data.                          |
+| Risk                                                               | Likelihood | Impact | Mitigation                                                                                                                                                                                                  |
+| ------------------------------------------------------------------ | ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The home page flashes the solo game before redirecting.            | Medium     | Low    | The page shows "Opening your game…" as soon as it knows. The server markup (an empty Setup) can still show for a moment before that, as it already does before a saved game loads. Checked on a real phone. |
+| A redirect loop between `/` and `/g/<id>`.                         | Low        | High   | The fallback records "own" before navigating, and `/` redirects only for `kind: "shared"`. Unit and e2e test the loop case.                                                                                 |
+| The per-instance limiter differs across instances (Fluid Compute). | Medium     | Low    | Same as today; limits are generous for one table and still cap one address. Store-backed reads would cost commands.                                                                                         |
+| The diagnosis of cause 2 is from code, not logs.                   | Medium     | Medium | REQ-0006-12 adds the warning, so the next game night shows whether refusals still happen.                                                                                                                   |
+| Clearing the copy after sharing loses a game if navigation fails.  | Low        | Medium | The copy is cleared only after the server confirmed the game; the shared game holds the same data.                                                                                                          |
 
 ## 6. Rollout and rollback
 
@@ -93,6 +94,7 @@ Direct release, no flag. Ship as one PR. Watch the new refusal warnings in runti
 ## 7. Documentation to update
 
 - [ ] Reference docs: `docs/API_PATTERNS.md` (read limits), `docs/SECURITY_POLICY.md` (limits table), `docs/ARCHITECTURE.md` (last-game record), `docs/OBSERVABILITY.md` (refusal warning)
+- [ ] ADR-0007 and its row in `docs/adr/README.md`
 - [ ] `sdd.yaml`: N/A, no structure, gate or service change
 - [ ] `.env.example` and `docs/CONFIGURATION.md`: N/A, no new variables
 - [ ] Component docs: `docs/components/ShareSheet.md`, `docs/components/SharedGameParts.md` (status row)

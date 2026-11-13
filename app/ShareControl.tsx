@@ -17,6 +17,8 @@ export type ShareControlProps = {
   shared: { id: string; role: Role; key: string } | null;
   /** For a game not yet shared: what to send when the person presses "Create the link". */
   makeRequest?: () => CreateGameRequest;
+  /** Called once the server has the game, before going to it (REQ-0006-05). */
+  onShared?: (id: string) => void;
   /** Where to go after sharing; the browser's own navigation by default. */
   navigate?: (url: string) => void;
 };
@@ -47,6 +49,7 @@ export function ShareControl({
   onOpenChange,
   shared,
   makeRequest,
+  onShared,
   navigate = goTo,
 }: ShareControlProps) {
   const [kind, setKind] = useState<LinkKind>("watch");
@@ -69,9 +72,10 @@ export function ShareControl({
 
   const keys = shared ? keysFor(shared.role, shared.key, watchKeyFor(shared.id)) : null;
   const key = keys ? keys[kind] : null;
+  // The edit link carries the watch key too, when this device has it (REQ-0007-04).
   const link =
-    open && shared && key && typeof window !== "undefined"
-      ? shareLink(window.location.origin, shared.id, key)
+    open && shared && key && keys && typeof window !== "undefined"
+      ? shareLink(window.location.origin, shared.id, key, kind === "edit" ? keys.watch : null)
       : null;
   const modules = useMemo(() => (link ? qrModules(link) : null), [link]);
 
@@ -83,6 +87,7 @@ export function ShareControl({
     if (outcome.kind === "created") {
       // The host holds both keys, so the device can offer either link and edit its own game.
       rememberKey(outcome.id, outcome.editKey, undefined, outcome.watchKey);
+      onShared?.(outcome.id);
       navigate(`/g/${outcome.id}?share=1`);
       return;
     }
@@ -102,6 +107,11 @@ export function ShareControl({
   };
 
   const canNativeShare = typeof navigator !== "undefined" && "share" in navigator;
+  // `navigator.standalone` exists only on iPhone and iPad: false in a browser, true in the app
+  // opened from the home screen. The two keep their storage apart (REQ-0007-09).
+  const besideHomeScreenApp =
+    typeof navigator !== "undefined" &&
+    (navigator as Navigator & { standalone?: boolean }).standalone === false;
 
   return (
     <ShareSheet
@@ -111,6 +121,7 @@ export function ShareControl({
       }}
       stage={shared ? "ready" : creating ? "creating" : "intro"}
       problem={problem}
+      separateStorage={besideHomeScreenApp}
       onCreate={() => {
         void create();
       }}
