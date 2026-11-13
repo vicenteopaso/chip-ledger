@@ -30,10 +30,10 @@ Legend: `[P]` can run in parallel with its neighbours.
 
 ## Wording (cause 3)
 
-- [ ] T-07 [P] "N phones live" and the "not counted" note _(REQ-0006-13, -14)_
+- [x] T-07 [P] "N phones live" and the "not counted" note _(REQ-0006-13, -14)_
   - Tests: `statusText` unit (0, 1, many, with pending); ConnectionStatus component; visual baselines for the status row
   - Done when: AC-0006-11 passes, axe passes in both themes at 320 px
-  - Status: built and tested (unit, component, axe in both themes, checked by eye at 320 px). Open until the Linux visual baselines are regenerated in CI.
+  - Linux visual baselines regenerated in CI (run 43420022694) for the 19 shared screens.
 
 ## Verification and close
 
