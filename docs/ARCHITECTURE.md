@@ -24,7 +24,7 @@ flowchart LR
   CI[CI/CD] -->|deploys prebuilt artifact| E
 ```
 
-A game lives in the browser's `localStorage` until the host shares it. Sharing copies it to a Redis store (Upstash, over `fetch`) behind `/api/games`, where devices read it by polling and editors send reducer actions that the server applies (SPEC-0003, [ADR-0005](./adr/0005-shared-live-games-architecture.md)). Without the store variables, sharing is off and the server stores nothing. The third-party services, the optional vision provider and the optional store, are recorded in `sdd.yaml` (`security.external-services`).
+A game lives in the browser's `localStorage` until the host shares it. Sharing copies it to a Redis store (Upstash, over `fetch`) behind `/api/games`, where devices read it by polling and editors send reducer actions that the server applies (SPEC-0003, [ADR-0005](./adr/0005-shared-live-games-architecture.md)). Without the store variables, sharing is off and the server stores nothing. Once a game is shared, the device's own game starts empty and the device remembers which game it used last (`lib/infra/last-game-storage.ts`), so the home address, which the installed app opens, goes back to that game while it is active (SPEC-0006). The third-party services, the optional vision provider and the optional store, are recorded in `sdd.yaml` (`security.external-services`).
 
 Shared-game code by layer: rules and schemas in `lib/shared-game.ts`; the store interface, adapters, key hashing, and shared rate limits in `lib/infra/`; the handlers in `app/api/games/` (shared steps in `_lib.ts`).
 

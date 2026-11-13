@@ -1,12 +1,12 @@
 # SPEC-0006: Shared games that stay shared
 
-| Field   | Value                                                                                                                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status  | draft                                                                                                                                                                                              |
-| Tier    | 1                                                                                                                                                                                                  |
-| Owner   | @vicenteopaso                                                                                                                                                                                      |
-| Created | 2026-11-13                                                                                                                                                                                         |
-| Related | Amends [SPEC-0003](../0003-shared-live-games/spec.md) REQ-0003-13, -17, -25, -27 (see §4) · [ADR-0005](../../adr/0005-shared-live-games-architecture.md) · [plan](./plan.md) · [tasks](./tasks.md) |
+| Field   | Value                                                                                                                                                                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status  | approved                                                                                                                                                                                                                                                            |
+| Tier    | 1                                                                                                                                                                                                                                                                   |
+| Owner   | @vicenteopaso                                                                                                                                                                                                                                                       |
+| Created | 2026-11-13                                                                                                                                                                                                                                                          |
+| Related | Amends [SPEC-0003](../0003-shared-live-games/spec.md) REQ-0003-13, -17, -25, -27 (see §4) · [ADR-0005](../../adr/0005-shared-live-games-architecture.md) · [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md) · [plan](./plan.md) · [tasks](./tasks.md) |
 
 ## 1. Problem
 
@@ -71,8 +71,8 @@ This matters now because shared play is the reason to bring the app to a table. 
 ### Following a game on a shared network
 
 - REQ-0006-08: The read limit MUST let at least 12 devices on one network address follow one game, each at the fastest normal check rate (every 2 seconds), without any check being refused. _Amends REQ-0003-25 for joins and reads; the per-client limit stays._
-- REQ-0006-09: The server MUST still limit reads per client across all games, so one address cannot read many games fast. The limit for one address across games MUST NOT be lower than the limit for one game.
-- REQ-0006-10: When a check is refused for being too frequent, the device MUST wait at least as long as the refusal asks before checking again. Opening the page again or the tab becoming visible MUST NOT skip the wait.
+- REQ-0006-09: The server MUST still limit reads per client across all games, so one address cannot read many games fast. The limit for one address across games MUST NOT be lower than the limit for one game. Reads that find no game or carry a wrong key MUST keep the limit that applied before this spec (120 a minute per address), so looking for games is no faster than it was ([ADR-0007](../../adr/0007-read-limits-per-address-and-game.md)).
+- REQ-0006-10: When a check is refused for being too frequent, the device MUST wait at least as long as the refusal asks before checking again. The tab becoming visible again, or the connection returning, MUST NOT skip the wait. Reloading the page may make one check; if that is refused, the wait applies again.
 - REQ-0006-11: While a device is waiting out a refusal, the status MUST read **Reconnecting** (not **Offline**), and edits made in that time MUST be kept and sent afterwards (REQ-0003-14).
 - REQ-0006-12: The server SHOULD log each refused read as a warning with the route and which limit refused it. The log MUST NOT contain the network address, the game key, or the game id in readable form (REQ-0003-24).
 
@@ -99,7 +99,7 @@ This matters now because shared play is the reason to bring the app to a table. 
 ## 6. Cross-cutting concerns
 
 - **Accessibility:** The new Share sheet choice (REQ-0006-06) is part of the existing labelled dialog (REQ-0003-28): the added sentence (REQ-0006-06) is plain text before **Create the link**, read in order by screen readers. The status wording (REQ-0006-13) is read by the existing live region; the Live/Reconnecting/Offline announcements (REQ-0003-13) are unchanged. The status row now reads "N phones live" (REQ-0006-13). The note for REQ-0006-14 is reachable by keyboard and has a visible focus state. WCAG 2.1 AA in both themes, at 320 px and 200% zoom, as REQ-0003-30.
-- **Security:** This changes a rate limit, which is a security control (`sdd.yaml` autonomy: ask first). Reads move from one limit per address to a limit per address and game, plus a per-address limit across games (REQ-0006-08, -09), so one address still cannot read many games fast. The new limits must be at least as strong as today against scanning for games: a wrong key or unknown game still gets the same 404 (REQ-0003-26), and guessing a 128-bit key stays infeasible at any rate this spec allows. No change to keys, codes, edit limits or creation limits.
+- **Security:** This changes a rate limit, which is a security control (`sdd.yaml` autonomy: ask first; `security.rules`: needs an ADR, which is [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md)). Reads move from one limit per address to a limit per address and game, plus a per-address limit across games (REQ-0006-08, -09), so one address still cannot read many games fast. The new limits must be at least as strong as today against scanning for games: a wrong key or unknown game still gets the same 404 (REQ-0003-26), and guessing a 128-bit key stays infeasible at any rate this spec allows. No change to keys, codes, edit limits or creation limits.
 - **Privacy:** No new personal data is sent or stored. Which game to reopen is remembered on the device only. Refused-read logs hold no address, key or game id (REQ-0006-12).
 - **Performance:** No change to how often devices check, so no change to store commands per device-hour (ADR-0005 addendum). Reopening the last shared game adds no request beyond what opening its page already makes. The home page's JavaScript budget (`sdd.yaml`) must still be met.
 - **Error states:** A shared game that can't be reopened falls back to the device's own game without an error (REQ-0006-02). A refused check shows Reconnecting and recovers by itself (REQ-0006-11). Creating a link that fails keeps today's messages ([ShareControl](../../../app/ShareControl.tsx)). Refusals are logged as warnings (REQ-0006-12).
@@ -114,6 +114,10 @@ Planning is blocked until every item is resolved or explicitly deferred with a r
 - Q2, resolved 2026-11-13 by the owner: after sharing, the device's own game becomes a new empty game (REQ-0006-05, -06).
 - Q3, resolved 2026-11-13 by the owner: plan for 12 devices on one network (REQ-0006-08); the numbers are set in the plan.
 - Q4, resolved 2026-11-13 by the owner: "N phones live" (REQ-0006-13).
+- Changed during implementation, 2026-11-13, for the owner to confirm in the implementation PR:
+  - `sdd.yaml` requires an ADR to change a rate limit, which the first draft of this spec missed ("ADR: none"). [ADR-0007](../../adr/0007-read-limits-per-address-and-game.md) is proposed with the code. It adds the limit on misses now in REQ-0006-09.
+  - REQ-0006-10 said that opening the page again must not skip the wait. A reloaded page has nothing to show until its first check, so holding that check back would leave it blank for up to a minute. A reload now makes one check, and a refusal starts the wait again.
+  - While the home address is opening the last shared game, it says "Opening your game…" instead of briefly showing the device's own game (REQ-0006-01).
 - Q5, resolved 2026-11-13 by the owner: specified separately as [SPEC-0007](../0007-watch-link-from-any-device/spec.md); it stays a non-goal here.
 
 ## 8. References

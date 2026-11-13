@@ -2,12 +2,12 @@
 
 Small components for the page a shared-game link opens (`/g/[id]`, `SharedGameApp`). Each is presentational: props in, nothing else.
 
-| Component          | Location                              | Shows                                                                                | Spec                  |
-| ------------------ | ------------------------------------- | ------------------------------------------------------------------------------------ | --------------------- |
-| `ConnectionStatus` | `app/components/ConnectionStatus.tsx` | "Live · 3 here", "Reconnecting…", or "Offline. Showing the last version."            | REQ-0003-13           |
-| `WatchNotice`      | `app/components/WatchNotice.tsx`      | What this device can do: watch only, edit access not yet available here, or archived | REQ-0003-06, -20, -29 |
-| `WaitingForHost`   | `app/components/WaitingForHost.tsx`   | "Waiting for the host" until the game starts                                         | REQ-0003-15           |
-| `GameUnavailable`  | `app/components/GameUnavailable.tsx`  | One page for every game that cannot be opened, with a link to start a new one        | REQ-0003-26           |
+| Component          | Location                              | Shows                                                                                                                   | Spec                          |
+| ------------------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `ConnectionStatus` | `app/components/ConnectionStatus.tsx` | "3 phones live" with a note that locked phones aren't counted, "Reconnecting…", or "Offline. Showing the last version." | REQ-0003-13, REQ-0006-13, -14 |
+| `WatchNotice`      | `app/components/WatchNotice.tsx`      | What this device can do: watch only, edit access not yet available here, or archived                                    | REQ-0003-06, -20, -29         |
+| `WaitingForHost`   | `app/components/WaitingForHost.tsx`   | "Waiting for the host" until the game starts                                                                            | REQ-0003-15                   |
+| `GameUnavailable`  | `app/components/GameUnavailable.tsx`  | One page for every game that cannot be opened, with a link to start a new one                                           | REQ-0003-26                   |
 
 ## Props
 
