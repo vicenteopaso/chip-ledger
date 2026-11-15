@@ -18,11 +18,29 @@ async function atTheTop(page: Page) {
   if ((await header.count()) > 0) await expect(header).toHaveAttribute("data-compact", "false");
 }
 
-async function snap(page: Page, name: string) {
+/**
+ * Chromium 158 (Playwright 1.65) drops forced-colors emulation from full-page captures
+ * (`captureBeyondViewport`), so those pictures came out in the normal theme. Under forced colors
+ * the viewport is stretched to the whole page instead, and an ordinary viewport capture is taken.
+ */
+async function fitViewportToPage(page: Page) {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  const width = page.viewportSize()?.width ?? VIEWPORTS.mobile.width;
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  await page.setViewportSize({ width, height });
+  await expect
+    .poll(() => page.evaluate(() => matchMedia("(forced-colors: active)").matches))
+    .toBe(true);
+}
+
+async function snap(page: Page, name: string, { forcedColors = false } = {}) {
+  if (forcedColors) await fitViewportToPage(page);
   await atTheTop(page);
   await page.evaluate(() => document.fonts.ready);
   // Soft: a stale baseline must not hide the steps after it, so one CI run lists every image to refresh.
-  await expect.soft(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+  await expect.soft(page).toHaveScreenshot(`${name}.png`, { fullPage: !forcedColors });
 }
 
 for (const colorScheme of ["light", "dark"] as const) {
@@ -77,7 +95,7 @@ test.describe("forced colors mobile", () => {
     await page.getByRole("button", { name: "Cash out", exact: true }).click();
     await enterCounts(page, SHORT_COUNTS);
     await page.getByRole("heading", { level: 1 }).click();
-    await snap(page, "cashout-forced-colors-mobile");
+    await snap(page, "cashout-forced-colors-mobile", { forcedColors: true });
   });
 });
 
@@ -134,12 +152,13 @@ for (const colorScheme of ["light", "dark"] as const) {
  */
 const SHEET_VIEWPORTS = { ...VIEWPORTS, narrow: { width: 320, height: 640 } };
 
-async function snapSheet(page: Page, name: string) {
+async function snapSheet(page: Page, name: string, { forcedColors = false } = {}) {
+  if (forcedColors) await fitViewportToPage(page);
   await atTheTop(page);
   await page.evaluate(() => document.fonts.ready);
   const sheet = page.getByRole("dialog", { name: "Share this game" });
   await expect.soft(page).toHaveScreenshot(`${name}.png`, {
-    fullPage: true,
+    fullPage: !forcedColors,
     mask: [sheet.getByRole("img"), sheet.getByTestId("share-link")],
   });
 }
@@ -194,6 +213,6 @@ test.describe("share sheet forced colors mobile", () => {
       page.getByRole("dialog", { name: "Share this game" }).getByRole("img"),
     ).toBeVisible();
     await expect(page.getByText("1 phone live")).toBeVisible();
-    await snapSheet(page, "share-ready-forced-colors-mobile");
+    await snapSheet(page, "share-ready-forced-colors-mobile", { forcedColors: true });
   });
 });
