@@ -24,12 +24,25 @@ async function atTheTop(page: Page) {
  * the viewport is stretched to the whole page instead, and an ordinary viewport capture is taken.
  */
 async function fitViewportToPage(page: Page) {
-  await page.evaluate(() => {
-    window.scrollTo(0, 0);
-  });
+  // Measured once the header has finished growing back to full size: mid-transition the page
+  // reads taller, and a viewport stretched too far leaves a gap the page can't shrink back from.
+  await atTheTop(page);
+  const header = page.locator(".app-header");
+  if ((await header.count()) > 0) {
+    await header.evaluate(async (el) => {
+      await Promise.all(el.getAnimations({ subtree: true }).map((animation) => animation.finished));
+    });
+  }
   const width = page.viewportSize()?.width ?? VIEWPORTS.mobile.width;
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  await page.setViewportSize({ width, height });
+  // A taller viewport can change the layout (the bottom bar, the sheet), so grow until it settles.
+  await expect
+    .poll(async () => {
+      const height = await page.evaluate(() => document.documentElement.scrollHeight);
+      if (height === page.viewportSize()?.height) return true;
+      await page.setViewportSize({ width, height });
+      return false;
+    })
+    .toBe(true);
   await expect
     .poll(() => page.evaluate(() => matchMedia("(forced-colors: active)").matches))
     .toBe(true);
